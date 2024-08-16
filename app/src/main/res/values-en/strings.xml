@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MiEmpresa</string>
+    <string name="description">An image</string>
+    <string name="productSearch">Search products…</string>
+    <string name="home_title">Products</string>
+</resources>

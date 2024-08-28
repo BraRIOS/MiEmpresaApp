@@ -3,4 +3,8 @@
     <string name="description">Una imagen</string>
     <string name="productSearch">Buscar productos…</string>
     <string name="home_title">Productos</string>
+    <string name="categories_title">Categorías</string>
+    <string name="categorySearch">Buscar categoría…</string>
+    <string name="home_action">Agregar Producto</string>
+    <string name="categories_action">Añadir Categoría</string>
 </resources>

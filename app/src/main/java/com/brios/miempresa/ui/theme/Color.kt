@@ -1,4 +1,4 @@
-package com.brios.miempresa.theme
+package com.brios.miempresa.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

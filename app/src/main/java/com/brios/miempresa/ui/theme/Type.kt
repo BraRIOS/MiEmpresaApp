@@ -1,4 +1,4 @@
-package com.brios.miempresa.theme
+package com.brios.miempresa.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

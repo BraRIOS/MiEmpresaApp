@@ -1,4 +1,4 @@
-package com.brios.miempresa.theme
+package com.brios.miempresa.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

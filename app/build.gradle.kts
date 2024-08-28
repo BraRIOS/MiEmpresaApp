@@ -4,11 +4,6 @@ plugins {
 }
 
 android {
-    signingConfigs {
-        getByName("debug") {
-            storeFile = file("C:\\Users\\braia\\.android\\debug.keystore")
-        }
-    }
     namespace = "com.brios.miempresa"
     compileSdk = 34
 
@@ -47,16 +42,21 @@ android {
     }
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/INDEX.LIST"
+            excludes += "/META-INF/DEPENDENCIES"
+            excludes += "/META-INF/NOTICE"
+            excludes += "/META-INF/LICENSE"
+            excludes += "/META-INF/NOTICE.txt"
+            excludes += "/META-INF/LICENSE.txt"
         }
     }
 }
 
 dependencies {
     implementation(libs.google.api.client.android)
-    implementation(libs.google.api.client.gson)
-    implementation(libs.google.oauth.client.jetty)
     implementation(libs.google.api.services.sheets)
+    implementation(libs.google.play.services.auth)
+    implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.accompanist.flowlayout)
     implementation(libs.coil.compose)
+    implementation(libs.androidx.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

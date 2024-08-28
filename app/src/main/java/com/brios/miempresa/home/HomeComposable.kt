@@ -1,6 +1,5 @@
 package com.brios.miempresa.home
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -8,132 +7,157 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
+import com.brios.miempresa.common.Header
+import com.brios.miempresa.model.MainViewModel
 
 @Composable
-fun HomePage(products: List<Product>) {
+fun HomeComposable(
+    viewModel: MainViewModel,
+    onNavigateToProductDetail: () -> Unit = {}
+) {
+    val products = listOf(
+        Product(
+            "Pepe CEO",
+            "Meme de Pepe el sapo que se convirtió en CEO exitoso",
+            "$10.00",
+            "Meme",
+            "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"
+        ),
+        Product(
+            "Pedro pedro pedro",
+            "Meme del mapache con la canción de pedro pedro pedro",
+            "$20.00",
+            "Meme",
+            "https://mixradio.co/wp-content/uploads/2024/05/pedro-mapache.jpg"
+        ),
+        Product(
+            "Huh",
+            "Meme de gato huh",
+            "$30.00",
+            "Meme",
+            "https://media.tenor.com/vmSP8owuOYYAAAAM/huh-cat-huh-m4rtin.gif"
+        ),
+        Product(
+            "Shrek",
+            "Meme de Shrek sospechoso",
+            "$40.00",
+            "Meme",
+            "https://media.tenor.com/mtiOW6O-k8YAAAAM/shrek-shrek-rizz.gif"
+        ),
+        Product(
+            "Shrek",
+            "Meme de Shrek sospechoso",
+            "$40.00",
+            "Meme",
+            "https://media.tenor.com/mtiOW6O-k8YAAAAM/shrek-shrek-rizz.gif"
+        ),
+        Product(
+            "Shrek",
+            "Meme de Shrek sospechoso",
+            "$40.00",
+            "Meme",
+            "https://media.tenor.com/mtiOW6O-k8YAAAAM/shrek-shrek-rizz.gif"
+        ),
+        Product(
+            "Shrek",
+            "Meme de Shrek sospechoso",
+            "$40.00",
+            "Meme",
+            "https://media.tenor.com/mtiOW6O-k8YAAAAM/shrek-shrek-rizz.gif"
+        ),
+    )
     var searchQuery by remember { mutableStateOf("") }
     val filteredProducts = products.filter {
         it.name.contains(searchQuery, ignoreCase = true)
     }
 
     val focusManager = LocalFocusManager.current
+    val windowTitle = stringResource(id = R.string.home_title)
+    val lazyListState = rememberLazyListState()
 
-    Scaffold(
+    // Detectar si el Header está visible
+    LaunchedEffect(lazyListState) {
+        snapshotFlow { lazyListState.firstVisibleItemIndex }
+            .collect { firstVisibleItemIndex ->
+                viewModel.topBarTitle = if (firstVisibleItemIndex > 0) {
+                    windowTitle
+                } else {
+                    ""
+                }
+            }
+    }
+
+    LazyColumn(
+        state = lazyListState,
         modifier = Modifier
-            .navigationBarsPadding()
-            .statusBarsPadding(),
-        topBar = {
-            Text(text = stringResource(id = R.string.home_title),
-                style = MaterialTheme.typography.displayLarge,)
-            SearchBar(
-                query = searchQuery,
-                onQueryChange = { searchQuery = it },
-                modifier = Modifier
-                    .padding(vertical = 4.dp)
-            )
-        },
-        content = { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectTapGestures {
-                            focusManager.clearFocus()
-                        }
-                    }
-            ) {
-                Spacer(modifier = Modifier.height(16.dp))
-                ProductList(products = filteredProducts, onProductClick = {
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures {
                     focusManager.clearFocus()
-                })
+                }
+            },
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        item {
+            Header(
+                title = windowTitle,
+                hasAction = true,
+                action = { /* Acción al presionar el botón */ },
+                actionText = stringResource(id = R.string.home_action),
+                actionIcon = Icons.Filled.Add,
+                hasSearch = true,
+                searchPlaceholder = stringResource(id = R.string.productSearch),
+                searchQuery = searchQuery,
+                onQueryChange = { searchQuery = it }
+            )
+        }
+
+        items(filteredProducts.chunked(10)) { rowItems ->
+            ProductGrid(rowItems) {
+                onNavigateToProductDetail()
+                focusManager.clearFocus()
             }
         }
-    )
-}
-
-@Composable
-fun SearchBar(
-    query: String, onQueryChange: (String) -> Unit,
-    modifier: Modifier) {
-    TextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .border(1.dp, Color.Gray, MaterialTheme.shapes.medium)
-            .clip(MaterialTheme.shapes.medium),
-        placeholder = {
-            Text(stringResource(id = R.string.productSearch), color = Color.Gray, style = MaterialTheme.typography.bodyLarge)
-        },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = null,
-            )
-        },
-        colors = TextFieldDefaults.colors(
-            focusedTextColor = Color.Black,
-            unfocusedTextColor = Color.Gray,
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            cursorColor = MaterialTheme.colorScheme.primary,
-            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-            unfocusedIndicatorColor = Color.Transparent,
-            focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
-            unfocusedLeadingIconColor = Color.Gray,
-            focusedPlaceholderColor = Color.Gray,
-            unfocusedPlaceholderColor = Color.Gray,
-        ),
-        singleLine = true,
-        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
-    )
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ProductList(products: List<Product>, onProductClick: () -> Unit) {
+fun ProductGrid(products: List<Product>, onProductClick: () -> Unit) {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
@@ -141,7 +165,6 @@ fun ProductList(products: List<Product>, onProductClick: () -> Unit) {
         FlowRow(
             verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Top),
             horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
-            modifier = Modifier.padding(horizontal = 8.dp)
         ) {
             products.forEach { product ->
                 ProductCard(product, onProductClick)
@@ -179,8 +202,8 @@ fun ProductCard(product: Product, onProductClick: () -> Unit) {
             modifier = Modifier
                 .height(150.dp)
                 .fillMaxWidth(),
-            contentDescription = stringResource(R.string.description)
-        )
+            contentDescription = product.name + " image",
+            )
         Column(
             modifier = Modifier
                 .padding(16.dp)
@@ -192,26 +215,10 @@ fun ProductCard(product: Product, onProductClick: () -> Unit) {
     }
 }
 
-
-@Composable
-fun PreviewHomePage() {
-    val sampleProducts = listOf(
-        Product("Pepe CEO", "$10.00", "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"),
-        Product("Pedro pedro pedro", "$20.00", "https://mixradio.co/wp-content/uploads/2024/05/pedro-mapache.jpg"),
-        Product("Huh", "$30.00", "https://media.tenor.com/vmSP8owuOYYAAAAM/huh-cat-huh-m4rtin.gif"),
-        Product("Shrek", "$40.00", "https://media.tenor.com/mtiOW6O-k8YAAAAM/shrek-shrek-rizz.gif"),
-    )
-    HomePage(products = sampleProducts, )
-}
-
-@Preview
-@Composable
-private fun HomePreview() {
-    PreviewHomePage()
-}
-
 data class Product(
     val name: String,
+    val description: String,
     val price: String,
+    val category: String,
     val imageUrl: String
 )

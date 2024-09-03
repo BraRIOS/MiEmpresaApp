@@ -1,11 +1,10 @@
 package com.brios.miempresa.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Dining
 import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.outlined.GridView
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -15,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.brios.miempresa.R
@@ -24,18 +24,22 @@ fun BottomBar(
     onNavigate: (String) -> Unit,
 ) {
 
-    val homeTab = TabBarItem(
+    val productsTab = TabBarItem(
         title = stringResource(id = R.string.home_title),
-        screen = MiEmpresaScreen.Home,
-        selectedIcon = Icons.Filled.Home,
-        unselectedIcon = Icons.Outlined.Home)
+        screen = MiEmpresaScreen.Products,
+        icon = Icons.Filled.Dining,
+        selectedColor = MaterialTheme.colorScheme.primary,
+        unselectedColor = LocalContentColor.current.copy(alpha = 0.6f)
+        )
     val categoriesTab = TabBarItem(
         title = stringResource(id = R.string.categories_title),
         screen = MiEmpresaScreen.Categories,
-        selectedIcon = Icons.Filled.GridView,
-        unselectedIcon = Icons.Outlined.GridView)
+        icon = Icons.Filled.GridView,
+        selectedColor = MaterialTheme.colorScheme.primary,
+        unselectedColor = LocalContentColor.current.copy(alpha = 0.6f)
+       )
 
-    val tabBarItems = listOf(homeTab, categoriesTab)
+    val tabBarItems = listOf(productsTab, categoriesTab)
 
     TabView(tabBarItems, onNavigate)
 }
@@ -43,9 +47,9 @@ fun BottomBar(
 data class TabBarItem(
     val title: String,
     val screen: MiEmpresaScreen,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector,
-    val badgeAmount: Int? = null
+    val icon: ImageVector,
+    val selectedColor: Color,
+    val unselectedColor: Color,
 )
 
 @Composable
@@ -64,11 +68,18 @@ fun TabView(tabBarItems: List<TabBarItem>, onNavigate: (String) -> Unit) {
                 },
                 icon = {
                     Icon(
-                        imageVector = if (index == selectedTabIndex) tabBarItem.selectedIcon else tabBarItem.unselectedIcon,
-                        contentDescription=tabBarItem.title
+                        imageVector =  tabBarItem.icon,
+                        contentDescription=tabBarItem.title,
+                        tint = if (selectedTabIndex == index) tabBarItem.selectedColor else tabBarItem.unselectedColor
                         )
                 },
-                label = { Text(tabBarItem.title, style = MaterialTheme.typography.labelLarge ) })
+                label = {
+                    Text(
+                        tabBarItem.title,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = if (selectedTabIndex == index) tabBarItem.selectedColor else tabBarItem.unselectedColor
+                    )
+                })
         }
     }
 }

@@ -9,22 +9,21 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.brios.miempresa.categories.Categories
-import com.brios.miempresa.home.HomeComposable
-import com.brios.miempresa.model.MainViewModel
+import com.brios.miempresa.categories.CategoriesComposable
+import com.brios.miempresa.home.ProductsComposable
 import com.brios.miempresa.product.ProductDetails
 
 @Composable
-fun NavHostComposable(innerPadding: PaddingValues, navController: NavHostController, viewModel: MainViewModel) {
+fun NavHostComposable(innerPadding: PaddingValues, navController: NavHostController, viewModel: TopBarViewModel) {
     NavHost(
         navController = navController,
-        startDestination = MiEmpresaScreen.Home.name,
+        startDestination = MiEmpresaScreen.Products.name,
         modifier = Modifier.fillMaxSize()
             .padding(innerPadding)
             .padding(horizontal = 4.dp)
     ) {
-        composable(route = MiEmpresaScreen.Home.name) {
-            HomeComposable(
+        composable(route = MiEmpresaScreen.Products.name) {
+            ProductsComposable(
                 viewModel,
                 onNavigateToProductDetail = { navController.navigate(MiEmpresaScreen.Product.name) }
             )
@@ -33,7 +32,7 @@ fun NavHostComposable(innerPadding: PaddingValues, navController: NavHostControl
             ProductDetails( viewModel )
         }
         composable(route = MiEmpresaScreen.Categories.name) {
-            Categories( viewModel )
+            CategoriesComposable( viewModel )
         }
     }
 }

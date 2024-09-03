@@ -1,9 +1,9 @@
 package com.brios.miempresa.product
 
 import androidx.compose.runtime.Composable
-import com.brios.miempresa.model.MainViewModel
+import com.brios.miempresa.navigation.TopBarViewModel
 
 @Composable
-fun ProductDetails( viewModel: MainViewModel) {
+fun ProductDetails( viewModel: TopBarViewModel) {
 
 }

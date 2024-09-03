@@ -1,18 +1,15 @@
-package com.brios.miempresa.home
+package com.brios.miempresa.categories
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -41,71 +38,37 @@ import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
 import com.brios.miempresa.common.Header
-import com.brios.miempresa.model.MainViewModel
+import com.brios.miempresa.navigation.TopBarViewModel
 
 @Composable
-fun HomeComposable(
-    viewModel: MainViewModel,
-    onNavigateToProductDetail: () -> Unit = {}
+fun CategoriesComposable(
+    viewModel: TopBarViewModel,
+    onCategorySelect: () -> Unit = {}
 ) {
-    val products = listOf(
-        Product(
-            "Pepe CEO",
-            "Meme de Pepe el sapo que se convirtió en CEO exitoso",
-            "$10.00",
-            "Meme",
-            "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"
-        ),
-        Product(
-            "Pedro pedro pedro",
-            "Meme del mapache con la canción de pedro pedro pedro",
-            "$20.00",
-            "Meme",
-            "https://mixradio.co/wp-content/uploads/2024/05/pedro-mapache.jpg"
-        ),
-        Product(
-            "Huh",
-            "Meme de gato huh",
-            "$30.00",
-            "Meme",
-            "https://media.tenor.com/vmSP8owuOYYAAAAM/huh-cat-huh-m4rtin.gif"
-        ),
-        Product(
-            "Shrek",
-            "Meme de Shrek sospechoso",
-            "$40.00",
-            "Meme",
-            "https://media.tenor.com/mtiOW6O-k8YAAAAM/shrek-shrek-rizz.gif"
-        ),
-        Product(
-            "Shrek",
-            "Meme de Shrek sospechoso",
-            "$40.00",
-            "Meme",
-            "https://media.tenor.com/mtiOW6O-k8YAAAAM/shrek-shrek-rizz.gif"
-        ),
-        Product(
-            "Shrek",
-            "Meme de Shrek sospechoso",
-            "$40.00",
-            "Meme",
-            "https://media.tenor.com/mtiOW6O-k8YAAAAM/shrek-shrek-rizz.gif"
-        ),
-        Product(
-            "Shrek",
-            "Meme de Shrek sospechoso",
-            "$40.00",
-            "Meme",
-            "https://media.tenor.com/mtiOW6O-k8YAAAAM/shrek-shrek-rizz.gif"
-        ),
+    val categories = listOf(
+        Category("Meme",
+            4,
+            "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"),
+        Category("Meme",
+            4,
+            "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"),
+        Category("Meme",
+            4,
+            "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"),
+        Category("Meme",
+            4,
+            "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"),
+        Category("Meme",
+            4,
+            "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"),
     )
     var searchQuery by remember { mutableStateOf("") }
-    val filteredProducts = products.filter {
+    val filteredCategories = categories.filter {
         it.name.contains(searchQuery, ignoreCase = true)
     }
 
     val focusManager = LocalFocusManager.current
-    val windowTitle = stringResource(id = R.string.home_title)
+    val windowTitle = stringResource(id = R.string.categories_title)
     val lazyListState = rememberLazyListState()
 
     // Detectar si el Header está visible
@@ -137,57 +100,35 @@ fun HomeComposable(
                 title = windowTitle,
                 hasAction = true,
                 action = { /* Acción al presionar el botón */ },
-                actionText = stringResource(id = R.string.home_action),
+                actionText = stringResource(id = R.string.categories_action),
                 actionIcon = Icons.Filled.Add,
                 hasSearch = true,
-                searchPlaceholder = stringResource(id = R.string.productSearch),
+                searchPlaceholder = stringResource(id = R.string.categorySearch),
                 searchQuery = searchQuery,
                 onQueryChange = { searchQuery = it }
             )
         }
 
-        items(filteredProducts.chunked(10)) { rowItems ->
-            ProductGrid(rowItems) {
-                onNavigateToProductDetail()
-                focusManager.clearFocus()
-            }
+        items(filteredCategories) { rowItems ->
+            CategoryCard(rowItems, onCategorySelect)
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ProductGrid(products: List<Product>, onProductClick: () -> Unit) {
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center
-    ) {
-        FlowRow(
-            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Top),
-            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
-        ) {
-            products.forEach { product ->
-                ProductCard(product, onProductClick)
-            }
-        }
-    }
-}
-
-
-@Composable
-fun ProductCard(product: Product, onProductClick: () -> Unit) {
+fun CategoryCard(category: Category, onCategorySelect: () -> Unit) {
     Card(
         modifier = Modifier
-            .width(180.dp)
+            .fillMaxWidth()
             .clickable(
-                onClick = onProductClick,
+                onClick = onCategorySelect,
             ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
         )
     ) {
         SubcomposeAsyncImage(
-            model = product.imageUrl,
+            model = category.imageUrl,
             loading = {
                 Box(
                     modifier = Modifier
@@ -202,23 +143,22 @@ fun ProductCard(product: Product, onProductClick: () -> Unit) {
             modifier = Modifier
                 .height(150.dp)
                 .fillMaxWidth(),
-            contentDescription = product.name + " image",
-            )
+            contentDescription = category.name + " image",
+        )
         Column(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth()
         ) {
-            Text(text = product.name, style = MaterialTheme.typography.titleLarge)
-            Text(text = product.price, style = MaterialTheme.typography.titleLarge)
+            Text(text = category.name, style = MaterialTheme.typography.titleLarge)
+            Text(text = "${stringResource(id = R.string.home_title)}: ${category.productQty}",
+                style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
 
-data class Product(
+data class Category(
     val name: String,
-    val description: String,
-    val price: String,
-    val category: String,
+    val productQty: Int,
     val imageUrl: String
 )

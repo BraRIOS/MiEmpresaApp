@@ -9,7 +9,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
-import com.brios.miempresa.model.MainViewModel
+import com.brios.miempresa.navigation.TopBarViewModel
 import com.brios.miempresa.navigation.BottomBar
 import com.brios.miempresa.navigation.NavHostComposable
 import com.brios.miempresa.navigation.TopBar
@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val viewModel: MainViewModel = viewModel()
+            val viewModel: TopBarViewModel = viewModel()
             val navController = rememberNavController()
             MiEmpresaTheme {
                 Surface(

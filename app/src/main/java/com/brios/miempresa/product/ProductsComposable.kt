@@ -1,4 +1,4 @@
-package com.brios.miempresa.home
+package com.brios.miempresa.product
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -26,10 +26,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +36,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
 import com.brios.miempresa.common.Header
@@ -45,74 +44,22 @@ import com.brios.miempresa.navigation.TopBarViewModel
 
 @Composable
 fun ProductsComposable(
-    viewModel: TopBarViewModel,
+    topBarViewModel: TopBarViewModel,
+    productsViewModel: ProductsViewModel = hiltViewModel(),
     onNavigateToProductDetail: () -> Unit = {}
 ) {
-    val products = listOf(
-        Product(
-            "Pepe CEO",
-            "Meme de Pepe el sapo que se convirtió en CEO exitoso",
-            "$10.00",
-            "Meme",
-            "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"
-        ),
-        Product(
-            "Pedro pedro pedro",
-            "Meme del mapache con la canción de pedro pedro pedro",
-            "$20.00",
-            "Meme",
-            "https://mixradio.co/wp-content/uploads/2024/05/pedro-mapache.jpg"
-        ),
-        Product(
-            "Huh",
-            "Meme de gato huh",
-            "$30.00",
-            "Meme",
-            "https://media.tenor.com/vmSP8owuOYYAAAAM/huh-cat-huh-m4rtin.gif"
-        ),
-        Product(
-            "Shrek",
-            "Meme de Shrek sospechoso",
-            "$40.00",
-            "Meme",
-            "https://media.tenor.com/mtiOW6O-k8YAAAAM/shrek-shrek-rizz.gif"
-        ),
-        Product(
-            "Shrek",
-            "Meme de Shrek sospechoso",
-            "$40.00",
-            "Meme",
-            "https://media.tenor.com/mtiOW6O-k8YAAAAM/shrek-shrek-rizz.gif"
-        ),
-        Product(
-            "Shrek",
-            "Meme de Shrek sospechoso",
-            "$40.00",
-            "Meme",
-            "https://media.tenor.com/mtiOW6O-k8YAAAAM/shrek-shrek-rizz.gif"
-        ),
-        Product(
-            "Shrek",
-            "Meme de Shrek sospechoso",
-            "$40.00",
-            "Meme",
-            "https://media.tenor.com/mtiOW6O-k8YAAAAM/shrek-shrek-rizz.gif"
-        ),
-    )
-    var searchQuery by remember { mutableStateOf("") }
-    val filteredProducts = products.filter {
-        it.name.contains(searchQuery, ignoreCase = true)
-    }
+    val searchQuery by productsViewModel.searchQuery.collectAsState()
+    val isLoading by productsViewModel.isLoading.collectAsState()
+    val filteredProducts by productsViewModel.filteredProducts.collectAsState()
 
     val focusManager = LocalFocusManager.current
     val windowTitle = stringResource(id = R.string.home_title)
     val lazyListState = rememberLazyListState()
 
-    // Detectar si el Header está visible
     LaunchedEffect(lazyListState) {
         snapshotFlow { lazyListState.firstVisibleItemIndex }
             .collect { firstVisibleItemIndex ->
-                viewModel.topBarTitle = if (firstVisibleItemIndex > 0) {
+                topBarViewModel.topBarTitle = if (firstVisibleItemIndex > 0) {
                     windowTitle
                 } else {
                     ""
@@ -142,14 +89,20 @@ fun ProductsComposable(
                 hasSearch = true,
                 searchPlaceholder = stringResource(id = R.string.productSearch),
                 searchQuery = searchQuery,
-                onQueryChange = { searchQuery = it }
+                onQueryChange = { productsViewModel.onSearchQueryChange(it) }
             )
         }
 
-        items(filteredProducts.chunked(10)) { rowItems ->
-            ProductGrid(rowItems) {
-                onNavigateToProductDetail()
-                focusManager.clearFocus()
+        if (isLoading) {
+            item {
+                CircularProgressIndicator()
+            }
+        } else {
+            items(filteredProducts.chunked(10)) { rowItems ->
+                ProductGrid(rowItems) {
+                    onNavigateToProductDetail()
+                    focusManager.clearFocus()
+                }
             }
         }
     }
@@ -214,11 +167,3 @@ fun ProductCard(product: Product, onProductClick: () -> Unit) {
         }
     }
 }
-
-data class Product(
-    val name: String,
-    val description: String,
-    val price: String,
-    val category: String,
-    val imageUrl: String
-)

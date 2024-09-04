@@ -10,8 +10,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.brios.miempresa.categories.CategoriesComposable
-import com.brios.miempresa.home.ProductsComposable
 import com.brios.miempresa.product.ProductDetails
+import com.brios.miempresa.product.ProductsComposable
 
 @Composable
 fun NavHostComposable(innerPadding: PaddingValues, navController: NavHostController, viewModel: TopBarViewModel) {

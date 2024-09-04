@@ -23,10 +23,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
 import com.brios.miempresa.common.Header
@@ -43,29 +42,12 @@ import com.brios.miempresa.navigation.TopBarViewModel
 @Composable
 fun CategoriesComposable(
     viewModel: TopBarViewModel,
+    categoriesViewModel: CategoriesViewModel = hiltViewModel(),
     onCategorySelect: () -> Unit = {}
 ) {
-    val categories = listOf(
-        Category("Meme",
-            4,
-            "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"),
-        Category("Meme",
-            4,
-            "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"),
-        Category("Meme",
-            4,
-            "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"),
-        Category("Meme",
-            4,
-            "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"),
-        Category("Meme",
-            4,
-            "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"),
-    )
-    var searchQuery by remember { mutableStateOf("") }
-    val filteredCategories = categories.filter {
-        it.name.contains(searchQuery, ignoreCase = true)
-    }
+    val searchQuery by categoriesViewModel.searchQuery.collectAsState()
+    val isLoading by categoriesViewModel.isLoading.collectAsState()
+    val filteredCategories by categoriesViewModel.filteredCategories.collectAsState()
 
     val focusManager = LocalFocusManager.current
     val windowTitle = stringResource(id = R.string.categories_title)
@@ -105,12 +87,18 @@ fun CategoriesComposable(
                 hasSearch = true,
                 searchPlaceholder = stringResource(id = R.string.categorySearch),
                 searchQuery = searchQuery,
-                onQueryChange = { searchQuery = it }
+                onQueryChange = { categoriesViewModel.onSearchQueryChange(it) }
             )
         }
 
-        items(filteredCategories) { rowItems ->
-            CategoryCard(rowItems, onCategorySelect)
+        if (isLoading) {
+            item {
+                CircularProgressIndicator()
+            }
+        } else {
+            items(filteredCategories) { rowItems ->
+                CategoryCard(rowItems, onCategorySelect)
+            }
         }
     }
 }
@@ -156,9 +144,3 @@ fun CategoryCard(category: Category, onCategorySelect: () -> Unit) {
         }
     }
 }
-
-data class Category(
-    val name: String,
-    val productQty: Int,
-    val imageUrl: String
-)

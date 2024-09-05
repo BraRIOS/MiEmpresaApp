@@ -57,6 +57,7 @@ android {
 dependencies {
     implementation(libs.google.api.client.android)
     implementation(libs.google.api.services.sheets)
+    implementation(libs.google.oauth.client.jetty)
     implementation(libs.google.play.services.auth)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.core.ktx)

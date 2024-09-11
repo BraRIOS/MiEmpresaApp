@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.dagger.hilt.android)
+    alias(libs.plugins.google.mobile.services)
     id("kotlin-kapt")
 }
 
@@ -57,8 +58,12 @@ android {
 dependencies {
     implementation(libs.google.api.client.android)
     implementation(libs.google.api.services.sheets)
-    implementation(libs.google.oauth.client.jetty)
+    implementation(libs.google.api.services.drive)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.google.googleid)
     implementation(libs.google.play.services.auth)
+    implementation(libs.firebase.auth.ktx)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

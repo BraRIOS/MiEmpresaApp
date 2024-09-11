@@ -7,4 +7,6 @@
     <string name="categorySearch">Buscar categoría…</string>
     <string name="home_action">Agregar Producto</string>
     <string name="categories_action">Añadir Categoría</string>
+    <string name="web_client_id" translatable="false">15636891109-jlv0kehuvvf1rknb2g5kuanis9g1bvfc.apps.googleusercontent.com</string>
+    <string name="sign_in_success">Inicio de sesión exitoso</string>
 </resources>

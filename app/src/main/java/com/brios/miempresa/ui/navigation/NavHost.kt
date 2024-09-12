@@ -36,7 +36,7 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
             val activity = LocalContext.current as Activity
             LaunchedEffect(key1 = Unit) {
                 if(signInViewModel.getSignedInUser() != null) {
-                    navController.navigate(MiEmpresaScreen.Product.name)
+                    navController.navigate(MiEmpresaScreen.Products.name)
                 }
             }
             val signInSuccess = stringResource(R.string.sign_in_success)
@@ -48,7 +48,9 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
                         Toast.LENGTH_LONG
                     ).show()
 
-                    navController.navigate(MiEmpresaScreen.Product.name)
+                    navController.navigate(MiEmpresaScreen.Products.name){
+                        popUpTo(0)
+                    }
                     signInViewModel.resetState()
                 }
             }
@@ -71,10 +73,18 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
             }
         }
         composable(route = MiEmpresaScreen.Product.name) {
-            ProductDetails( )
+            ScaffoldedScreenComposable(
+                navController
+            ){
+                ProductDetails( )
+            }
         }
         composable(route = MiEmpresaScreen.Categories.name) {
-            CategoriesComposable( )
+            ScaffoldedScreenComposable(
+                navController
+            ){
+                CategoriesComposable()
+            }
         }
     }
 }

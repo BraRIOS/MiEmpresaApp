@@ -14,7 +14,6 @@
         android:roundIcon="@mipmap/miempresa_ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MiEmpresa"
-        android:allowCrossUidActivitySwitchFromBelow="false"
         tools:targetApi="35" >
         <activity
             android:name=".MainActivity"

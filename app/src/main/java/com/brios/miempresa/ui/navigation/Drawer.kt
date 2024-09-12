@@ -7,11 +7,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -64,73 +63,76 @@ fun DrawerComposable(
                 // Top logo section
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxSize()
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Image(
-                        painter = painterResource(id = R.mipmap.miempresa_ic_launcher_round),
+                        painter = painterResource(id = R.drawable.miempresa_logo_glyph),
                         contentDescription = "App Logo",
                         modifier = Modifier.size(64.dp),
                         contentScale = ContentScale.Crop
                     )
-//                    Spacer(modifier = Modifier.height(16.dp))
-                }
-
-//                Spacer(modifier = Modifier.weight(1f))
-
-                // Bottom user info section
-                user?.let {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = rememberAsyncImagePainter(model = user.profilePictureUrl),
-                            contentDescription = "Profile Picture",
+                    user?.let {
+                        Row(
                             modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column(
-                            modifier = Modifier.weight(1f)
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text(text = user.username ?: "Unknown User", fontWeight = FontWeight.Bold)
-                            Text(text = user.userId, color = Color.Gray)
-                        }
-                        Box {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = "Options",
+
+                            Image(
+                                painter = rememberAsyncImagePainter(model = user.profilePictureUrl),
+                                contentDescription = "Profile Picture",
                                 modifier = Modifier
-                                    .clickable { showDropdown = !showDropdown }
+                                    .size(48.dp)
+                                    .clip(CircleShape)
                             )
-                            DropdownMenu(
-                                expanded = showDropdown,
-                                onDismissRequest = { showDropdown = false }
+
+                            Column(
+                                modifier = Modifier.weight(1f)
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text("Ver perfil") },
-                                    onClick = {
-                                        showDropdown = false
-                                        scope.launch {
-                                            drawerState.close()
-                                        }
+                                Text(text = user.username ?: "Unknown User", fontWeight = FontWeight.Bold)
+                                user.email?.let { it1 -> Text(text = it1, color = Color.Gray) }
+                            }
+                            Box {
+                                Icon(
+                                    imageVector = Icons.Default.MoreVert,
+                                    contentDescription = "Options",
+                                    modifier = Modifier
+                                        .clickable { showDropdown = !showDropdown }
+                                )
+                                DropdownMenu(
+                                    expanded = showDropdown,
+                                    onDismissRequest = { showDropdown = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Ver perfil") },
+                                        onClick = {
+                                            showDropdown = false
+                                            scope.launch {
+                                                drawerState.close()
+                                            }
 //                                        navController.navigate("profile")
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Cerrar sesión") },
-                                    onClick = {
-                                        showDropdown = false
-                                        signInViewModel.signOut(context)
-                                        navController.navigate(MiEmpresaScreen.Welcome.name)
-                                    }
-                                )
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Cerrar sesión") },
+                                        onClick = {
+                                            showDropdown = false
+                                            scope.launch {
+                                                drawerState.close()
+                                            }
+                                            signInViewModel.signOut(context)
+                                            navController.navigate(MiEmpresaScreen.Welcome.name) {
+                                                popUpTo(0)
+                                                launchSingleTop = true
+                                            }
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

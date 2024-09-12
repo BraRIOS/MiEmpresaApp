@@ -22,14 +22,14 @@ class SignInViewModel @Inject constructor(
 
     fun signIn(activity: Activity) = viewModelScope.launch {
         val signInResult : SignInResult = googleAuthUiClient.signIn(activity)
-        val signInSucceded = signInResult.data != null
-        if (!signInSucceded) {
-            println("\u001B[31m${signInResult.errorMessage}\u001B[0m")
+        val signInSucceed = signInResult.data != null
+        if (!signInSucceed) {
+            println("\u001B${signInResult.errorMessage}\u001B")
         }
         _state.update {
             it.copy(
-                isSignInSuccessful = signInSucceded,
-                signInError = if (signInSucceded) null else activity.getString(R.string.sign_in_error)
+                isSignInSuccessful = signInSucceed,
+                signInError = if (signInSucceed) null else activity.getString(R.string.sign_in_error)
             )
         }
     }

@@ -88,9 +88,9 @@ class GoogleAuthUiClient(
     suspend fun signOut(activity: Activity) {
         val credentialManager: CredentialManager = CredentialManager.create(activity)
         try {
-            credentialManager.clearCredentialState(
-                ClearCredentialStateRequest(ClearCredentialStateRequest.TYPE_CLEAR_CREDENTIAL_STATE))
             auth.signOut()
+            credentialManager.clearCredentialState(
+                ClearCredentialStateRequest())
         } catch (e: Exception) {
             e.printStackTrace()
             if (e is CancellationException) throw e
@@ -101,6 +101,7 @@ class GoogleAuthUiClient(
         UserData(
             userId = uid,
             username = displayName,
+            email = email,
             profilePictureUrl = photoUrl?.toString()
         )
     }

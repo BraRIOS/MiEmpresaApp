@@ -9,4 +9,5 @@
     <string name="home_action">Add Product</string>
     <string name="categories_action">Add Category</string>
     <string name="sign_in_success">Sign in successful</string>
+    <string name="sign_in_error">Sign in failed</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.brios.miempresa.ui.navigation
 
+import android.app.Activity
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -31,6 +33,7 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
         composable(route = MiEmpresaScreen.Welcome.name) {
             val signInViewModel = hiltViewModel<SignInViewModel>()
             val state by signInViewModel.state.collectAsStateWithLifecycle()
+            val activity = LocalContext.current as Activity
             LaunchedEffect(key1 = Unit) {
                 if(signInViewModel.getSignedInUser() != null) {
                     navController.navigate(MiEmpresaScreen.Product.name)
@@ -52,7 +55,7 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
             WelcomeComposable(
                 state,
                 onSignInClick = {
-                    signInViewModel.signIn()
+                    signInViewModel.signIn(activity)
                 }
             )
         }

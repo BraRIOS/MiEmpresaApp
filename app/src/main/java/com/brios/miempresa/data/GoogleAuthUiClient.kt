@@ -1,12 +1,11 @@
 package com.brios.miempresa.data
 
-import android.content.Context
+import android.app.Activity
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
-import androidx.credentials.exceptions.GetCredentialException
 import com.brios.miempresa.R
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -14,27 +13,24 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingExcept
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import java.security.SecureRandom
-import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
-class GoogleAuthUiClient @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val credentialManager: CredentialManager = CredentialManager.create(context)
+class GoogleAuthUiClient(
 ) {
     private val auth = Firebase.auth
 
-    suspend fun signIn(): SignInResult {
+    suspend fun signIn(activity: Activity): SignInResult {
         val nonce = generateNonce()
+        val credentialManager: CredentialManager = CredentialManager.create(activity)
 //      val googleIdOption = GetGoogleIdOption.Builder()
 //        .setFilterByAuthorizedAccounts(true)
 //        .setServerClientId(WEB_CLIENT_ID)
 //        .setAutoSelectEnabled(true)
 //        .setNonce(nonce)
 //        .build()
-        val googleSignInOption = GetSignInWithGoogleOption.Builder(context.getString(R.string.web_client_id))
+        val googleSignInOption = GetSignInWithGoogleOption.Builder(activity.getString(R.string.web_client_id))
             .setNonce(nonce)
             .build()
 
@@ -43,10 +39,11 @@ class GoogleAuthUiClient @Inject constructor(
             .build()
 
         return try {
-            val result = credentialManager.getCredential(context, request)
+            val result = credentialManager.getCredential(activity, request)
             handleSignInResult(result)
-        } catch (e: GetCredentialException) {
+        } catch (e: Exception) {
             e.printStackTrace()
+            println("\u001B[31m${e.message}\u001B[0m")
             SignInResult(
                 data = null,
                 errorMessage = e.message
@@ -88,7 +85,8 @@ class GoogleAuthUiClient @Inject constructor(
             )
     }
 
-    suspend fun signOut() {
+    suspend fun signOut(activity: Activity) {
+        val credentialManager: CredentialManager = CredentialManager.create(activity)
         try {
             credentialManager.clearCredentialState(
                 ClearCredentialStateRequest(ClearCredentialStateRequest.TYPE_CLEAR_CREDENTIAL_STATE))

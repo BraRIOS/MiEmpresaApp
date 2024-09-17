@@ -43,7 +43,7 @@ class GoogleAuthUiClient(
             handleSignInResult(result)
         } catch (e: Exception) {
             e.printStackTrace()
-            println("\u001B[31m${e.message}\u001B[0m")
+            println("\u001B${e.message}\u001B")
             SignInResult(
                 data = null,
                 errorMessage = e.message

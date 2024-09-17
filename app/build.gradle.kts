@@ -10,6 +10,15 @@ android {
     namespace = "com.brios.miempresa"
     compileSdk = 35
 
+    signingConfigs {
+        create("UnifiedDebugKeystore"){
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+        }
+    }
+
     defaultConfig {
         applicationId = "com.brios.miempresa"
         minSdk = 24

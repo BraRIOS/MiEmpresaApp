@@ -25,20 +25,20 @@ import com.brios.miempresa.ui.sign_in.WelcomeComposable
 
 @Composable
 fun NavHostComposable(applicationContext: Context, navController: NavHostController) {
+    val signInViewModel = hiltViewModel<SignInViewModel>()
     NavHost(
         navController = navController,
-        startDestination = MiEmpresaScreen.Welcome.name,
+        startDestination =
+        if(signInViewModel.getSignedInUser() != null)
+            MiEmpresaScreen.Products.name
+        else
+            MiEmpresaScreen.Welcome.name,
         modifier = Modifier.fillMaxSize()
     ) {
         composable(route = MiEmpresaScreen.Welcome.name) {
-            val signInViewModel = hiltViewModel<SignInViewModel>()
             val state by signInViewModel.state.collectAsStateWithLifecycle()
             val activity = LocalContext.current as Activity
-            LaunchedEffect(key1 = Unit) {
-                if(signInViewModel.getSignedInUser() != null) {
-                    navController.navigate(MiEmpresaScreen.Products.name)
-                }
-            }
+
             val signInSuccess = stringResource(R.string.sign_in_success)
             LaunchedEffect(key1 = state.isSignInSuccessful) {
                 if(state.isSignInSuccessful) {

@@ -36,7 +36,7 @@ fun ScaffoldedScreenComposable(
                 }
             },
             bottomBar = {
-                BottomBar {
+                BottomBar(navController) {
                     navController.navigate(it)
                 }
             }

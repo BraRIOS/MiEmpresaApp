@@ -9,7 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
-import com.brios.miempresa.ui.navigation.NavHostComposable
+import com.brios.miempresa.navigation.NavHostComposable
 import com.brios.miempresa.ui.theme.MiEmpresaTheme
 import dagger.hilt.android.AndroidEntryPoint
 

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">MiEmpresa</string>
     <string name="description">An image</string>
     <string name="productSearch">Search products…</string>
     <string name="home_title">Products</string>
@@ -10,4 +9,5 @@
     <string name="categories_action">Add Category</string>
     <string name="sign_in_success">Sign in successful</string>
     <string name="sign_in_error">Sign in failed</string>
+    <string name="user_not_authenticated">User not authenticated</string>
 </resources>

@@ -1,12 +1,14 @@
-package com.brios.miempresa.ui.sign_in
+package com.brios.miempresa.sign_in
 
 import android.app.Activity
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
-import com.brios.miempresa.data.GoogleAuthUiClient
-import com.brios.miempresa.data.SignInResult
+import com.brios.miempresa.domain.GoogleAuthClient
+import com.brios.miempresa.domain.SignInResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -15,13 +17,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SignInViewModel @Inject constructor(
+    @ApplicationContext context: Context
 ) : ViewModel() {
-    private val googleAuthUiClient = GoogleAuthUiClient()
+    private val googleAuthClient = GoogleAuthClient(context)
     private val _state = MutableStateFlow(SignInState())
     val state = _state.asStateFlow()
 
     fun signIn(activity: Activity) = viewModelScope.launch {
-        val signInResult : SignInResult = googleAuthUiClient.signIn(activity)
+        val signInResult : SignInResult = googleAuthClient.signIn(activity)
         val signInSucceed = signInResult.data != null
         if (!signInSucceed) {
             println("\u001B${signInResult.errorMessage}\u001B")
@@ -34,10 +37,10 @@ class SignInViewModel @Inject constructor(
         }
     }
 
-    fun getSignedInUser() = googleAuthUiClient.getSignedInUser()
+    fun getSignedInUser() = googleAuthClient.getSignedInUser()
 
     fun signOut(activity: Activity) = viewModelScope.launch {
-        googleAuthUiClient.signOut(activity)
+        googleAuthClient.signOut(activity)
         _state.update { SignInState() }
     }
 

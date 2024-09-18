@@ -1,4 +1,4 @@
-package com.brios.miempresa.ui.product
+package com.brios.miempresa.product
 
 data class Product(
     val name: String,

@@ -1,4 +1,4 @@
-package com.brios.miempresa.ui.navigation
+package com.brios.miempresa.navigation
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding

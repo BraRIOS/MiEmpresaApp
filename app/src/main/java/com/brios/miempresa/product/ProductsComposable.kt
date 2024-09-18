@@ -1,4 +1,4 @@
-package com.brios.miempresa.ui.product
+package com.brios.miempresa.product
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -39,8 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
-import com.brios.miempresa.ui.common.Header
-import com.brios.miempresa.ui.navigation.TopBarViewModel
+import com.brios.miempresa.common.Header
+import com.brios.miempresa.navigation.TopBarViewModel
 
 @Composable
 fun ProductsComposable(

@@ -1,4 +1,4 @@
-package com.brios.miempresa.data
+package com.brios.miempresa.domain
 
 data class SignInResult(
     val data: UserData?,

@@ -1,4 +1,4 @@
-package com.brios.miempresa.ui.navigation
+package com.brios.miempresa.navigation
 
 import android.app.Activity
 import android.content.Context
@@ -16,12 +16,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.brios.miempresa.R
-import com.brios.miempresa.ui.categories.CategoriesComposable
-import com.brios.miempresa.ui.common.ScaffoldedScreenComposable
-import com.brios.miempresa.ui.product.ProductDetails
-import com.brios.miempresa.ui.product.ProductsComposable
-import com.brios.miempresa.ui.sign_in.SignInViewModel
-import com.brios.miempresa.ui.sign_in.WelcomeComposable
+import com.brios.miempresa.categories.CategoriesComposable
+import com.brios.miempresa.common.ScaffoldedScreenComposable
+import com.brios.miempresa.product.ProductDetails
+import com.brios.miempresa.product.ProductsComposable
+import com.brios.miempresa.sign_in.SignInViewModel
+import com.brios.miempresa.sign_in.WelcomeComposable
 
 @Composable
 fun NavHostComposable(applicationContext: Context, navController: NavHostController) {

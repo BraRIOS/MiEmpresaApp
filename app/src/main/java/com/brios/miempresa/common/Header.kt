@@ -1,4 +1,4 @@
-package com.brios.miempresa.ui.common
+package com.brios.miempresa.common
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

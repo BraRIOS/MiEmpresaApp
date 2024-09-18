@@ -1,4 +1,4 @@
-package com.brios.miempresa.ui.categories
+package com.brios.miempresa.categories
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

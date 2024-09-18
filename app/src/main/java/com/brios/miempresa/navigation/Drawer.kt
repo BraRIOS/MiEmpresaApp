@@ -1,4 +1,4 @@
-package com.brios.miempresa.ui.navigation
+package com.brios.miempresa.navigation
 
 import android.app.Activity
 import androidx.compose.foundation.Image
@@ -41,7 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.brios.miempresa.R
-import com.brios.miempresa.ui.sign_in.SignInViewModel
+import com.brios.miempresa.sign_in.SignInViewModel
 import kotlinx.coroutines.launch
 
 @Composable

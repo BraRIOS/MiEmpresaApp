@@ -1,4 +1,4 @@
-package com.brios.miempresa.ui.navigation
+package com.brios.miempresa.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GridView

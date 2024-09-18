@@ -1,24 +1,47 @@
-package com.brios.miempresa.data
+package com.brios.miempresa.domain
 
 import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.widget.Toast
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import com.brios.miempresa.R
+import com.google.android.gms.auth.api.identity.AuthorizationRequest
+import com.google.android.gms.auth.api.identity.AuthorizationResult
+import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.common.api.Scope
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.gson.GsonFactory
+import com.google.api.services.drive.Drive
+import com.google.api.services.drive.DriveScopes
+import com.google.api.services.sheets.v4.Sheets
+import com.google.api.services.sheets.v4.SheetsScopes
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import java.security.SecureRandom
 import kotlin.coroutines.cancellation.CancellationException
 
-class GoogleAuthUiClient(
+class GoogleAuthClient(
+    @ApplicationContext private val context: Context
 ) {
+    private val scopes = listOf(Scope(DriveScopes.DRIVE), Scope(SheetsScopes.SPREADSHEETS))
+    private val authorizationRequest = AuthorizationRequest.builder().setRequestedScopes(scopes).build()
+    private val authorizationClient = Identity.getAuthorizationClient(context)
+    private val credential: GoogleAccountCredential = GoogleAccountCredential.usingOAuth2(
+        context,
+        listOf(DriveScopes.DRIVE_FILE, SheetsScopes.SPREADSHEETS)
+    )
     private val auth = Firebase.auth
 
     suspend fun signIn(activity: Activity): SignInResult {
@@ -105,6 +128,49 @@ class GoogleAuthUiClient(
             profilePictureUrl = photoUrl?.toString()
         )
     }
+
+    suspend fun authorizeDriveAndSheets(activity: Activity): AuthorizationResult {
+        return authorizationClient.authorize(authorizationRequest).await()
+    }
+
+    suspend fun handleAuthorizationResult(intent: Intent): AuthorizationResult {
+        return authorizationClient.getAuthorizationResultFromIntent(intent)
+    }
+
+    suspend fun getGoogleDriveService(): Drive? {
+        if (auth.currentUser != null) {
+            credential.selectedAccountName = auth.currentUser?.email
+            return Drive.Builder(
+                NetHttpTransport(),
+                GsonFactory.getDefaultInstance(),
+                credential
+            ).setApplicationName(
+                context.resources.getResourceName(R.string.app_name)
+            ).build()
+        }
+        Toast.makeText(context,
+            context.resources.getResourceName(R.string.user_not_authenticated),
+            Toast.LENGTH_SHORT).show()
+        return null
+    }
+
+    suspend fun getGoogleSheetsService(): Sheets? {
+        if (auth.currentUser != null) {
+            credential.selectedAccountName = auth.currentUser?.email
+            return Sheets.Builder(
+                NetHttpTransport(),
+                GsonFactory.getDefaultInstance(),
+                credential
+            ).setApplicationName(
+                context.resources.getResourceName(R.string.app_name)
+            ).build()
+        }
+        Toast.makeText(context,
+            context.resources.getResourceName(R.string.user_not_authenticated),
+            Toast.LENGTH_SHORT).show()
+        return null
+    }
+
 
     private fun generateNonce(length: Int = 32): String {
         val random = SecureRandom()

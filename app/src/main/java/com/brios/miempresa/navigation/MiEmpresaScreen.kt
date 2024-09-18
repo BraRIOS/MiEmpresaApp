@@ -1,4 +1,4 @@
-package com.brios.miempresa.ui.navigation
+package com.brios.miempresa.navigation
 enum class MiEmpresaScreen {
     Welcome,
     Products,

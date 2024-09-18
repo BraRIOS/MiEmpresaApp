@@ -1,4 +1,4 @@
-package com.brios.miempresa.ui.categories
+package com.brios.miempresa.categories
 
 data class Category(
     val name: String,

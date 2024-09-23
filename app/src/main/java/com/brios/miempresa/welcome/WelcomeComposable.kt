@@ -1,4 +1,4 @@
-package com.brios.miempresa.sign_in
+package com.brios.miempresa.welcome
 
 import android.widget.Toast
 import androidx.compose.foundation.Image

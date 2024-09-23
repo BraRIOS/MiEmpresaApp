@@ -7,10 +7,10 @@ import javax.inject.Inject
 class SpreadsheetsApi @Inject constructor(
     private val googleAuthClient: GoogleAuthClient
 ) {
-    suspend fun readDataFromSheet(): ValueRange? {
+    suspend fun readProductsFromSheet(): ValueRange? {
         val service = googleAuthClient.getGoogleSheetsService()
-        val spreadsheetId = "12LPzfQCaaoak8OWmvyaHK3nTIJtQnc5S"
-        val range = "'Productos'!A1:E30"
+        val spreadsheetId = "1QGU9qH_-57mk7VxgOJlbs3USQg-8iu_BPFHMt5b8Vk0"
+        val range = "'Productos'!A2:E"
         return service?.spreadsheets()?.values()
             ?.get(spreadsheetId, range)
             ?.execute()

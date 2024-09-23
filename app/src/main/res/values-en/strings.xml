@@ -9,5 +9,7 @@
     <string name="categories_action">Add Category</string>
     <string name="sign_in_success">Sign in successful</string>
     <string name="sign_in_error">Sign in failed</string>
-    <string name="user_not_authenticated">User not authenticated</string>
+    <string name="not_authorized">Not authorized</string>
+    <string name="authorization_failed">Authorization failed</string>
+    <string name="authorization_success">Authorization success</string>
 </resources>

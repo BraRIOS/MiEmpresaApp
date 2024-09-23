@@ -2,7 +2,6 @@ package com.brios.miempresa.domain
 
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.widget.Toast
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
@@ -28,11 +27,14 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.security.SecureRandom
+import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
-class GoogleAuthClient(
+class GoogleAuthClient @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val scopes = listOf(Scope(DriveScopes.DRIVE), Scope(SheetsScopes.SPREADSHEETS))
@@ -40,7 +42,7 @@ class GoogleAuthClient(
     private val authorizationClient = Identity.getAuthorizationClient(context)
     private val credential: GoogleAccountCredential = GoogleAccountCredential.usingOAuth2(
         context,
-        listOf(DriveScopes.DRIVE_FILE, SheetsScopes.SPREADSHEETS)
+        listOf(DriveScopes.DRIVE, SheetsScopes.SPREADSHEETS)
     )
     private val auth = Firebase.auth
 
@@ -129,18 +131,15 @@ class GoogleAuthClient(
         )
     }
 
-    suspend fun authorizeDriveAndSheets(activity: Activity): AuthorizationResult {
+    suspend fun authorizeDriveAndSheets(): AuthorizationResult {
         return authorizationClient.authorize(authorizationRequest).await()
     }
 
-    suspend fun handleAuthorizationResult(intent: Intent): AuthorizationResult {
-        return authorizationClient.getAuthorizationResultFromIntent(intent)
-    }
 
-    suspend fun getGoogleDriveService(): Drive? {
+    suspend fun getGoogleDriveService(): Drive? = withContext(Dispatchers.IO){
         if (auth.currentUser != null) {
             credential.selectedAccountName = auth.currentUser?.email
-            return Drive.Builder(
+            return@withContext Drive.Builder(
                 NetHttpTransport(),
                 GsonFactory.getDefaultInstance(),
                 credential
@@ -148,27 +147,27 @@ class GoogleAuthClient(
                 context.resources.getResourceName(R.string.app_name)
             ).build()
         }
-        Toast.makeText(context,
-            context.resources.getResourceName(R.string.user_not_authenticated),
-            Toast.LENGTH_SHORT).show()
-        return null
+        withContext(Dispatchers.Main) {
+            Toast.makeText(context, context.getString(R.string.not_authorized), Toast.LENGTH_SHORT).show()
+        }
+        return@withContext null
     }
 
-    suspend fun getGoogleSheetsService(): Sheets? {
+    suspend fun getGoogleSheetsService(): Sheets? = withContext(Dispatchers.IO) {
         if (auth.currentUser != null) {
             credential.selectedAccountName = auth.currentUser?.email
-            return Sheets.Builder(
+            return@withContext Sheets.Builder(
                 NetHttpTransport(),
                 GsonFactory.getDefaultInstance(),
                 credential
             ).setApplicationName(
-                context.resources.getResourceName(R.string.app_name)
+                context.resources.getString(R.string.app_name)
             ).build()
         }
-        Toast.makeText(context,
-            context.resources.getResourceName(R.string.user_not_authenticated),
-            Toast.LENGTH_SHORT).show()
-        return null
+        withContext(Dispatchers.Main) {
+            Toast.makeText(context, context.getString(R.string.not_authorized), Toast.LENGTH_SHORT).show()
+        }
+        return@withContext null
     }
 
 

@@ -10,5 +10,7 @@
     <string name="web_client_id" translatable="false">15636891109-jlv0kehuvvf1rknb2g5kuanis9g1bvfc.apps.googleusercontent.com</string>
     <string name="sign_in_success">Inicio de sesión exitoso</string>
     <string name="sign_in_error">Inicio de sesión fallido</string>
-    <string name="user_not_authenticated">Usuario no autenticado</string>
+    <string name="not_authorized">Sin autorización</string>
+    <string name="authorization_failed">Falló la autorización</string>
+    <string name="authorization_success">Autorización exitosa</string>
 </resources>

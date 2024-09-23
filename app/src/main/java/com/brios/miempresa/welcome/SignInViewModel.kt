@@ -1,7 +1,8 @@
-package com.brios.miempresa.sign_in
+package com.brios.miempresa.welcome
 
 import android.app.Activity
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
@@ -20,8 +21,10 @@ class SignInViewModel @Inject constructor(
     @ApplicationContext context: Context
 ) : ViewModel() {
     private val googleAuthClient = GoogleAuthClient(context)
-    private val _state = MutableStateFlow(SignInState())
-    val state = _state.asStateFlow()
+    private val _signInState = MutableStateFlow(SignInState())
+    val signInStateFlow = _signInState.asStateFlow()
+    private val _authState = MutableStateFlow<AuthState?>(null)
+    val authStateFlow = _authState.asStateFlow()
 
     fun signIn(activity: Activity) = viewModelScope.launch {
         val signInResult : SignInResult = googleAuthClient.signIn(activity)
@@ -29,7 +32,7 @@ class SignInViewModel @Inject constructor(
         if (!signInSucceed) {
             println("\u001B${signInResult.errorMessage}\u001B")
         }
-        _state.update {
+        _signInState.update {
             it.copy(
                 isSignInSuccessful = signInSucceed,
                 signInError = if (signInSucceed) null else activity.getString(R.string.sign_in_error)
@@ -41,10 +44,31 @@ class SignInViewModel @Inject constructor(
 
     fun signOut(activity: Activity) = viewModelScope.launch {
         googleAuthClient.signOut(activity)
-        _state.update { SignInState() }
+        _signInState.update { SignInState() }
     }
 
-    fun resetState() {
-        _state.update { SignInState() }
+    fun resetSignInState() {
+        _signInState.update { SignInState() }
+    }
+
+    fun authorizeDriveAndSheets(activity: Activity) = viewModelScope.launch {
+        val authorizationResult = googleAuthClient.authorizeDriveAndSheets()
+        if (authorizationResult.hasResolution()) {
+            authorizationResult.pendingIntent?.let { intent ->
+                _authState.update { AuthState.PendingAuth(intent.intentSender) }
+            } ?: run {
+                Toast.makeText(activity, activity.getString(R.string.authorization_failed), Toast.LENGTH_SHORT).show()
+                _authState.update {
+                    AuthState.Unauthorized
+                }
+            }
+        } else {
+            Toast.makeText(activity, activity.getString(R.string.authorization_success), Toast.LENGTH_SHORT).show()
+            _authState.update { AuthState.Authorized }
+        }
+    }
+
+    fun updateAuthState(state: AuthState) {
+        _authState.update { state }
     }
 }

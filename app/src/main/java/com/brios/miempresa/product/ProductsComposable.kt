@@ -67,6 +67,8 @@ fun ProductsComposable(
             }
     }
 
+    productsViewModel.loadData()
+
     LazyColumn(
         state = lazyListState,
         modifier = Modifier

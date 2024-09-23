@@ -3,6 +3,9 @@ package com.brios.miempresa.navigation
 import android.app.Activity
 import android.content.Context
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,8 +23,9 @@ import com.brios.miempresa.categories.CategoriesComposable
 import com.brios.miempresa.common.ScaffoldedScreenComposable
 import com.brios.miempresa.product.ProductDetails
 import com.brios.miempresa.product.ProductsComposable
-import com.brios.miempresa.sign_in.SignInViewModel
-import com.brios.miempresa.sign_in.WelcomeComposable
+import com.brios.miempresa.welcome.AuthState
+import com.brios.miempresa.welcome.SignInViewModel
+import com.brios.miempresa.welcome.WelcomeComposable
 
 @Composable
 fun NavHostComposable(applicationContext: Context, navController: NavHostController) {
@@ -36,26 +40,53 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
         modifier = Modifier.fillMaxSize()
     ) {
         composable(route = MiEmpresaScreen.Welcome.name) {
-            val state by signInViewModel.state.collectAsStateWithLifecycle()
+            val signInState by signInViewModel.signInStateFlow.collectAsStateWithLifecycle()
+            val authState by signInViewModel.authStateFlow.collectAsStateWithLifecycle()
             val activity = LocalContext.current as Activity
 
             val signInSuccess = stringResource(R.string.sign_in_success)
-            LaunchedEffect(key1 = state.isSignInSuccessful) {
-                if(state.isSignInSuccessful) {
-                    Toast.makeText(
-                        applicationContext,
-                        signInSuccess,
-                        Toast.LENGTH_LONG
-                    ).show()
+            val authorizationSuccess = stringResource(R.string.authorization_success)
+            val authorizationFailed = stringResource(R.string.authorization_failed)
 
+            LaunchedEffect(key1 = signInState.isSignInSuccessful) {
+                if(signInState.isSignInSuccessful) {
+                    Toast.makeText(applicationContext, signInSuccess, Toast.LENGTH_LONG).show()
+
+                    signInViewModel.authorizeDriveAndSheets(activity)
+                    signInViewModel.resetSignInState()
+                }
+            }
+
+            LaunchedEffect(key1 = authState) {
+                if (authState is AuthState.Authorized) {
                     navController.navigate(MiEmpresaScreen.Products.name){
                         popUpTo(0)
                     }
-                    signInViewModel.resetState()
                 }
             }
+
+            val authorizationLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.StartIntentSenderForResult()
+            ) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    Toast.makeText(applicationContext, authorizationSuccess, Toast.LENGTH_LONG).show()
+                    signInViewModel.updateAuthState(AuthState.Authorized)
+                } else {
+                    Toast.makeText(applicationContext, authorizationFailed, Toast.LENGTH_LONG).show()
+                    signInViewModel.updateAuthState(AuthState.Unauthorized)
+                    signInViewModel.signOut(activity)
+                }
+            }
+            LaunchedEffect(key1 = authState) {
+                if (authState is AuthState.PendingAuth) {
+                    authorizationLauncher.launch(
+                        IntentSenderRequest.Builder((authState as AuthState.PendingAuth).intentSender).build()
+                    )
+                }
+            }
+
             WelcomeComposable(
-                state,
+                signInState,
                 onSignInClick = {
                     signInViewModel.signIn(activity)
                 }

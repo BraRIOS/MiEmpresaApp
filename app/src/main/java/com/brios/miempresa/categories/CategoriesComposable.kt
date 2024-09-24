@@ -34,16 +34,20 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
+import com.brios.miempresa.common.FABButton
 import com.brios.miempresa.common.Header
+import com.brios.miempresa.common.ScaffoldedScreenComposable
+import com.brios.miempresa.navigation.MiEmpresaScreen
 import com.brios.miempresa.navigation.TopBarViewModel
 
 @Composable
 fun CategoriesComposable(
     viewModel: TopBarViewModel = hiltViewModel(),
     categoriesViewModel: CategoriesViewModel = hiltViewModel(),
-    onCategorySelect: () -> Unit = {}
+    navController: NavHostController
 ) {
     val searchQuery by categoriesViewModel.searchQuery.collectAsState()
     val isLoading by categoriesViewModel.isLoading.collectAsState()
@@ -64,40 +68,52 @@ fun CategoriesComposable(
                 }
             }
     }
-
-    LazyColumn(
-        state = lazyListState,
-        modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures {
-                    focusManager.clearFocus()
-                }
-            },
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        item {
-            Header(
-                title = windowTitle,
-                hasAction = true,
+    ScaffoldedScreenComposable(
+        navController = navController,
+        floatingActionButton = {
+            FABButton(
                 action = { /* Acción al presionar el botón */ },
                 actionText = stringResource(id = R.string.categories_action),
-                actionIcon = Icons.Filled.Add,
-                hasSearch = true,
-                searchPlaceholder = stringResource(id = R.string.categorySearch),
-                searchQuery = searchQuery,
-                onQueryChange = { categoriesViewModel.onSearchQueryChange(it) }
+                actionIcon = Icons.Filled.Add
             )
         }
-
-        if (isLoading) {
+    ) {
+        LazyColumn(
+            state = lazyListState,
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures {
+                        focusManager.clearFocus()
+                    }
+                },
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             item {
-                CircularProgressIndicator()
+                Header(
+                    title = windowTitle,
+                    hasSearch = true,
+                    searchPlaceholder = stringResource(id = R.string.categorySearch),
+                    searchQuery = searchQuery,
+                    onQueryChange = { categoriesViewModel.onSearchQueryChange(it) }
+                )
             }
-        } else {
-            items(filteredCategories) { rowItems ->
-                CategoryCard(rowItems, onCategorySelect)
+
+            if (isLoading) {
+                item {
+                    CircularProgressIndicator()
+                }
+            } else {
+                items(filteredCategories) { rowItems ->
+                    CategoryCard(
+                        rowItems
+                    ) {
+                        navController.navigate(
+                            MiEmpresaScreen.Products.name
+                        )
+                    }
+                }
             }
         }
     }

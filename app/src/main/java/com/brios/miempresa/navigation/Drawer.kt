@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -60,7 +61,6 @@ fun DrawerComposable(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
-                // Top logo section
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -109,7 +109,7 @@ fun DrawerComposable(
                                     onDismissRequest = { showDropdown = false }
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("Ver perfil") },
+                                        text = { Text(stringResource(R.string.view_profile)) },
                                         onClick = {
                                             showDropdown = false
                                             scope.launch {
@@ -119,16 +119,15 @@ fun DrawerComposable(
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("Cerrar sesión") },
+                                        text = { Text(stringResource(R.string.log_out)) },
                                         onClick = {
                                             showDropdown = false
                                             scope.launch {
                                                 drawerState.close()
-                                            }
-                                            signInViewModel.signOut(context)
-                                            navController.navigate(MiEmpresaScreen.Welcome.name) {
-                                                popUpTo(0)
-                                                launchSingleTop = true
+                                                signInViewModel.signOut(context)
+                                                navController.navigate(MiEmpresaScreen.Welcome.name) {
+                                                    popUpTo(0)
+                                                }
                                             }
                                         }
                                     )

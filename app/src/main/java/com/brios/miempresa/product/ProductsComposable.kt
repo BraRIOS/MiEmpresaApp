@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,9 +20,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,18 +35,24 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
+import com.brios.miempresa.common.FABButton
 import com.brios.miempresa.common.Header
+import com.brios.miempresa.common.ScaffoldedScreenComposable
+import com.brios.miempresa.navigation.MiEmpresaScreen
 import com.brios.miempresa.navigation.TopBarViewModel
 
 @Composable
 fun ProductsComposable(
     topBarViewModel: TopBarViewModel = hiltViewModel(),
     productsViewModel: ProductsViewModel = hiltViewModel(),
-    onNavigateToProductDetail: () -> Unit = {}
+    navController: NavHostController
 ) {
     val searchQuery by productsViewModel.searchQuery.collectAsState()
     val isLoading by productsViewModel.isLoading.collectAsState()
@@ -68,42 +74,49 @@ fun ProductsComposable(
     }
 
     productsViewModel.loadData()
-
-    LazyColumn(
-        state = lazyListState,
-        modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures {
-                    focusManager.clearFocus()
-                }
-            },
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        item {
-            Header(
-                title = windowTitle,
-                hasAction = true,
+    ScaffoldedScreenComposable(
+        navController = navController,
+        floatingActionButton = {
+            FABButton(
                 action = { /* Acción al presionar el botón */ },
-                actionText = stringResource(id = R.string.home_action),
-                actionIcon = Icons.Filled.Add,
-                hasSearch = true,
-                searchPlaceholder = stringResource(id = R.string.productSearch),
-                searchQuery = searchQuery,
-                onQueryChange = { productsViewModel.onSearchQueryChange(it) }
+                actionText = stringResource(id = R.string.add_product),
+                actionIcon = Icons.Filled.Add
             )
         }
-
-        if (isLoading) {
+    ) {
+        LazyColumn(
+            state = lazyListState,
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures {
+                        focusManager.clearFocus()
+                    }
+                },
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             item {
-                CircularProgressIndicator()
+                Header(
+                    title = windowTitle,
+                    hasSearch = true,
+                    searchPlaceholder = stringResource(id = R.string.productSearch),
+                    searchQuery = searchQuery,
+                    onQueryChange = { productsViewModel.onSearchQueryChange(it) }
+                )
             }
-        } else {
-            items(filteredProducts.chunked(10)) { rowItems ->
-                ProductGrid(rowItems) {
-                    onNavigateToProductDetail()
-                    focusManager.clearFocus()
+
+            if (isLoading) {
+                item {
+                    CircularProgressIndicator()
+                }
+            } else {
+                items(filteredProducts.chunked(10)) { rowItems ->
+                    ProductGrid(rowItems) { selectedProduct ->
+                        navController.currentBackStackEntry?.savedStateHandle?.set("product", selectedProduct)
+                        navController.navigate(MiEmpresaScreen.Product.name)
+                        focusManager.clearFocus()
+                    }
                 }
             }
         }
@@ -112,7 +125,7 @@ fun ProductsComposable(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ProductGrid(products: List<Product>, onProductClick: () -> Unit) {
+fun ProductGrid(products: List<Product>, onProductClick: (product:Product) -> Unit) {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
@@ -130,16 +143,13 @@ fun ProductGrid(products: List<Product>, onProductClick: () -> Unit) {
 
 
 @Composable
-fun ProductCard(product: Product, onProductClick: () -> Unit) {
-    Card(
+fun ProductCard(product: Product, onProductClick: (product:Product) -> Unit) {
+    ElevatedCard(
         modifier = Modifier
-            .width(180.dp)
+            .width(150.dp)
             .clickable(
-                onClick = onProductClick,
+                onClick = { onProductClick(product) },
             ),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-        )
     ) {
         SubcomposeAsyncImage(
             model = product.imageUrl,
@@ -155,17 +165,37 @@ fun ProductCard(product: Product, onProductClick: () -> Unit) {
             },
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .height(150.dp)
+                .height(80.dp)
                 .fillMaxWidth(),
             contentDescription = product.name + " image",
             )
         Column(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(8.dp)
                 .fillMaxWidth()
         ) {
-            Text(text = product.name, style = MaterialTheme.typography.titleLarge)
-            Text(text = product.price, style = MaterialTheme.typography.titleLarge)
+            Text(text = product.name, style = MaterialTheme.typography.titleSmall,
+                overflow = TextOverflow.Ellipsis, maxLines = 2, minLines = 2)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                Text(text = product.price, style = MaterialTheme.typography.titleLarge,
+                    overflow = TextOverflow.Ellipsis)
+            }
         }
     }
+}
+
+@Preview
+@Composable
+fun PreviewProductCard() {
+    ProductCard(
+        product =
+        Product(
+            rowIndex = 1,
+            name = "Preview",
+            description = "",
+            price = "$100",
+            category = "",
+            imageUrl = "https://picsum.photos/200/300"
+        )
+    ){}
 }

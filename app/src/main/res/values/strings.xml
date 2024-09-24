@@ -5,7 +5,7 @@
     <string name="home_title">Productos</string>
     <string name="categories_title">Categorías</string>
     <string name="categorySearch">Buscar categoría…</string>
-    <string name="home_action">Agregar Producto</string>
+    <string name="add_product">Agregar Producto</string>
     <string name="categories_action">Añadir Categoría</string>
     <string name="web_client_id" translatable="false">15636891109-jlv0kehuvvf1rknb2g5kuanis9g1bvfc.apps.googleusercontent.com</string>
     <string name="sign_in_success">Inicio de sesión exitoso</string>
@@ -13,4 +13,17 @@
     <string name="not_authorized">Sin autorización</string>
     <string name="authorization_failed">Falló la autorización</string>
     <string name="authorization_success">Autorización exitosa</string>
+    <string name="show_menu">Mostrar menú</string>
+    <string name="go_back">Volver</string>
+    <string name="log_out">Cerrar sesión</string>
+    <string name="view_profile">Ver perfil</string>
+    <string name="edit_product">Editar producto</string>
+    <string name="save">Guardar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="product_dialog_required_fields">Los campos Nombre y Categoría son obligatorios</string>
+    <string name="image_url_label">URL de la imagen</string>
+    <string name="category_label">Categoría</string>
+    <string name="price_label">Precio</string>
+    <string name="description_label">Descripción</string>
+    <string name="name_label">Nombre</string>
 </resources>

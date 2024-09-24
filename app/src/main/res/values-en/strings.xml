@@ -5,11 +5,24 @@
     <string name="home_title">Products</string>
     <string name="categories_title">Categories</string>
     <string name="categorySearch">Search categories…</string>
-    <string name="home_action">Add Product</string>
+    <string name="add_product">Add Product</string>
     <string name="categories_action">Add Category</string>
     <string name="sign_in_success">Sign in successful</string>
     <string name="sign_in_error">Sign in failed</string>
     <string name="not_authorized">Not authorized</string>
     <string name="authorization_failed">Authorization failed</string>
     <string name="authorization_success">Authorization success</string>
+    <string name="show_menu">Show menu</string>
+    <string name="go_back">Go back</string>
+    <string name="log_out">Log out</string>
+    <string name="view_profile">View profile</string>
+    <string name="edit_product">Edit Product</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="product_dialog_required_fields">Name and Category fields are required</string>
+    <string name="image_url_label">Image URL</string>
+    <string name="category_label">Category</string>
+    <string name="price_label">Price</string>
+    <string name="description_label">Description</string>
+    <string name="name_label">Name</string>
 </resources>

@@ -33,11 +33,13 @@ class ProductsViewModel @Inject constructor(
 
     fun loadData() = viewModelScope.launch {
             try {
-                val data = withContext(Dispatchers.IO) { // Ensure background execution
+                val data = withContext(Dispatchers.IO) {
                     spreadsheetsApi.readProductsFromSheet()
                 }
-                _products.value = data?.getValues()?.map {
+                _products.value = data?.getValues()?.mapIndexed{
+                    index, it ->
                     Product(
+                        rowIndex = index,
                         name = it[0] as String,
                         description = it[1] as String,
                         price = it[2] as String,

@@ -43,8 +43,9 @@ class SignInViewModel @Inject constructor(
     fun getSignedInUser() = googleAuthClient.getSignedInUser()
 
     fun signOut(activity: Activity) = viewModelScope.launch {
-        googleAuthClient.signOut(activity)
+        _authState.update { null }
         _signInState.update { SignInState() }
+        googleAuthClient.signOut(activity)
     }
 
     fun resetSignInState() {

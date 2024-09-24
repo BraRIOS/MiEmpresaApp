@@ -20,7 +20,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.brios.miempresa.R
 import com.brios.miempresa.categories.CategoriesComposable
-import com.brios.miempresa.common.ScaffoldedScreenComposable
 import com.brios.miempresa.product.ProductDetails
 import com.brios.miempresa.product.ProductsComposable
 import com.brios.miempresa.welcome.AuthState
@@ -57,14 +56,6 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
                 }
             }
 
-            LaunchedEffect(key1 = authState) {
-                if (authState is AuthState.Authorized) {
-                    navController.navigate(MiEmpresaScreen.Products.name){
-                        popUpTo(0)
-                    }
-                }
-            }
-
             val authorizationLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.StartIntentSenderForResult()
             ) { result ->
@@ -77,11 +68,17 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
                     signInViewModel.signOut(activity)
                 }
             }
-            LaunchedEffect(key1 = authState) {
+            LaunchedEffect(key1 = authState, key2 = signInViewModel.getSignedInUser()) {
                 if (authState is AuthState.PendingAuth) {
                     authorizationLauncher.launch(
                         IntentSenderRequest.Builder((authState as AuthState.PendingAuth).intentSender).build()
                     )
+                }
+                else if (authState is AuthState.Authorized && signInViewModel.getSignedInUser()!=null) {
+                    navController.navigate(MiEmpresaScreen.Products.name){
+                        popUpTo(0)
+                        launchSingleTop = true
+                    }
                 }
             }
 
@@ -93,29 +90,19 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
             )
         }
         composable(route = MiEmpresaScreen.Products.name) {
-            ScaffoldedScreenComposable(
-                navController
-            ){
-                ProductsComposable(
-                    onNavigateToProductDetail = {
-                        navController.navigate(MiEmpresaScreen.Product.name)
-                    }
-                )
-            }
+            ProductsComposable(
+                navController = navController
+            )
         }
         composable(route = MiEmpresaScreen.Product.name) {
-            ScaffoldedScreenComposable(
-                navController
-            ){
-                ProductDetails( )
-            }
+            ProductDetails(
+                navController = navController
+            )
         }
         composable(route = MiEmpresaScreen.Categories.name) {
-            ScaffoldedScreenComposable(
-                navController
-            ){
-                CategoriesComposable()
-            }
+            CategoriesComposable(
+                navController = navController
+            )
         }
     }
 }

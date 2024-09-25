@@ -27,7 +27,8 @@ fun ScaffoldedScreenComposable(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     DrawerComposable(
-        navController = navController
+        navController,
+        drawerState
     ) {
         Scaffold(
             topBar = {

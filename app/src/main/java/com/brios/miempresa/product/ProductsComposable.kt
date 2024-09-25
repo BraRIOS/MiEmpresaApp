@@ -28,6 +28,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,13 +75,14 @@ fun ProductsComposable(
                 }
             }
     }
+    var showDialog by remember { mutableStateOf(false) }
 
     productsViewModel.loadData()
     ScaffoldedScreenComposable(
         navController = navController,
         floatingActionButton = {
             FABButton(
-                action = { /* Acción al presionar el botón */ },
+                action = { showDialog = true },
                 actionText = stringResource(id = R.string.add_product),
                 actionIcon = Icons.Filled.Add
             )
@@ -113,13 +117,22 @@ fun ProductsComposable(
             } else {
                 items(filteredProducts.chunked(10)) { rowItems ->
                     ProductGrid(rowItems) { selectedProduct ->
-                        navController.currentBackStackEntry?.savedStateHandle?.set("product", selectedProduct)
-                        navController.navigate(MiEmpresaScreen.Product.name)
+                        navController.navigate(MiEmpresaScreen.Product.name + "/${selectedProduct.rowIndex}")
                         focusManager.clearFocus()
                     }
                 }
             }
         }
+    }
+    if (showDialog) {
+        ProductDialog(
+            rowIndex = productsViewModel.getNextAvailableRowIndex(),
+            onDismiss = { showDialog = false },
+            onSave = { newProduct ->
+                productsViewModel.addProduct(newProduct)
+                showDialog = false
+            }
+        )
     }
 }
 

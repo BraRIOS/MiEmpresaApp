@@ -39,7 +39,7 @@ class ProductsViewModel @Inject constructor(
                 _products.value = data?.getValues()?.mapIndexed{
                     index, it ->
                     Product(
-                        rowIndex = index,
+                        rowIndex = index+1,
                         name = it[0] as String,
                         description = it[1] as String,
                         price = it[2] as String,
@@ -60,6 +60,24 @@ class ProductsViewModel @Inject constructor(
         _searchQuery.value = query
         _filteredProducts.value = products.value.filter {
             it.name.contains(query, ignoreCase = true)
+        }
+    }
+
+    fun getNextAvailableRowIndex(): Int {
+        val lastRowIndex = _products.value.lastOrNull()?.rowIndex ?: 0
+        return lastRowIndex + 1
+
+    }
+
+    fun addProduct(newProduct: Product) = viewModelScope.launch {
+        try {
+            withContext(Dispatchers.IO) {
+                spreadsheetsApi.addOrUpdateProductInSheet(newProduct)
+            }
+            _products.value += newProduct
+            onSearchQueryChange(_searchQuery.value)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }

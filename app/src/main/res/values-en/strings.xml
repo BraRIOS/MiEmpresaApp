@@ -25,4 +25,6 @@
     <string name="price_label">Price</string>
     <string name="description_label">Description</string>
     <string name="name_label">Name</string>
+    <string name="product_not_found">Product not found</string>
+    <string name="error_updating_product">Error updating the product</string>
 </resources>

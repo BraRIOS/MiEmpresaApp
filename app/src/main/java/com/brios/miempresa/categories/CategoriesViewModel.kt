@@ -2,19 +2,21 @@ package com.brios.miempresa.categories
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.brios.miempresa.domain.SpreadsheetsApi
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class CategoriesViewModel @Inject constructor() : ViewModel() {
+class CategoriesViewModel @Inject constructor(
+    private val spreadsheetsApi: SpreadsheetsApi
+) : ViewModel() {
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories = _categories.asStateFlow()
-
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery = _searchQuery.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
@@ -23,24 +25,20 @@ class CategoriesViewModel @Inject constructor() : ViewModel() {
     val filteredCategories = _filteredCategories.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _categories.value = listOf(
-                Category("Meme", 4, "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"),
-                Category("Meme", 4, "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"),
-                Category("Meme", 4, "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"),
-                Category("Meme", 4, "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG"),
-                Category("Meme", 4, "https://img4.s3wfg.com/web/img/images_uploaded/1/9/pepecoin-min.JPG")
-            )
-            _isLoading.value = false
-            _filteredCategories.value = _categories.value
-        }
+        _isLoading.value = true
     }
 
-    fun onSearchQueryChange(query: String) {
-        _searchQuery.value = query
-        _filteredCategories.value = categories.value.filter {
-            it.name.contains(query, ignoreCase = true)
+    fun loadData() = viewModelScope.launch {
+        try{
+            val data = withContext(Dispatchers.IO) {
+                spreadsheetsApi.readCategoriesFromSheet()
+            }
+            _categories.value = data
+            _filteredCategories.value = _categories.value
+            _isLoading.value = false
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _isLoading.value = false
         }
     }
 }

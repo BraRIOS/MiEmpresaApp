@@ -28,4 +28,5 @@
     <string name="name_label">Nombre</string>
     <string name="product_not_found">Producto no encontrado</string>
     <string name="error_updating_product">Error al actualizar el producto</string>
+    <string name="show_category_options">Mostrar opciones de la categoría</string>
 </resources>

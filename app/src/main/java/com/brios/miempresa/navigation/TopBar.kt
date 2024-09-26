@@ -55,7 +55,7 @@ fun TopBar(
                     imageVector = if(!showBackButton) Icons.Filled.Menu else Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = if(!showBackButton) "Show menu" else "Go back",
                     modifier = Modifier
-                        .padding(start = 8.dp)
+                        .padding(start = 8.dp, end = 12.dp)
                         .clickable {
                             if (showBackButton) {
                                 navController.popBackStack()
@@ -99,7 +99,10 @@ fun TopBar(
             TopAppBarDefaults.largeTopAppBarColors(
                 containerColor = MaterialTheme.colorScheme.primary.copy(alpha =0f),
                 scrolledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0f)
-            ) else TopAppBarDefaults.largeTopAppBarColors(),
+            ) else TopAppBarDefaults.largeTopAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
         modifier = Modifier.background(
             brush = Brush.verticalGradient(
                 colors = listOf(
@@ -108,7 +111,7 @@ fun TopBar(
                     MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0f)
                 )
             )
-        )
+        ).padding(top = if(isProductScreen) 16.dp else 0.dp)
     )
 }
 

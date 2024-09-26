@@ -18,9 +18,6 @@ class ProductsViewModel @Inject constructor(
     private val _products = MutableStateFlow<List<Product>>(emptyList())
     private val products = _products.asStateFlow()
 
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery = _searchQuery.asStateFlow()
-
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
@@ -36,17 +33,7 @@ class ProductsViewModel @Inject constructor(
                 val data = withContext(Dispatchers.IO) {
                     spreadsheetsApi.readProductsFromSheet()
                 }
-                _products.value = data?.getValues()?.mapIndexed{
-                    index, it ->
-                    Product(
-                        rowIndex = index+1,
-                        name = it[0] as String,
-                        description = it[1] as String,
-                        price = it[2] as String,
-                        category = it[3] as String,
-                        imageUrl = it[4] as String
-                    )
-                } ?: emptyList()
+                _products.value = data
                 _isLoading.value = false
                 _filteredProducts.value = _products.value
             } catch (e: Exception) {
@@ -57,7 +44,6 @@ class ProductsViewModel @Inject constructor(
 
 
     fun onSearchQueryChange(query: String) {
-        _searchQuery.value = query
         _filteredProducts.value = products.value.filter {
             it.name.contains(query, ignoreCase = true)
         }
@@ -75,7 +61,7 @@ class ProductsViewModel @Inject constructor(
                 spreadsheetsApi.addOrUpdateProductInSheet(newProduct)
             }
             _products.value += newProduct
-            onSearchQueryChange(_searchQuery.value)
+            _filteredProducts.value = _products.value
         } catch (e: Exception) {
             e.printStackTrace()
         }

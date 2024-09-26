@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
@@ -25,13 +24,11 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -46,8 +43,8 @@ import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
 import com.brios.miempresa.common.FABButton
-import com.brios.miempresa.common.Header
 import com.brios.miempresa.common.ScaffoldedScreenComposable
+import com.brios.miempresa.common.SearchBar
 import com.brios.miempresa.navigation.MiEmpresaScreen
 import com.brios.miempresa.navigation.TopBarViewModel
 
@@ -57,24 +54,17 @@ fun ProductsComposable(
     productsViewModel: ProductsViewModel = hiltViewModel(),
     navController: NavHostController
 ) {
-    val searchQuery by productsViewModel.searchQuery.collectAsState()
+    val searchQuery by remember {
+        mutableStateOf("")
+    }
+    
     val isLoading by productsViewModel.isLoading.collectAsState()
     val filteredProducts by productsViewModel.filteredProducts.collectAsState()
 
-    val focusManager = LocalFocusManager.current
-    val windowTitle = stringResource(id = R.string.home_title)
-    val lazyListState = rememberLazyListState()
+    topBarViewModel.topBarTitle = stringResource(id = R.string.home_title)
 
-    LaunchedEffect(lazyListState) {
-        snapshotFlow { lazyListState.firstVisibleItemIndex }
-            .collect { firstVisibleItemIndex ->
-                topBarViewModel.topBarTitle = if (firstVisibleItemIndex > 0) {
-                    windowTitle
-                } else {
-                    ""
-                }
-            }
-    }
+    val focusManager = LocalFocusManager.current
+
     var showDialog by remember { mutableStateOf(false) }
 
     productsViewModel.loadData()
@@ -89,7 +79,6 @@ fun ProductsComposable(
         }
     ) {
         LazyColumn(
-            state = lazyListState,
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(Unit) {
@@ -101,18 +90,20 @@ fun ProductsComposable(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             item {
-                Header(
-                    title = windowTitle,
-                    hasSearch = true,
-                    searchPlaceholder = stringResource(id = R.string.productSearch),
-                    searchQuery = searchQuery,
-                    onQueryChange = { productsViewModel.onSearchQueryChange(it) }
+                SearchBar(
+                    query = searchQuery,
+                    onQueryChange = { productsViewModel.onSearchQueryChange(it) },
+                    modifier = Modifier
+                        .padding(vertical = 8.dp),
+                    placeholderText = stringResource(id = R.string.productSearch)
                 )
             }
 
             if (isLoading) {
                 item {
-                    CircularProgressIndicator()
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        CircularProgressIndicator()
+                    }
                 }
             } else {
                 items(filteredProducts.chunked(10)) { rowItems ->
@@ -140,7 +131,9 @@ fun ProductsComposable(
 @Composable
 fun ProductGrid(products: List<Product>, onProductClick: (product:Product) -> Unit) {
     Box(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 16.dp),
         contentAlignment = Alignment.Center
     ) {
         FlowRow(
@@ -185,7 +178,8 @@ fun ProductCard(product: Product, onProductClick: (product:Product) -> Unit) {
         Column(
             modifier = Modifier
                 .padding(8.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(text = product.name, style = MaterialTheme.typography.titleSmall,
                 overflow = TextOverflow.Ellipsis, maxLines = 2, minLines = 2)
@@ -209,6 +203,39 @@ fun PreviewProductCard() {
             price = "$100",
             category = "",
             imageUrl = "https://picsum.photos/200/300"
+        )
+    ){}
+}
+
+@Preview
+@Composable
+fun PreviewProductGrid() {
+    ProductGrid(
+        listOf(
+            Product(
+                rowIndex = 1,
+                name = "Preview",
+                description = "",
+                price = "$100",
+                category = "",
+                imageUrl = "https://picsum.photos/200/300"
+            ),
+            Product(
+                rowIndex = 1,
+                name = "Preview",
+                description = "",
+                price = "$100",
+                category = "",
+                imageUrl = "https://picsum.photos/200/300"
+            ),
+            Product(
+                rowIndex = 1,
+                name = "Preview",
+                description = "",
+                price = "$100",
+                category = "",
+                imageUrl = "https://picsum.photos/200/300"
+            )
         )
     ){}
 }

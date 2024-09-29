@@ -50,17 +50,48 @@ fun CategoriesComposable(
     val filteredCategories by categoriesViewModel.filteredCategories.collectAsState()
     categoriesViewModel.loadData()
     viewModel.topBarTitle = stringResource(id = R.string.categories_title)
+    var showAddDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var selectedCategory by remember { mutableStateOf<Category?>(null) }
     ScaffoldedScreenComposable(
         navController = navController,
         floatingActionButton = {
             FABButton(
-                action = { /* Acción al presionar el botón */ },
+                action = { showAddDialog = true },
                 actionText = stringResource(id = R.string.categories_action),
                 actionIcon = Icons.Filled.Add
             )
         }
     ) {
-        CategoriesScreenContent(navController, isLoading, filteredCategories)
+        CategoriesScreenContent(
+            navController,
+            isLoading,
+            {
+                showEditDialog = true
+                selectedCategory = it
+            },
+            filteredCategories)
+    }
+    if (showAddDialog){
+        CategoryDialog(
+            rowIndex = categoriesViewModel.getNextAvailableRowIndex(),
+            onDismiss = { showAddDialog = false },
+            onSave = { newCategory, onResult ->
+                categoriesViewModel.addCategory(newCategory){ success ->
+                    onResult(success)
+                }
+            }
+        )
+    } else if (showEditDialog && selectedCategory != null){
+        CategoryDialog(
+            category = selectedCategory,
+            onDismiss = { showEditDialog = false },
+            onSave = { newCategory, onResult ->
+                categoriesViewModel.updateCategory(newCategory){ success ->
+                    onResult(success)
+                }
+            }
+        )
     }
 }
 
@@ -68,6 +99,7 @@ fun CategoriesComposable(
 private fun CategoriesScreenContent(
     navController: NavHostController,
     isLoading: Boolean,
+    showEditDialog: (Category) -> Unit,
     filteredCategories: List<Category>
 ) {
     LazyColumn(
@@ -78,7 +110,7 @@ private fun CategoriesScreenContent(
             item { CircularProgressIndicator() }
         } else {
             items(filteredCategories) { category ->
-                CategoryListItem(category) {
+                CategoryListItem(category, showEditDialog) {
                     navController.navigate(MiEmpresaScreen.Products.name)
                 }
                 HorizontalDivider()
@@ -88,7 +120,11 @@ private fun CategoriesScreenContent(
 }
 
 @Composable
-fun CategoryListItem(category: Category, onCategoryClick: (Category) -> Unit) {
+fun CategoryListItem(
+    category: Category,
+    showEditDialog: (Category) -> Unit,
+    onCategoryClick: (Category) -> Unit
+) {
     var showDropdown by remember{
         mutableStateOf(false)
     }
@@ -119,7 +155,7 @@ fun CategoryListItem(category: Category, onCategoryClick: (Category) -> Unit) {
                     DropdownMenuItem(
                         text = { Text("Editar") },
                         onClick = {
-                            // Handle edit action
+                            showEditDialog(category)
                             showDropdown = false
                         }
                     )
@@ -140,6 +176,7 @@ fun CategoryListItem(category: Category, onCategoryClick: (Category) -> Unit) {
 @Preview
 @Composable
 fun PreviewCategoryListItem(){
+    var showDialog by remember { mutableStateOf(false) }
     CategoriesScreenContent(
         navController = NavHostController(LocalContext.current),
         isLoading = false,
@@ -147,22 +184,23 @@ fun PreviewCategoryListItem(){
             Category(
                 rowIndex = 1,
                 name = "Category 1",
-                productQty = "10",
+                productQty = 10,
                 imageUrl = "https://picsum.photos/200/300"
             ),
             Category(
                 rowIndex = 2,
                 name = "Category 2",
-                productQty = "5",
+                productQty = 5,
                 imageUrl = "https://picsum.photos/200/300"
             ),
             Category(
                 rowIndex = 3,
                 name = "Category 3",
-                productQty = "8",
+                productQty = 8,
                 imageUrl = "https://picsum.photos/200/300"
             )
-        )
+        ),
+        showEditDialog = {showDialog = true}
     )
 
 }

@@ -2,13 +2,16 @@ package com.brios.miempresa.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -20,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
@@ -29,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.brios.miempresa.R
+import com.brios.miempresa.ui.theme.RedWarning
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +42,7 @@ fun TopBar(
     title: String,
     openDrawer: () -> Unit = {},
     editProduct: () -> Unit = {},
+    deleteProduct: () -> Unit = {}
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
 
@@ -82,7 +88,11 @@ fun TopBar(
         },
         actions = {
             if (isProductScreen) {
-                Box(modifier = Modifier.padding(end = 8.dp)) {
+                Row(
+                    modifier = Modifier.padding(end = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     FloatingActionButton(
                         onClick = { editProduct() },
                         shape = CircleShape,
@@ -90,6 +100,16 @@ fun TopBar(
                         Icon(
                             imageVector = Icons.Filled.Edit,
                             contentDescription = stringResource(R.string.edit_product),
+                        )
+                    }
+                    FloatingActionButton(
+                        onClick = { deleteProduct() },
+                        shape = CircleShape,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = stringResource(R.string.delete_product),
+                            tint = RedWarning
                         )
                     }
                 }

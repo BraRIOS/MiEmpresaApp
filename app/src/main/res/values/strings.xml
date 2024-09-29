@@ -20,7 +20,7 @@
     <string name="edit_product">Editar producto</string>
     <string name="save">Guardar</string>
     <string name="cancel">Cancelar</string>
-    <string name="product_dialog_required_fields">Los campos Nombre y Categoría son obligatorios</string>
+    <string name="product_dialog_required_fields">El Nombre y las Categorías son obligatorios</string>
     <string name="image_url_label">URL de la imagen</string>
     <string name="category_label">Categoría</string>
     <string name="price_label">Precio</string>
@@ -29,4 +29,19 @@
     <string name="product_not_found">Producto no encontrado</string>
     <string name="error_updating_product">Error al actualizar el producto</string>
     <string name="show_category_options">Mostrar opciones de la categoría</string>
+    <string name="product_quantity">Cantidad de productos</string>
+    <string name="add_category">Agregar categoría</string>
+    <string name="edit_category">Editar categoría</string>
+    <string name="category_dialog_error">El Nombre es obligatorio</string>
+    <string name="error_loading_product">No se pudo cargar el producto</string>
+    <string name="warning_icon_description">Icono de alerta</string>
+    <string name="error_adding_product">No se pudo agregar el producto</string>
+    <string name="error_adding_category">No se pudo agregar la categoría</string>
+    <string name="error_updating_category">No se pudo actualizar la categoría</string>
+    <string name="delete_dialog_title">"¿Quieres eliminar "</string>
+    <string name="confirm">Confirmar</string>
+    <string name="info">Info</string>
+    <string name="delete_product">Eliminar producto</string>
+    <string name="error_deleting_product">No se pudo eliminar el producto</string>
+    <string name="error_loading_categories">No se pudieron cargar las categorías</string>
 </resources>

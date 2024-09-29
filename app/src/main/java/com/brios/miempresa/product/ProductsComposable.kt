@@ -54,9 +54,7 @@ fun ProductsComposable(
     productsViewModel: ProductsViewModel = hiltViewModel(),
     navController: NavHostController
 ) {
-    val searchQuery by remember {
-        mutableStateOf("")
-    }
+    var searchQuery by remember { mutableStateOf("") }
     
     val isLoading by productsViewModel.isLoading.collectAsState()
     val filteredProducts by productsViewModel.filteredProducts.collectAsState()
@@ -78,50 +76,59 @@ fun ProductsComposable(
             )
         }
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {
-                    detectTapGestures {
-                        focusManager.clearFocus()
-                    }
-                },
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            item {
-                SearchBar(
-                    query = searchQuery,
-                    onQueryChange = { productsViewModel.onSearchQueryChange(it) },
-                    modifier = Modifier
-                        .padding(vertical = 8.dp),
-                    placeholderText = stringResource(id = R.string.productSearch)
-                )
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
-
-            if (isLoading) {
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures {
+                            focusManager.clearFocus()
+                        }
+                    },
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
                 item {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        CircularProgressIndicator()
-                    }
+                    SearchBar(
+                        query = searchQuery,
+                        onQueryChange = {
+                            searchQuery = it
+                            productsViewModel.onSearchQueryChange(it)
+                        },
+                        modifier = Modifier
+                            .padding(vertical = 8.dp),
+                        placeholderText = stringResource(id = R.string.productSearch)
+                    )
                 }
-            } else {
+
                 items(filteredProducts.chunked(10)) { rowItems ->
                     ProductGrid(rowItems) { selectedProduct ->
                         navController.navigate(MiEmpresaScreen.Product.name + "/${selectedProduct.rowIndex}")
                         focusManager.clearFocus()
                     }
                 }
+
             }
         }
     }
     if (showDialog) {
+        productsViewModel.loadCategories()
+        val categories by productsViewModel.categories.collectAsState()
         ProductDialog(
             rowIndex = productsViewModel.getNextAvailableRowIndex(),
+            categories = categories,
             onDismiss = { showDialog = false },
-            onSave = { newProduct ->
-                productsViewModel.addProduct(newProduct)
-                showDialog = false
+            onSave = { newProduct, selectedCategories, onResult ->
+                productsViewModel.addProduct(newProduct, selectedCategories) { success ->
+                    onResult(success)
+                }
             }
         )
     }
@@ -201,7 +208,7 @@ fun PreviewProductCard() {
             name = "Preview",
             description = "",
             price = "$100",
-            category = "",
+            categories = listOf(),
             imageUrl = "https://picsum.photos/200/300"
         )
     ){}
@@ -217,7 +224,7 @@ fun PreviewProductGrid() {
                 name = "Preview",
                 description = "",
                 price = "$100",
-                category = "",
+                categories = listOf(),
                 imageUrl = "https://picsum.photos/200/300"
             ),
             Product(
@@ -225,7 +232,7 @@ fun PreviewProductGrid() {
                 name = "Preview",
                 description = "",
                 price = "$100",
-                category = "",
+                categories = listOf(),
                 imageUrl = "https://picsum.photos/200/300"
             ),
             Product(
@@ -233,7 +240,7 @@ fun PreviewProductGrid() {
                 name = "Preview",
                 description = "",
                 price = "$100",
-                category = "",
+                categories = listOf(),
                 imageUrl = "https://picsum.photos/200/300"
             )
         )

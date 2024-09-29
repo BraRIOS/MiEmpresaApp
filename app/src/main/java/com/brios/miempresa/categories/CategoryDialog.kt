@@ -1,6 +1,12 @@
 package com.brios.miempresa.categories
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -12,44 +18,59 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.brios.miempresa.R
 
 @Composable
 fun CategoryDialog(
     rowIndex: Int? = null,
     category: Category? = null,
     onDismiss: () -> Unit,
-    onSave: (Category) -> Unit
+    onSave: (Category, (Boolean) -> Unit) -> Unit
 ) {
     var name by remember { mutableStateOf(category?.name ?: "") }
-    var productQty by remember { mutableStateOf(category?.productQty ?: "") }
     var imageUrl by remember { mutableStateOf(category?.imageUrl ?: "") }
     var showError by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (category == null) "Agregar categoría" else "Editar categoría") },
+        title = {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                Text(
+                    if (category == null) stringResource(R.string.add_category) else stringResource(R.string.edit_category),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        },
         text = {
-            Column {
+            Column(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White)
+                    .padding(top = 8.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Nombre") },
-                    isError = name.isBlank() && showError
-                )
-                OutlinedTextField(
-                    value = productQty,
-                    onValueChange = { productQty = it },
-                    label = { Text("Cantidad de productos") }
+                    label = { Text(stringResource(id = R.string.name_label)) },
+                    isError = name.isBlank() && showError,
+                    singleLine = true
                 )
                 OutlinedTextField(
                     value = imageUrl,
                     onValueChange = { imageUrl = it },
-                    label = { Text("URL de la imagen") }
+                    label = { Text(stringResource(id = R.string.image_url_label)) },
+                    singleLine = true
                 )
                 if (showError) {
                     Text(
-                        text = "El campo Nombre es obligatorio",
+                        text = stringResource(R.string.category_dialog_error),
                         color = Color.Red,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -62,22 +83,49 @@ fun CategoryDialog(
                     val updatedCategory = Category(
                         rowIndex ?: category!!.rowIndex,
                         name,
-                        productQty,
+                        -1,
                         imageUrl
                     )
-                    onSave(updatedCategory)
-                    onDismiss()
+                    onSave(updatedCategory){ success ->
+                        if (success) onDismiss()
+                    }
                 } else {
                     showError = true
                 }
             }) {
-                Text("Guardar")
+                Text(stringResource(id = R.string.save))
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
-                Text("Cancelar")
+            OutlinedButton(
+                onClick = onDismiss
+            ) {
+                Text(stringResource(id = R.string.cancel))
             }
         }
+    )
+}
+
+@Preview
+@Composable
+fun NewCategoryDialogPreview() {
+    CategoryDialog(
+        onDismiss = {},
+        onSave = {_,_->}
+    )
+}
+
+@Preview
+@Composable
+fun UpdateCategoryDialog(){
+    CategoryDialog(
+        category = Category(
+            rowIndex = 1,
+            name = "Category",
+            productQty = 120,
+            imageUrl = "https://picsum.photos/200/300"
+        ),
+        onDismiss = {},
+        onSave = {_,_->}
     )
 }

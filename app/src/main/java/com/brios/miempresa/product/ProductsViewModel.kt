@@ -1,9 +1,14 @@
 package com.brios.miempresa.product
 
+import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.brios.miempresa.R
+import com.brios.miempresa.categories.Category
 import com.brios.miempresa.domain.SpreadsheetsApi
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProductsViewModel @Inject constructor(
-    private val spreadsheetsApi: SpreadsheetsApi
+    private val spreadsheetsApi: SpreadsheetsApi,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val _products = MutableStateFlow<List<Product>>(emptyList())
     private val products = _products.asStateFlow()
@@ -23,6 +29,9 @@ class ProductsViewModel @Inject constructor(
 
     private val _filteredProducts = MutableStateFlow<List<Product>>(emptyList())
     val filteredProducts = _filteredProducts.asStateFlow()
+
+    private val _categories = MutableStateFlow<List<Category>>(emptyList())
+    val categories = _categories.asStateFlow()
 
     init {
         _isLoading.value = true
@@ -55,15 +64,31 @@ class ProductsViewModel @Inject constructor(
 
     }
 
-    fun addProduct(newProduct: Product) = viewModelScope.launch {
+    fun addProduct(newProduct: Product, selectedCategories: List<Category>, isResultSuccess: (Boolean) -> Unit) = viewModelScope.launch {
         try {
             withContext(Dispatchers.IO) {
-                spreadsheetsApi.addOrUpdateProductInSheet(newProduct)
+                spreadsheetsApi.addProductInSheet(newProduct, selectedCategories)
             }
-            _products.value += newProduct
-            _filteredProducts.value = _products.value
+            _isLoading.value = true
+            loadData()
+            isResultSuccess(true)
+        } catch (e: Exception) {
+            _isLoading.value = false
+            e.printStackTrace()
+            Toast.makeText(context, context.getString(R.string.error_adding_product), Toast.LENGTH_SHORT).show()
+            isResultSuccess(false)
+        }
+    }
+
+    fun loadCategories() = viewModelScope.launch {
+        try{
+            val data = withContext(Dispatchers.IO) {
+                spreadsheetsApi.readCategoriesFromSheet()
+            }
+            _categories.value = data
         } catch (e: Exception) {
             e.printStackTrace()
+            Toast.makeText(context, context.getString(R.string.error_loading_categories), Toast.LENGTH_SHORT).show()
         }
     }
 }

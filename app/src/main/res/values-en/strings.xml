@@ -19,7 +19,7 @@
     <string name="edit_product">Edit Product</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
-    <string name="product_dialog_required_fields">Name and Category fields are required</string>
+    <string name="product_dialog_required_fields">The Name and Categories are required</string>
     <string name="image_url_label">Image URL</string>
     <string name="category_label">Category</string>
     <string name="price_label">Price</string>
@@ -28,4 +28,19 @@
     <string name="product_not_found">Product not found</string>
     <string name="error_updating_product">Error updating the product</string>
     <string name="show_category_options">Show category options</string>
+    <string name="product_quantity">Number of products</string>
+    <string name="add_category">Add category</string>
+    <string name="edit_category">Edit category</string>
+    <string name="category_dialog_error">The Name is required</string>
+    <string name="error_loading_product">Could not load the product</string>
+    <string name="warning_icon_description">Alert icon</string>
+    <string name="error_adding_product">Could not add the product</string>
+    <string name="error_adding_category">Could not add the category</string>
+    <string name="error_updating_category">Could not update the category</string>
+    <string name="delete_dialog_title">Do you want to delete</string>
+    <string name="confirm">Confirm</string>
+    <string name="info">Info</string>
+    <string name="delete_product">Delete product</string>
+    <string name="error_deleting_product">Could not delete the product</string>
+    <string name="error_loading_categories">Could not load categories</string>
 </resources>

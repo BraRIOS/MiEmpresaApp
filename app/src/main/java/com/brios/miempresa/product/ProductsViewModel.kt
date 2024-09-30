@@ -6,12 +6,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
 import com.brios.miempresa.categories.Category
+import com.brios.miempresa.data.PreferencesKeys
+import com.brios.miempresa.data.getFromDataStore
 import com.brios.miempresa.domain.SpreadsheetsApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -33,6 +38,13 @@ class ProductsViewModel @Inject constructor(
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories = _categories.asStateFlow()
 
+    private val spreadsheetId: StateFlow<String?> = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ""
+        )
+
     init {
         _isLoading.value = true
     }
@@ -40,7 +52,7 @@ class ProductsViewModel @Inject constructor(
     fun loadData() = viewModelScope.launch {
             try {
                 val data = withContext(Dispatchers.IO) {
-                    spreadsheetsApi.readProductsFromSheet()
+                    spreadsheetsApi.readProductsFromSheet(spreadsheetId.value!!)
                 }
                 _products.value = data
                 _isLoading.value = false
@@ -67,7 +79,7 @@ class ProductsViewModel @Inject constructor(
     fun addProduct(newProduct: Product, selectedCategories: List<Category>, isResultSuccess: (Boolean) -> Unit) = viewModelScope.launch {
         try {
             withContext(Dispatchers.IO) {
-                spreadsheetsApi.addProductInSheet(newProduct, selectedCategories)
+                spreadsheetsApi.addProductInSheet(spreadsheetId.value!!, newProduct, selectedCategories)
             }
             _isLoading.value = true
             loadData()
@@ -83,7 +95,7 @@ class ProductsViewModel @Inject constructor(
     fun loadCategories() = viewModelScope.launch {
         try{
             val data = withContext(Dispatchers.IO) {
-                spreadsheetsApi.readCategoriesFromSheet()
+                spreadsheetsApi.readCategoriesFromSheet(spreadsheetId.value!!)
             }
             _categories.value = data
         } catch (e: Exception) {

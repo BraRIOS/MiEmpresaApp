@@ -1,4 +1,4 @@
-package com.brios.miempresa.welcome
+package com.brios.miempresa.signin
 
 data class SignInState(
     val isSignedIn: Boolean = false,

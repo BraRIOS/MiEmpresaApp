@@ -18,10 +18,13 @@ interface CompanyDao {
     @Delete
     suspend fun delete(friend: Company)
 
+    @Query("SELECT * FROM companies WHERE id = :id")
+    suspend fun getCompanyById(id: String): Company?
+
     @Query("SELECT * FROM companies WHERE selected = 1 LIMIT 1")
-    suspend fun getSelectedCompany(): LiveData<Company?>
+    fun getSelectedCompany(): LiveData<Company?>
 
 
     @Query("SELECT * FROM companies")
-    suspend fun getCompanies(): LiveData<List<Company>>
+    fun getCompanies(): LiveData<List<Company>>
 }

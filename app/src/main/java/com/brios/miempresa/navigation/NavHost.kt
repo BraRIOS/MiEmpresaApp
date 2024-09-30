@@ -22,11 +22,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.brios.miempresa.R
 import com.brios.miempresa.categories.CategoriesComposable
+import com.brios.miempresa.initializer.InitializerScreen
 import com.brios.miempresa.product.ProductDetails
 import com.brios.miempresa.product.ProductsComposable
-import com.brios.miempresa.welcome.AuthState
-import com.brios.miempresa.welcome.SignInScreen
-import com.brios.miempresa.welcome.SignInViewModel
+import com.brios.miempresa.signin.AuthState
+import com.brios.miempresa.signin.SignInScreen
+import com.brios.miempresa.signin.SignInViewModel
 
 @Composable
 fun NavHostComposable(applicationContext: Context, navController: NavHostController) {
@@ -35,7 +36,7 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
         navController = navController,
         startDestination =
         if(signInViewModel.getSignedInUser() != null)
-            MiEmpresaScreen.Products.name
+            MiEmpresaScreen.Initializer.name
         else
             MiEmpresaScreen.Welcome.name,
         modifier = Modifier.fillMaxSize()
@@ -89,6 +90,11 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
                 onSignInClick = {
                     signInViewModel.signIn(activity)
                 }
+            )
+        }
+        composable(route = MiEmpresaScreen.Initializer.name) {
+            InitializerScreen(
+                navController = navController
             )
         }
         composable(route = MiEmpresaScreen.Products.name) {

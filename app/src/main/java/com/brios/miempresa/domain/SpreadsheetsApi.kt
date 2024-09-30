@@ -1,5 +1,7 @@
 package com.brios.miempresa.domain
 
+import android.content.Context
+import com.brios.miempresa.R
 import com.brios.miempresa.categories.Category
 import com.brios.miempresa.product.Product
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest
@@ -7,16 +9,17 @@ import com.google.api.services.sheets.v4.model.DeleteDimensionRequest
 import com.google.api.services.sheets.v4.model.DimensionRange
 import com.google.api.services.sheets.v4.model.Request
 import com.google.api.services.sheets.v4.model.ValueRange
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 
 class SpreadsheetsApi @Inject constructor(
-    private val googleAuthClient: GoogleAuthClient
+    private val googleAuthClient: GoogleAuthClient,
+    @ApplicationContext private val context: Context
 ) {
-    suspend fun readProductsFromSheet(): List<Product> {
+    suspend fun readProductsFromSheet(spreadsheetId: String): List<Product> {
         val service = googleAuthClient.getGoogleSheetsService()
-        val spreadsheetId = "1QGU9qH_-57mk7VxgOJlbs3USQg-8iu_BPFHMt5b8Vk0"
-        val range = "'Productos'!A2:E"
+        val range = "'${context.getString(R.string.sheet_1_name)}'!A2:E"
         val data = service?.spreadsheets()?.values()
             ?.get(spreadsheetId, range)
             ?.execute()
@@ -32,10 +35,9 @@ class SpreadsheetsApi @Inject constructor(
         }?: emptyList()
     }
 
-    suspend fun readProductFromSheet(rowIndex: Int): Product?{
+    suspend fun readProductFromSheet(spreadsheetId: String, rowIndex: Int): Product?{
         val service = googleAuthClient.getGoogleSheetsService()
-        val spreadsheetId = "1QGU9qH_-57mk7VxgOJlbs3USQg-8iu_BPFHMt5b8Vk0"
-        val range = "'Productos'!A${rowIndex + 1}:E${rowIndex + 1}"
+        val range = "'${context.getString(R.string.sheet_1_name)}'!A${rowIndex + 1}:E${rowIndex + 1}"
         val valueRange = service?.spreadsheets()?.values()?.get(spreadsheetId, range)?.execute()
         val values = valueRange?.getValues()
         if (!values.isNullOrEmpty() && values[0] != null) {
@@ -49,10 +51,9 @@ class SpreadsheetsApi @Inject constructor(
         return null
     }
 
-    suspend fun addProductInSheet(product: Product, categories: List<Category>){
+    suspend fun addProductInSheet(spreadsheetId: String, product: Product, categories: List<Category>){
         val service = googleAuthClient.getGoogleSheetsService()
-        val spreadsheetId = "1QGU9qH_-57mk7VxgOJlbs3USQg-8iu_BPFHMt5b8Vk0"
-        val range = "'Productos'!A${product.rowIndex + 1}:E${product.rowIndex + 1}"
+        val range = "'${context.getString(R.string.sheet_1_name)}'!A${product.rowIndex + 1}:E${product.rowIndex + 1}"
 
         val categoriesFormula = buildCategoriesFormula(categories)
 
@@ -71,10 +72,9 @@ class SpreadsheetsApi @Inject constructor(
             ?.execute()
     }
 
-    suspend fun updateProductInSheet(product: Product, categories: List<Category>) {
+    suspend fun updateProductInSheet(spreadsheetId: String, product: Product, categories: List<Category>) {
         val service = googleAuthClient.getGoogleSheetsService()
-        val spreadsheetId = "1QGU9qH_-57mk7VxgOJlbs3USQg-8iu_BPFHMt5b8Vk0"
-        val range = "'Productos'!A${product.rowIndex + 1}:E${product.rowIndex +1}"
+        val range = "'${context.getString(R.string.sheet_1_name)}'!A${product.rowIndex + 1}:E${product.rowIndex +1}"
 
         val categoriesFormula = buildCategoriesFormula(categories)
 
@@ -96,16 +96,15 @@ class SpreadsheetsApi @Inject constructor(
     private fun buildCategoriesFormula(categories: List<Category>): String {if (categories.isEmpty()) return ""
 
         val categoryFormulas = categories.joinToString("; ") {
-            "SI.ERROR(Categorias!A${it.rowIndex + 1}; \"\")"
+            "SI.ERROR(${context.getString(R.string.sheet_2_name)}!A${it.rowIndex + 1}; \"\")"
         }
 
         return "=TEXTJOIN(\", \"; VERDADERO; $categoryFormulas)"
     }
 
-    suspend fun readCategoriesFromSheet():List<Category> {
+    suspend fun readCategoriesFromSheet(spreadsheetId: String):List<Category> {
         val service = googleAuthClient.getGoogleSheetsService()
-        val spreadsheetId = "1QGU9qH_-57mk7VxgOJlbs3USQg-8iu_BPFHMt5b8Vk0"
-        val range = "'Categorias'!A2:C"
+        val range = "'${context.getString(R.string.sheet_2_name)}'!A2:C"
         val data = service?.spreadsheets()?.values()
             ?.get(spreadsheetId, range)
             ?.execute()
@@ -119,14 +118,14 @@ class SpreadsheetsApi @Inject constructor(
         }?: emptyList()
     }
 
-    suspend fun addCategoryInSheet(newCategory: Category) {
+    suspend fun addCategoryInSheet(spreadsheetId: String, newCategory: Category) {
         val service = googleAuthClient.getGoogleSheetsService()
-        val spreadsheetId = "1QGU9qH_-57mk7VxgOJlbs3USQg-8iu_BPFHMt5b8Vk0"
-        val range = "'Categorias'!A${newCategory.rowIndex + 1}:C${newCategory.rowIndex + 1}"
+        val range = "'${context.getString(R.string.sheet_2_name)}'!A${newCategory.rowIndex + 1}:C${newCategory.rowIndex + 1}"
         val values = listOf(
             listOf(
                 newCategory.name,
-                "=CONTARA(FILTER(Productos!A:A; ESNUMERO(HALLAR(A${newCategory.rowIndex + 1}; Productos!D:D))))",
+                "=CONTARA(FILTER(${context.getString(R.string.sheet_1_name)}!A:A; ESNUMERO(HALLAR(A${newCategory.rowIndex + 1}; " +
+                        "${context.getString(R.string.sheet_1_name)}!D:D))))",
                 newCategory.imageUrl,
             )
         )
@@ -137,14 +136,14 @@ class SpreadsheetsApi @Inject constructor(
     }
 
 
-    suspend fun updateCategoryInSheet(newCategory: Category) {
+    suspend fun updateCategoryInSheet(spreadsheetId: String, newCategory: Category) {
         val service = googleAuthClient.getGoogleSheetsService()
-        val spreadsheetId = "1QGU9qH_-57mk7VxgOJlbs3USQg-8iu_BPFHMt5b8Vk0"
-        val range = "'Categorias'!A${newCategory.rowIndex + 1}:C${newCategory.rowIndex + 1}"
+        val range = "'${context.getString(R.string.sheet_2_name)}'!A${newCategory.rowIndex + 1}:C${newCategory.rowIndex + 1}"
         val values = listOf(
             listOf(
                 newCategory.name,
-                "=CONTARA(FILTER(Productos!A:A; ESNUMERO(HALLAR(A${newCategory.rowIndex + 1}; Productos!D:D))))",
+                "=CONTARA(FILTER(${context.getString(R.string.sheet_1_name)}!A:A; ESNUMERO(HALLAR(A${newCategory.rowIndex + 1}; " +
+                        "${context.getString(R.string.sheet_1_name)}!D:D))))",
                 newCategory.imageUrl,
             )
         )
@@ -154,9 +153,8 @@ class SpreadsheetsApi @Inject constructor(
             ?.execute()
     }
 
-    suspend fun deleteProductFromSheet(rowIndex: Int) {
+    suspend fun deleteProductFromSheet(spreadsheetId: String, rowIndex: Int) {
         val service = googleAuthClient.getGoogleSheetsService()
-        val spreadsheetId = "1QGU9qH_-57mk7VxgOJlbs3USQg-8iu_BPFHMt5b8Vk0"
         val deleteDimensionRequest = Request().apply {
             deleteDimension = DeleteDimensionRequest().apply {
                 range = DimensionRange().apply {

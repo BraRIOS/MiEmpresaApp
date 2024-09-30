@@ -34,6 +34,6 @@ fun MessageWithIcon(message: String, icon: ImageVector) {
 
 @Preview
 @Composable
-fun MessageWithIconPreview(){
+private fun MessageWithIconPreview(){
     MessageWithIcon(stringResource(R.string.product_not_found), Icons.Filled.Warning)
 }

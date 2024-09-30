@@ -5,12 +5,17 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
+import com.brios.miempresa.data.PreferencesKeys
+import com.brios.miempresa.data.getFromDataStore
 import com.brios.miempresa.domain.SpreadsheetsApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -29,6 +34,13 @@ class CategoriesViewModel @Inject constructor(
     private val _filteredCategories = MutableStateFlow<List<Category>>(emptyList())
     val filteredCategories = _filteredCategories.asStateFlow()
 
+    private val spreadsheetId: StateFlow<String?> = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ""
+        )
+
     init {
         _isLoading.value = true
     }
@@ -36,7 +48,7 @@ class CategoriesViewModel @Inject constructor(
     fun loadData() = viewModelScope.launch {
         try{
             val data = withContext(Dispatchers.IO) {
-                spreadsheetsApi.readCategoriesFromSheet()
+                spreadsheetsApi.readCategoriesFromSheet(spreadsheetId.value!!)
             }
             _categories.value = data
             _filteredCategories.value = _categories.value
@@ -55,7 +67,7 @@ class CategoriesViewModel @Inject constructor(
     fun addCategory(newCategory: Category, isResultSuccess: (Boolean) -> Unit) = viewModelScope.launch{
         try {
             withContext(Dispatchers.IO) {
-                spreadsheetsApi.addCategoryInSheet(newCategory)
+                spreadsheetsApi.addCategoryInSheet(spreadsheetId.value!!, newCategory)
             }
             val updatedCategories = _categories.value.toMutableList()
             updatedCategories.add(newCategory)
@@ -72,7 +84,7 @@ class CategoriesViewModel @Inject constructor(
     fun updateCategory(newCategory: Category, isResultSuccess: (Boolean) -> Unit) = viewModelScope.launch{
         try {
             withContext(Dispatchers.IO) {
-                spreadsheetsApi.updateCategoryInSheet(newCategory)
+                spreadsheetsApi.updateCategoryInSheet(spreadsheetId.value!!, newCategory)
             }
             val updatedCategories = _categories.value.toMutableList()
             updatedCategories.add(newCategory)

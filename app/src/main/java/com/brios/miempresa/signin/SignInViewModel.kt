@@ -1,4 +1,4 @@
-package com.brios.miempresa.welcome
+package com.brios.miempresa.signin
 
 import android.app.Activity
 import android.content.Context

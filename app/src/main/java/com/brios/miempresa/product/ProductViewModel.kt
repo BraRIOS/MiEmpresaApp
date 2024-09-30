@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
 import com.brios.miempresa.categories.Category
+import com.brios.miempresa.data.PreferencesKeys
+import com.brios.miempresa.data.getFromDataStore
 import com.brios.miempresa.domain.SpreadsheetsApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -13,7 +15,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -32,6 +37,13 @@ class ProductViewModel @Inject  constructor(
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories = _categories.asStateFlow()
 
+    private val spreadsheetId: StateFlow<String?> = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ""
+        )
+
     private var retryCount = 0
     private val maxRetries = 3
 
@@ -41,7 +53,7 @@ class ProductViewModel @Inject  constructor(
 
     fun updateProduct(updatedProduct: Product, selectedCategories: List<Category>, onResultSuccess: (Boolean) -> Unit) = viewModelScope.launch {
         try {
-            withContext(Dispatchers.IO) {spreadsheetsApi.updateProductInSheet(updatedProduct, selectedCategories)}
+            withContext(Dispatchers.IO) {spreadsheetsApi.updateProductInSheet(spreadsheetId.value!!, updatedProduct, selectedCategories)}
             _isLoading.value = true
             loadProduct(updatedProduct.rowIndex)
             onResultSuccess(true)
@@ -56,7 +68,7 @@ class ProductViewModel @Inject  constructor(
     fun loadProduct(rowIndex: Int):Job = viewModelScope.launch {
         try {
             val response: Product? = withContext(Dispatchers.IO) {
-                spreadsheetsApi.readProductFromSheet(rowIndex)
+                spreadsheetsApi.readProductFromSheet(spreadsheetId.value!!, rowIndex)
             }
             _isLoading.value = false
             _currentProduct.value = response
@@ -75,7 +87,7 @@ class ProductViewModel @Inject  constructor(
     fun loadCategories() = viewModelScope.launch {
         try{
             val data = withContext(Dispatchers.IO) {
-                spreadsheetsApi.readCategoriesFromSheet()
+                spreadsheetsApi.readCategoriesFromSheet(spreadsheetId.value!!)
             }
             _categories.value = data
         } catch (e: Exception) {
@@ -86,7 +98,7 @@ class ProductViewModel @Inject  constructor(
 
     fun deleteProduct(rowIndex: Int, onResultSuccess: (Boolean) -> Unit) = viewModelScope.launch {
         try {
-            withContext(Dispatchers.IO) {spreadsheetsApi.deleteProductFromSheet(rowIndex)}
+            withContext(Dispatchers.IO) {spreadsheetsApi.deleteProductFromSheet(spreadsheetId.value!!, rowIndex)}
             onResultSuccess(true)
         } catch (e: Exception) {
             onResultSuccess(false)

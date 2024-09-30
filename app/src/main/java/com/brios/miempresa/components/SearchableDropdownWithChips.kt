@@ -1,4 +1,4 @@
-package com.brios.miempresa.common
+package com.brios.miempresa.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,8 +18,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,6 +38,7 @@ import androidx.compose.ui.unit.dp
 fun SearchableDropdownWithChips(
     label: String,
     items: List<String>,
+    isError: Boolean = false,
     selectedItems: MutableList<String>,
     onItemSelected: (String) -> Unit,
     onItemRemoved: (String) -> Unit
@@ -45,11 +49,13 @@ fun SearchableDropdownWithChips(
     // Filtramos los elementos según el input del usuario
     val filteredItems = items.filter { it.contains(searchQuery, ignoreCase = true) }
 
-    val indicatorColor = if (expanded) {
+    val indicatorColor = if (isError)
+        OutlinedTextFieldDefaults.colors().errorIndicatorColor
+    else if (expanded)
         MaterialTheme.colorScheme.primary
-    } else {
+    else
         OutlinedTextFieldDefaults.colors().unfocusedIndicatorColor
-    }
+
 
     // La columna que contiene la fila de chips y el buscador
     Column(modifier = Modifier
@@ -107,10 +113,15 @@ fun SearchableDropdownWithChips(
                     .padding(16.dp),
                 decorationBox = { innerTextField ->
                     if (searchQuery.isEmpty()) {
-                        Text(text = label, color = OutlinedTextFieldDefaults.colors().unfocusedLabelColor)
+                        Text(
+                            text = label,
+                            color = if (isError) OutlinedTextFieldDefaults.colors().errorLabelColor
+                            else OutlinedTextFieldDefaults.colors().unfocusedLabelColor,
+                        )
                     }
                     innerTextField()
-                }
+                },
+                textStyle = LocalTextStyle.current
             )
         }
 
@@ -152,11 +163,29 @@ fun SearchableDropdownWithChipsPreview() {
     val items = listOf("Category 1", "Category 2", "Category 3")
 
     val selectedItems = remember { mutableListOf<String>() }
-    SearchableDropdownWithChips(
-        label = "Categories",
-        items = items,
-        selectedItems = selectedItems,
-        onItemSelected = { selectedItems.add(it) },
-        onItemRemoved = { selectedItems.remove(it) }
-    )
+    Surface(){
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            SearchableDropdownWithChips(
+                label = "Categories",
+                items = items,
+                selectedItems = selectedItems,
+                onItemSelected = { selectedItems.add(it) },
+                onItemRemoved = { selectedItems.remove(it) }
+            )
+            SearchableDropdownWithChips(
+                label = "Categories error",
+                items = items,
+                isError = true,
+                selectedItems = selectedItems,
+                onItemSelected = { selectedItems.add(it) },
+                onItemRemoved = { selectedItems.remove(it) }
+            )
+        }
+    }
+
 }

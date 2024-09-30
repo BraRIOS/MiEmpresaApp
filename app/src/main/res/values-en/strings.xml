@@ -21,7 +21,7 @@
     <string name="cancel">Cancel</string>
     <string name="product_dialog_required_fields">The Name and Categories are required</string>
     <string name="image_url_label">Image URL</string>
-    <string name="category_label">Category</string>
+    <string name="categories_label">Categories</string>
     <string name="price_label">Price</string>
     <string name="description_label">Description</string>
     <string name="name_label">Name</string>
@@ -43,4 +43,7 @@
     <string name="delete_product">Delete product</string>
     <string name="error_deleting_product">Could not delete the product</string>
     <string name="error_loading_categories">Could not load categories</string>
+    <string name="checking_existing_projects">Searching for existing projects</string>
+    <string name="searching_database">Searching for the database</string>
+    <string name="creating_database">Creating database</string>
 </resources>

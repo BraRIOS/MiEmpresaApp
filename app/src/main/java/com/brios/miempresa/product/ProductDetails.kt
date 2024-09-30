@@ -48,8 +48,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
-import com.brios.miempresa.common.DeleteDialog
-import com.brios.miempresa.common.MessageWithIcon
+import com.brios.miempresa.components.DeleteDialog
+import com.brios.miempresa.components.MessageWithIcon
 import com.brios.miempresa.navigation.TopBar
 
 @Composable

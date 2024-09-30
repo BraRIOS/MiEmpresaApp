@@ -3,6 +3,7 @@ accompanistFlowlayout = "0.34.0"
 agp = "8.5.2"
 coilCompose = "2.7.0"
 credentials = "1.5.0-alpha05"
+datastore = "1.1.1"
 firebaseAuthKtx = "23.0.0"
 googleApiClientAndroid = "2.7.0"
 googleApiServicesDrive = "v3-rev20240903-2.0.0"
@@ -12,7 +13,7 @@ googlePlayServicesAuth = "21.2.0"
 hiltAndroid = "2.52"
 hiltAndroidCompiler = "2.52"
 hiltNavigationCompose = "1.2.0"
-kotlin = "1.9.0"
+kotlin = "2.0.20"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -25,6 +26,8 @@ navigationCompose = "2.8.0"
 daggerHilt = "2.52"
 googleMobileServices = "4.4.2"
 material = "1.12.0"
+roomRuntime = "2.6.1"
+lifecycleLivedataKtx = "2.8.6"
 
 [libraries]
 accompanist-flowlayout = { module = "com.google.accompanist:accompanist-flowlayout", version.ref = "accompanistFlowlayout" }
@@ -32,8 +35,12 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 #noinspection CredentialDependency
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
 androidx-credentials-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentials" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
 google-api-client-android = { module = "com.google.api-client:google-api-client-android", version.ref = "googleApiClientAndroid" }
@@ -58,9 +65,11 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 dagger-hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "daggerHilt" }
 google-mobile-services = {id= "com.google.gms.google-services", version.ref= "googleMobileServices"}
+google-devtools-ksp =  {id = "com.google.devtools.ksp", version = "2.0.20-1.0.25"}

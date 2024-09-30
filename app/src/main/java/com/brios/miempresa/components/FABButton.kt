@@ -1,4 +1,4 @@
-package com.brios.miempresa.common
+package com.brios.miempresa.components
 
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon

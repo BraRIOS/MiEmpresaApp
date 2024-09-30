@@ -1,5 +1,6 @@
 package com.brios.miempresa.product
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -25,13 +26,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.brios.miempresa.R
 import com.brios.miempresa.categories.Category
-import com.brios.miempresa.common.SearchableDropdownWithChips
+import com.brios.miempresa.components.SearchableDropdownWithChips
 
 @Composable
 fun ProductDialog(
@@ -47,6 +49,7 @@ fun ProductDialog(
     var imageUrl by remember { mutableStateOf(product?.imageUrl ?: "") }
     var showError by remember { mutableStateOf(false) }
     val selectedCategoriesNames = remember { mutableStateListOf<String>() }
+    val context = LocalContext.current
 
     LaunchedEffect(key1 = product, key2 = categories) {
         if (product != null) {
@@ -105,8 +108,9 @@ fun ProductDialog(
                 }
                 item {
                     SearchableDropdownWithChips(
-                        label = stringResource(R.string.category_label),
+                        label = stringResource(R.string.categories_label),
                         items = categories.map { it.name },
+                        isError= selectedCategoriesNames.isEmpty() && showError,
                         selectedItems = selectedCategoriesNames,
                         onItemSelected = { selectedCategoriesNames.add(it) },
                         onItemRemoved = { selectedCategoriesNames.remove(it) }
@@ -121,6 +125,7 @@ fun ProductDialog(
                     )
                 }
                 if (showError) {
+                    Toast.makeText(context, R.string.product_dialog_required_fields, Toast.LENGTH_SHORT).show()
                     item {
                         Text(
                             text = stringResource(R.string.product_dialog_required_fields),
@@ -133,7 +138,7 @@ fun ProductDialog(
         },
         confirmButton = {
             Button(onClick = {
-                if (name.isNotBlank()) {
+                if (name.isNotBlank() && selectedCategoriesNames.isNotEmpty()) {
                     val updatedProduct = Product(
                         rowIndex ?: product!!.rowIndex,
                         name,
@@ -187,7 +192,7 @@ fun UpdateProductDialogPreview(){
             name = "Product",
             description = "Description DescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescription",
             price = "10,00",
-            categories = listOf("Category 1", "Category 1", "Category 1"),
+            categories = listOf("Category 1", "Category 1"),
             imageUrl = "https://picsum.photos/200/300"
         ),
         categories = listOf(

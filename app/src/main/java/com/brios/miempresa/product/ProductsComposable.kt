@@ -42,9 +42,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
-import com.brios.miempresa.common.FABButton
-import com.brios.miempresa.common.ScaffoldedScreenComposable
-import com.brios.miempresa.common.SearchBar
+import com.brios.miempresa.components.FABButton
+import com.brios.miempresa.components.ScaffoldedScreenComposable
+import com.brios.miempresa.components.SearchBar
 import com.brios.miempresa.navigation.MiEmpresaScreen
 import com.brios.miempresa.navigation.TopBarViewModel
 

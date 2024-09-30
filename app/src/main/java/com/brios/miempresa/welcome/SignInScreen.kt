@@ -27,7 +27,7 @@ import com.google.android.gms.common.SignInButton
 
 
 @Composable
-fun WelcomeComposable(
+fun SignInScreen(
     state: SignInState,
     onSignInClick: () -> Unit
 ) {
@@ -81,7 +81,7 @@ fun GoogleSignInButton(onClick: () -> Unit) {
 @Preview
 @Composable
 fun WelcomeComposablePreview() {
-    WelcomeComposable(
+    SignInScreen(
         state = SignInState(),
         onSignInClick = {}
     )

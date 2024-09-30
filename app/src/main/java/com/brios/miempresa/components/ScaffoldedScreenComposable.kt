@@ -1,4 +1,4 @@
-package com.brios.miempresa.common
+package com.brios.miempresa.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding

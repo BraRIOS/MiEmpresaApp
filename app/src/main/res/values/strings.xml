@@ -22,7 +22,7 @@
     <string name="cancel">Cancelar</string>
     <string name="product_dialog_required_fields">El Nombre y las Categorías son obligatorios</string>
     <string name="image_url_label">URL de la imagen</string>
-    <string name="category_label">Categoría</string>
+    <string name="categories_label">Categorías</string>
     <string name="price_label">Precio</string>
     <string name="description_label">Descripción</string>
     <string name="name_label">Nombre</string>
@@ -44,4 +44,7 @@
     <string name="delete_product">Eliminar producto</string>
     <string name="error_deleting_product">No se pudo eliminar el producto</string>
     <string name="error_loading_categories">No se pudieron cargar las categorías</string>
+    <string name="checking_existing_projects">Buscando proyectos existentes</string>
+    <string name="searching_database">Buscando la base de datos</string>
+    <string name="creating_database">Creando base de datos</string>
 </resources>

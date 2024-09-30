@@ -25,8 +25,8 @@ import com.brios.miempresa.categories.CategoriesComposable
 import com.brios.miempresa.product.ProductDetails
 import com.brios.miempresa.product.ProductsComposable
 import com.brios.miempresa.welcome.AuthState
+import com.brios.miempresa.welcome.SignInScreen
 import com.brios.miempresa.welcome.SignInViewModel
-import com.brios.miempresa.welcome.WelcomeComposable
 
 @Composable
 fun NavHostComposable(applicationContext: Context, navController: NavHostController) {
@@ -84,7 +84,7 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
                 }
             }
 
-            WelcomeComposable(
+            SignInScreen(
                 signInState,
                 onSignInClick = {
                     signInViewModel.signIn(activity)

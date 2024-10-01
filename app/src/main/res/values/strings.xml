@@ -71,4 +71,7 @@
     <string name="categories_column">Categorías</string>
     <string name="image_url_column">URL Imagen</string>
     <string name="product_amount_column">Cantidad de productos</string>
+    <string name="edit">Editar</string>
+    <string name="delete">Eliminar</string>
+    <string name="error_deleting_category">No se pudo eliminar la categoría</string>
 </resources>

@@ -12,10 +12,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -34,21 +32,15 @@ class CategoriesViewModel @Inject constructor(
     private val _filteredCategories = MutableStateFlow<List<Category>>(emptyList())
     val filteredCategories = _filteredCategories.asStateFlow()
 
-    private val spreadsheetId: StateFlow<String?> = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ""
-        )
-
     init {
         _isLoading.value = true
     }
 
     fun loadData() = viewModelScope.launch {
+        val spreadsheetId = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY).firstOrNull()
         try{
             val data = withContext(Dispatchers.IO) {
-                spreadsheetsApi.readCategoriesFromSheet(spreadsheetId.value!!)
+                spreadsheetsApi.readCategoriesFromSheet(spreadsheetId!!)
             }
             _categories.value = data
             _filteredCategories.value = _categories.value
@@ -65,9 +57,10 @@ class CategoriesViewModel @Inject constructor(
     }
 
     fun addCategory(newCategory: Category, isResultSuccess: (Boolean) -> Unit) = viewModelScope.launch{
+        val spreadsheetId = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY).firstOrNull()
         try {
             withContext(Dispatchers.IO) {
-                spreadsheetsApi.addCategoryInSheet(spreadsheetId.value!!, newCategory)
+                spreadsheetsApi.addCategoryInSheet(spreadsheetId!!, newCategory)
             }
             val updatedCategories = _categories.value.toMutableList()
             updatedCategories.add(newCategory)
@@ -82,9 +75,10 @@ class CategoriesViewModel @Inject constructor(
     }
 
     fun updateCategory(newCategory: Category, isResultSuccess: (Boolean) -> Unit) = viewModelScope.launch{
+        val spreadsheetId = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY).firstOrNull()
         try {
             withContext(Dispatchers.IO) {
-                spreadsheetsApi.updateCategoryInSheet(spreadsheetId.value!!, newCategory)
+                spreadsheetsApi.updateCategoryInSheet(spreadsheetId!!, newCategory)
             }
             val updatedCategories = _categories.value.toMutableList()
             updatedCategories.add(newCategory)
@@ -95,6 +89,29 @@ class CategoriesViewModel @Inject constructor(
             e.printStackTrace()
             isResultSuccess(false)
             Toast.makeText(context, context.getString(R.string.error_updating_category), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun deleteCategory(category: Category, onResultSuccess: (Boolean) -> Unit) = viewModelScope.launch{
+        val spreadsheetId = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY).firstOrNull()
+        try {
+            withContext(Dispatchers.IO) {
+                val sheetId = spreadsheetsApi.getSheetId(spreadsheetId!!, context.getString(R.string.sheet_2_name))
+                if (sheetId != null) {
+                    spreadsheetsApi.deleteElementFromSheet(spreadsheetId, category.rowIndex, sheetId)
+                } else{
+                    Toast.makeText(context, context.getString(R.string.error_deleting_category), Toast.LENGTH_SHORT).show()
+                }
+            }
+            val updatedCategories = _categories.value.toMutableList()
+            updatedCategories.remove(category)
+            _categories.value = updatedCategories
+            _filteredCategories.value = updatedCategories
+            onResultSuccess(true)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, context.getString(R.string.error_deleting_category), Toast.LENGTH_SHORT).show()
+            onResultSuccess(false)
         }
     }
 }

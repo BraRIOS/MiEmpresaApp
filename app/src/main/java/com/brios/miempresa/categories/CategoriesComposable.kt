@@ -35,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
+import com.brios.miempresa.components.DeleteDialog
 import com.brios.miempresa.components.FABButton
 import com.brios.miempresa.components.ScaffoldedScreenComposable
 import com.brios.miempresa.navigation.MiEmpresaScreen
@@ -52,6 +53,7 @@ fun CategoriesComposable(
     viewModel.topBarTitle = stringResource(id = R.string.categories_title)
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
     ScaffoldedScreenComposable(
         navController = navController,
@@ -70,6 +72,10 @@ fun CategoriesComposable(
                 showEditDialog = true
                 selectedCategory = it
             },
+            {
+                showDeleteDialog = true
+                selectedCategory = it
+            },
             filteredCategories)
     }
     if (showAddDialog){
@@ -82,16 +88,28 @@ fun CategoriesComposable(
                 }
             }
         )
-    } else if (showEditDialog && selectedCategory != null){
-        CategoryDialog(
-            category = selectedCategory,
-            onDismiss = { showEditDialog = false },
-            onSave = { newCategory, onResult ->
-                categoriesViewModel.updateCategory(newCategory){ success ->
-                    onResult(success)
+    } else if (selectedCategory != null){
+        if (showEditDialog)
+            CategoryDialog(
+                category = selectedCategory,
+                onDismiss = { showEditDialog = false },
+                onSave = { newCategory, onResult ->
+                    categoriesViewModel.updateCategory(newCategory){ success ->
+                        onResult(success)
+                    }
                 }
-            }
-        )
+            )
+        else if (showDeleteDialog)
+            DeleteDialog(
+                itemName = selectedCategory!!.name,
+                onDismiss = { showDeleteDialog = false },
+                onConfirm = { categoriesViewModel.deleteCategory(selectedCategory!!){ success ->
+                    if (success){
+                        showDeleteDialog = false
+                        selectedCategory = null
+                    }
+                } }
+            )
     }
 }
 
@@ -100,6 +118,7 @@ private fun CategoriesScreenContent(
     navController: NavHostController,
     isLoading: Boolean,
     showEditDialog: (Category) -> Unit,
+    showDeleteDialog: (Category) -> Unit,
     filteredCategories: List<Category>
 ) {
     LazyColumn(
@@ -110,7 +129,7 @@ private fun CategoriesScreenContent(
             item { CircularProgressIndicator() }
         } else {
             items(filteredCategories) { category ->
-                CategoryListItem(category, showEditDialog) {
+                CategoryListItem(category, showEditDialog, showDeleteDialog) {
                     navController.navigate(MiEmpresaScreen.Products.name)
                 }
                 HorizontalDivider()
@@ -123,6 +142,7 @@ private fun CategoriesScreenContent(
 fun CategoryListItem(
     category: Category,
     showEditDialog: (Category) -> Unit,
+    showDeleteDialog: (Category) -> Unit,
     onCategoryClick: (Category) -> Unit
 ) {
     var showDropdown by remember{
@@ -153,16 +173,16 @@ fun CategoryListItem(
                 }
                 DropdownMenu(expanded = showDropdown, onDismissRequest = { showDropdown = false}) {
                     DropdownMenuItem(
-                        text = { Text("Editar") },
+                        text = { Text(stringResource(R.string.edit)) },
                         onClick = {
                             showEditDialog(category)
                             showDropdown = false
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Eliminar") },
+                        text = { Text(stringResource(id = R.string.delete)) },
                         onClick = {
-                            // Handle delete action
+                            showDeleteDialog(category)
                             showDropdown = false
                         }
                     )
@@ -177,6 +197,7 @@ fun CategoryListItem(
 @Composable
 fun PreviewCategoryListItem(){
     var showDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
     CategoriesScreenContent(
         navController = NavHostController(LocalContext.current),
         isLoading = false,
@@ -200,7 +221,7 @@ fun PreviewCategoryListItem(){
                 imageUrl = "https://picsum.photos/200/300"
             )
         ),
-        showEditDialog = {showDialog = true}
+        showEditDialog = {showDialog = true},
+        showDeleteDialog = {showDeleteDialog = true}
     )
-
 }

@@ -15,10 +15,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -37,13 +35,6 @@ class ProductViewModel @Inject  constructor(
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories = _categories.asStateFlow()
 
-    private val spreadsheetId: StateFlow<String?> = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ""
-        )
-
     private var retryCount = 0
     private val maxRetries = 3
 
@@ -52,8 +43,9 @@ class ProductViewModel @Inject  constructor(
     }
 
     fun updateProduct(updatedProduct: Product, selectedCategories: List<Category>, onResultSuccess: (Boolean) -> Unit) = viewModelScope.launch {
+        val spreadsheetId = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY).firstOrNull()
         try {
-            withContext(Dispatchers.IO) {spreadsheetsApi.updateProductInSheet(spreadsheetId.value!!, updatedProduct, selectedCategories)}
+            withContext(Dispatchers.IO) {spreadsheetsApi.updateProductInSheet(spreadsheetId!!, updatedProduct, selectedCategories)}
             _isLoading.value = true
             loadProduct(updatedProduct.rowIndex)
             onResultSuccess(true)
@@ -66,9 +58,10 @@ class ProductViewModel @Inject  constructor(
     }
 
     fun loadProduct(rowIndex: Int):Job = viewModelScope.launch {
+        val spreadsheetId = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY).firstOrNull()
         try {
             val response: Product? = withContext(Dispatchers.IO) {
-                spreadsheetsApi.readProductFromSheet(spreadsheetId.value!!, rowIndex)
+                spreadsheetsApi.readProductFromSheet(spreadsheetId!!, rowIndex)
             }
             _isLoading.value = false
             _currentProduct.value = response
@@ -85,9 +78,10 @@ class ProductViewModel @Inject  constructor(
     }
 
     fun loadCategories() = viewModelScope.launch {
+        val spreadsheetId = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY).firstOrNull()
         try{
             val data = withContext(Dispatchers.IO) {
-                spreadsheetsApi.readCategoriesFromSheet(spreadsheetId.value!!)
+                spreadsheetsApi.readCategoriesFromSheet(spreadsheetId!!)
             }
             _categories.value = data
         } catch (e: Exception) {
@@ -97,15 +91,22 @@ class ProductViewModel @Inject  constructor(
     }
 
     fun deleteProduct(rowIndex: Int, onResultSuccess: (Boolean) -> Unit) = viewModelScope.launch {
+        val spreadsheetId = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY).firstOrNull()
         try {
-            withContext(Dispatchers.IO) {spreadsheetsApi.deleteProductFromSheet(spreadsheetId.value!!, rowIndex)}
+            withContext(Dispatchers.IO) {
+                val sheetId = spreadsheetsApi.getSheetId(spreadsheetId!!, context.getString(R.string.sheet_1_name))
+                if (sheetId != null) {
+                    spreadsheetsApi.deleteElementFromSheet(spreadsheetId, rowIndex, sheetId)
+                } else {
+                    onResultSuccess(false)
+                    Toast.makeText(context, context.getString(R.string.error_deleting_product), Toast.LENGTH_SHORT).show()
+                }
+            }
             onResultSuccess(true)
         } catch (e: Exception) {
             onResultSuccess(false)
             e.printStackTrace()
             Toast.makeText(context, context.getString(R.string.error_deleting_product), Toast.LENGTH_SHORT).show()
         }
-
     }
-
 }

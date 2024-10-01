@@ -1,7 +1,6 @@
 package com.brios.miempresa.initializer
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
@@ -56,12 +55,5 @@ fun InitializerScreen(
         )
 
         is InitializerUiState.NavigateToProducts -> navController.navigate(MiEmpresaScreen.Products.name)
-    }
-
-    // Handle navigation based on state
-    if (uiState is InitializerUiState.NavigateToProducts) {
-        LaunchedEffect(Unit) {
-            navController.navigate(MiEmpresaScreen.Products.name)
-        }
     }
 }

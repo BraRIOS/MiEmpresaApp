@@ -13,10 +13,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -38,29 +36,23 @@ class ProductsViewModel @Inject constructor(
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories = _categories.asStateFlow()
 
-    private val spreadsheetId: StateFlow<String?> = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ""
-        )
-
     init {
         _isLoading.value = true
     }
 
     fun loadData() = viewModelScope.launch {
-            try {
-                val data = withContext(Dispatchers.IO) {
-                    spreadsheetsApi.readProductsFromSheet(spreadsheetId.value!!)
-                }
-                _products.value = data
-                _isLoading.value = false
-                _filteredProducts.value = _products.value
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _isLoading.value = false
+        val spreadsheetId = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY).firstOrNull()
+        try {
+            val data = withContext(Dispatchers.IO) {
+                spreadsheetsApi.readProductsFromSheet(spreadsheetId!!)
             }
+            _products.value = data
+            _isLoading.value = false
+            _filteredProducts.value = _products.value
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _isLoading.value = false
+        }
     }
 
 
@@ -77,9 +69,10 @@ class ProductsViewModel @Inject constructor(
     }
 
     fun addProduct(newProduct: Product, selectedCategories: List<Category>, isResultSuccess: (Boolean) -> Unit) = viewModelScope.launch {
+        val spreadsheetId = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY).firstOrNull()
         try {
             withContext(Dispatchers.IO) {
-                spreadsheetsApi.addProductInSheet(spreadsheetId.value!!, newProduct, selectedCategories)
+                spreadsheetsApi.addProductInSheet(spreadsheetId!!, newProduct, selectedCategories)
             }
             _isLoading.value = true
             loadData()
@@ -93,9 +86,10 @@ class ProductsViewModel @Inject constructor(
     }
 
     fun loadCategories() = viewModelScope.launch {
+        val spreadsheetId = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY).firstOrNull()
         try{
             val data = withContext(Dispatchers.IO) {
-                spreadsheetsApi.readCategoriesFromSheet(spreadsheetId.value!!)
+                spreadsheetsApi.readCategoriesFromSheet(spreadsheetId!!)
             }
             _categories.value = data
         } catch (e: Exception) {

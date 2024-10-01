@@ -153,12 +153,12 @@ class SpreadsheetsApi @Inject constructor(
             ?.execute()
     }
 
-    suspend fun deleteProductFromSheet(spreadsheetId: String, rowIndex: Int) {
+    suspend fun deleteElementFromSheet(spreadsheetId: String, rowIndex: Int, workingSheetId: Int) {
         val service = googleAuthClient.getGoogleSheetsService()
         val deleteDimensionRequest = Request().apply {
             deleteDimension = DeleteDimensionRequest().apply {
                 range = DimensionRange().apply {
-                    sheetId = 0
+                    sheetId = workingSheetId
                     dimension = "ROWS"
                     startIndex = rowIndex
                     endIndex = rowIndex + 1
@@ -169,5 +169,12 @@ class SpreadsheetsApi @Inject constructor(
             requests = listOf(deleteDimensionRequest)
         }
         service?.spreadsheets()?.batchUpdate(spreadsheetId, batchUpdateRequest)?.execute()
+    }
+
+    suspend fun getSheetId(spreadsheetId: String, sheetName: String): Int? {
+        val service = googleAuthClient.getGoogleSheetsService()
+        val spreadsheet = service?.spreadsheets()?.get(spreadsheetId)?.execute()
+        val sheet = spreadsheet?.sheets?.find { it.properties?.title == sheetName }
+        return sheet?.properties?.sheetId
     }
 }

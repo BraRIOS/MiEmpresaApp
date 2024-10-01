@@ -70,4 +70,7 @@
     <string name="image_url_column">Image URL</string>
     <string name="product_amount_column">Number of products</string>
     <string name="create_your_company">Create your company</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="error_deleting_category">Could not delete the category</string>
 </resources>

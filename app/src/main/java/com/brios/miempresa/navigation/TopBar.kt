@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.brios.miempresa.R
+import com.brios.miempresa.ui.dimens.AppDimensions
 import com.brios.miempresa.ui.theme.RedWarning
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,9 +60,10 @@ fun TopBar(
             if(!isProductScreen) {
                 Icon(
                     imageVector = if(!showBackButton) Icons.Filled.Menu else Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = if(!showBackButton) "Show menu" else "Go back",
+                    contentDescription = if(!showBackButton) stringResource(id = R.string.show_menu)
+                        else stringResource(id = R.string.go_back),
                     modifier = Modifier
-                        .padding(start = 8.dp, end = 12.dp)
+                        .padding(start = AppDimensions.smallPadding, end = AppDimensions.mediumPadding)
                         .clickable {
                             if (showBackButton) {
                                 navController.popBackStack()
@@ -70,7 +72,7 @@ fun TopBar(
                 )
             }
             else{
-                Box(modifier = Modifier.padding(start = 8.dp)){
+                Box(modifier = Modifier.padding(start = AppDimensions.smallPadding)){
                     FloatingActionButton(
                         onClick = { navController.popBackStack() },
                         shape = CircleShape,
@@ -89,8 +91,8 @@ fun TopBar(
         actions = {
             if (isProductScreen) {
                 Row(
-                    modifier = Modifier.padding(end = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                    modifier = Modifier.padding(end = AppDimensions.smallPadding),
+                    horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding, Alignment.CenterHorizontally),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     FloatingActionButton(
@@ -123,15 +125,17 @@ fun TopBar(
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
-        modifier = Modifier.background(
-            brush = Brush.verticalGradient(
-                colors = listOf(
-                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 1f),
-                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0f)
+        modifier = Modifier
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 1f),
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0f)
+                    )
                 )
             )
-        ).padding(top = if(isProductScreen) 16.dp else 0.dp)
+            .padding(top = if (isProductScreen) AppDimensions.mediumPadding else 0.dp)
     )
 }
 

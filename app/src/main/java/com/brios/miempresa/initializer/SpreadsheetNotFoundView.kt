@@ -24,9 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.brios.miempresa.R
 import com.brios.miempresa.data.Company
+import com.brios.miempresa.ui.dimens.AppDimensions
 
 @Composable
 fun SpreadsheetNotFoundView(
@@ -39,7 +39,7 @@ fun SpreadsheetNotFoundView(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(AppDimensions.mediumPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -49,14 +49,14 @@ fun SpreadsheetNotFoundView(
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurface
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
         Text(
             text = company.name,
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.primary
         )
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(AppDimensions.extraLargePadding))
         Button(onClick = { onRetry(company.id) }) {
             Icon(
                 imageVector = Icons.Filled.Refresh,
@@ -66,7 +66,7 @@ fun SpreadsheetNotFoundView(
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
             Text(text = stringResource(R.string.retry_search))
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
         Button(onClick = { onCreateSpreadsheet(company.id) }) {
             Icon(
                 imageVector = Icons.Filled.Add,
@@ -76,7 +76,7 @@ fun SpreadsheetNotFoundView(
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
             Text(text = stringResource(R.string.create_database))
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
         Button(onClick = { onDeleteCompany(company) }) {
             Icon(
                 imageVector = Icons.Filled.Delete,
@@ -86,7 +86,7 @@ fun SpreadsheetNotFoundView(
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
             Text(text = stringResource(R.string.delete_company))
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
         Button(onClick = onSelectAnotherCompany) {
             Icon(
                 imageVector = Icons.Filled.SwapHoriz,

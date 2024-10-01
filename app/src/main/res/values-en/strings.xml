@@ -73,4 +73,10 @@
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
     <string name="error_deleting_category">Could not delete the category</string>
+    <string name="discard">Discard</string>
+    <string name="invalid_credential_type">Invalid credential type: %1$s</string>
+    <string name="app_logo">Application logo</string>
+    <string name="options">Options</string>
+    <string name="profile_picture">Profile picture</string>
+    <string name="image">%1$s image</string>
 </resources>

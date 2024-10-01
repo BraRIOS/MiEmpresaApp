@@ -30,10 +30,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.brios.miempresa.R
 import com.brios.miempresa.categories.Category
 import com.brios.miempresa.components.SearchableDropdownWithChips
+import com.brios.miempresa.ui.dimens.AppDimensions
 
 @Composable
 fun ProductDialog(
@@ -71,10 +71,10 @@ fun ProductDialog(
         text = {
             LazyColumn(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(AppDimensions.mediumPadding))
                     .background(Color.White)
-                    .padding(top = 8.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                    .padding(top = AppDimensions.smallPadding, bottom = AppDimensions.mediumPadding, start = AppDimensions.mediumPadding, end = AppDimensions.mediumPadding),
+                verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding)
             ) {
                 item {
                     OutlinedTextField(

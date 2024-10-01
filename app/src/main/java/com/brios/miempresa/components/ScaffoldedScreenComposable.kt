@@ -8,13 +8,13 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.brios.miempresa.navigation.BottomBar
 import com.brios.miempresa.navigation.DrawerComposable
 import com.brios.miempresa.navigation.TopBar
 import com.brios.miempresa.navigation.TopBarViewModel
+import com.brios.miempresa.ui.dimens.AppDimensions
 import kotlinx.coroutines.launch
 
 @Composable
@@ -42,7 +42,7 @@ fun ScaffoldedScreenComposable(
                 Box(
                     modifier = Modifier
                         .padding(paddingValues)
-                        .padding(horizontal = 4.dp)
+                        .padding(horizontal = AppDimensions.extraSmallPadding)
                 ) {
                     content()
                 }

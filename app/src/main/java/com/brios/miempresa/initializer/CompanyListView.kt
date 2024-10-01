@@ -33,12 +33,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.brios.miempresa.R
 import com.brios.miempresa.components.MessageWithIcon
 import com.brios.miempresa.data.Company
+import com.brios.miempresa.ui.dimens.AppDimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +54,7 @@ fun CompanyListView(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(AppDimensions.mediumPadding),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -63,12 +63,12 @@ fun CompanyListView(
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.primary
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
         Text(
             text = stringResource(R.string.select_company_question),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface)
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
 
         TextField(
             value = searchText,
@@ -83,12 +83,12 @@ fun CompanyListView(
 
         if (filteredCompanies.isNotEmpty()) {
             LazyColumn(modifier = Modifier
-                .height(140.dp)
+                .height(AppDimensions.CompanyListView.listHeight)
                 .fillMaxWidth()
                 .border(
-                    1.dp,
+                    AppDimensions.smallBorderWidth,
                     MaterialTheme.colorScheme.surfaceContainerHighest,
-                    RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
+                    RoundedCornerShape(bottomStart = AppDimensions.smallPadding, bottomEnd = AppDimensions.smallPadding))
             ) {
                 items(filteredCompanies.size) { index ->
                     val company = filteredCompanies[index]
@@ -105,24 +105,24 @@ fun CompanyListView(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp),
+                .padding(vertical = AppDimensions.mediumPadding),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             HorizontalDivider(modifier = Modifier.weight(1f))
             Text(
                 text = stringResource(id = R.string.or),
-                modifier = Modifier.padding(horizontal = 8.dp),
+                modifier = Modifier.padding(horizontal = AppDimensions.smallPadding),
                 color = DividerDefaults.color
             )
             HorizontalDivider(modifier = Modifier.weight(1f))
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
 
         Button(
             onClick = { onCreateNewCompany() },

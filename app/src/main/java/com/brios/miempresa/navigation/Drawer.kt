@@ -14,13 +14,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,12 +40,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.brios.miempresa.R
+import com.brios.miempresa.domain.UserData
 import com.brios.miempresa.signin.SignInViewModel
+import com.brios.miempresa.ui.dimens.AppDimensions
 import kotlinx.coroutines.launch
 
 @Composable
@@ -51,10 +57,22 @@ fun DrawerComposable(
     signInViewModel: SignInViewModel = hiltViewModel(),
     content: @Composable () -> Unit
 ){
-    val scope = rememberCoroutineScope()
     val user = signInViewModel.getSignedInUser()
-    var showDropdown by remember { mutableStateOf(false) }
     val context = LocalContext.current as Activity
+    DrawerContent(drawerState, user, context, signInViewModel, navController, content)
+}
+
+@Composable
+private fun DrawerContent(
+    drawerState: DrawerState,
+    user: UserData?,
+    context: Activity?,
+    signInViewModel: SignInViewModel?,
+    navController: NavHostController,
+    content: @Composable () -> Unit
+) {
+    val scope = rememberCoroutineScope()
+    var showDropdown by remember { mutableStateOf(false) }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -63,43 +81,46 @@ fun DrawerComposable(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp),
+                        .padding(AppDimensions.mediumPadding),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.miempresa_logo_glyph),
-                        contentDescription = "App Logo",
-                        modifier = Modifier.size(64.dp),
+                        contentDescription = stringResource(R.string.app_logo),
+                        modifier = Modifier.size(AppDimensions.Drawer.appLogoSize),
                         contentScale = ContentScale.Crop
                     )
                     user?.let {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(AppDimensions.mediumPadding),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding)
                         ) {
 
                             Image(
                                 painter = rememberAsyncImagePainter(model = user.profilePictureUrl),
-                                contentDescription = "Profile Picture",
+                                contentDescription = stringResource(R.string.profile_picture),
                                 modifier = Modifier
-                                    .size(48.dp)
+                                    .size(AppDimensions.largeIconSize)
                                     .clip(CircleShape)
                             )
 
                             Column(
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Text(text = user.username ?: "Unknown User", fontWeight = FontWeight.Bold)
+                                Text(
+                                    text = user.username ?: stringResource(id = R.string.user),
+                                    fontWeight = FontWeight.Bold
+                                )
                                 user.email?.let { it1 -> Text(text = it1, color = Color.Gray) }
                             }
                             Box {
                                 Icon(
                                     imageVector = Icons.Default.MoreVert,
-                                    contentDescription = "Options",
+                                    contentDescription = stringResource(R.string.options),
                                     modifier = Modifier
                                         .clickable { showDropdown = !showDropdown }
                                 )
@@ -123,7 +144,7 @@ fun DrawerComposable(
                                             showDropdown = false
                                             scope.launch {
                                                 drawerState.close()
-                                                signInViewModel.signOut(context)
+                                                signInViewModel!!.signOut(context!!)
                                                 navController.navigate(MiEmpresaScreen.Welcome.name) {
                                                     popUpTo(0)
                                                 }
@@ -137,5 +158,33 @@ fun DrawerComposable(
                 }
             }
         }
-    ){ content() }
+    ) { content() }
+}
+
+@Preview
+@Composable
+fun DrawerContentPreview(){
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    DrawerContent(
+        drawerState = drawerState,
+        UserData("Test", "Test username", "test@test.com", "url"),
+        null,
+        null,
+        NavHostController(LocalContext.current)
+    ){
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ){
+                Button(
+                    onClick = { scope.launch { drawerState.open() } }) {
+                    Text(text = "Open Drawer")
+                }
+            }
+        }
+
+    }
+
 }

@@ -30,7 +30,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
@@ -40,6 +39,7 @@ import com.brios.miempresa.components.FABButton
 import com.brios.miempresa.components.ScaffoldedScreenComposable
 import com.brios.miempresa.navigation.MiEmpresaScreen
 import com.brios.miempresa.navigation.TopBarViewModel
+import com.brios.miempresa.ui.dimens.AppDimensions
 
 @Composable
 fun CategoriesComposable(
@@ -157,7 +157,7 @@ fun CategoryListItem(
                 loading = { CircularProgressIndicator() },
                 contentDescription = null,
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(AppDimensions.Categories.imageSize)
                     .clip(RectangleShape),
                 contentScale = ContentScale.Crop
             )

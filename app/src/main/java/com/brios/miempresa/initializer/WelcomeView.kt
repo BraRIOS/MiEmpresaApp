@@ -20,8 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.brios.miempresa.R
+import com.brios.miempresa.ui.dimens.AppDimensions
 
 @Composable
 fun WelcomeView(username: String, isFirstTime: Boolean, onCompanyNameEntered: (String) -> Unit) {
@@ -30,7 +30,7 @@ fun WelcomeView(username: String, isFirstTime: Boolean, onCompanyNameEntered: (S
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(AppDimensions.mediumPadding),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -40,7 +40,7 @@ fun WelcomeView(username: String, isFirstTime: Boolean, onCompanyNameEntered: (S
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.primary
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
             Text(
                 text = stringResource(R.string.create_your_company),
                 style = MaterialTheme.typography.bodyLarge,
@@ -52,13 +52,13 @@ fun WelcomeView(username: String, isFirstTime: Boolean, onCompanyNameEntered: (S
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.primary
             )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
         OutlinedTextField(
             value = companyName,
             onValueChange = { companyName = it },
             label = { Text(stringResource(id = R.string.company_name_label)) }
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
         Button(onClick = { onCompanyNameEntered(companyName) }) {
             Text(stringResource(id = R.string.create))
         }

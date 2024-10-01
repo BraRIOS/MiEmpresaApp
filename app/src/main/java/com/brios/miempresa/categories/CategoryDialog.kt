@@ -23,8 +23,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.brios.miempresa.R
+import com.brios.miempresa.ui.dimens.AppDimensions
 
 @Composable
 fun CategoryDialog(
@@ -50,10 +50,10 @@ fun CategoryDialog(
         text = {
             Column(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(AppDimensions.mediumPadding))
                     .background(Color.White)
-                    .padding(top = 8.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(top = AppDimensions.smallPadding, bottom = AppDimensions.mediumPadding, start = AppDimensions.mediumPadding, end = AppDimensions.mediumPadding),
+                verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding)
             ) {
                 OutlinedTextField(
                     value = name,

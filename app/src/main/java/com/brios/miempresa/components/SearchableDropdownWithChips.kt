@@ -30,8 +30,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.brios.miempresa.R
+import com.brios.miempresa.ui.dimens.AppDimensions
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -60,20 +62,20 @@ fun SearchableDropdownWithChips(
     // La columna que contiene la fila de chips y el buscador
     Column(modifier = Modifier
         .fillMaxWidth()
-        .padding(top = 8.dp)) {
+        .padding(top = AppDimensions.smallPadding)) {
         // Campo de entrada con chips en FlowRow
         FlowRow(
             modifier = Modifier
                 .border(
-                    1.dp, indicatorColor,
+                    AppDimensions.smallBorderWidth, indicatorColor,
                     if (expanded && filteredItems.isNotEmpty())
-                        RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
+                        RoundedCornerShape(topStart = AppDimensions.extraSmallPadding, topEnd = AppDimensions.extraSmallPadding)
                     else
-                        RoundedCornerShape(4.dp)
+                        RoundedCornerShape(AppDimensions.extraSmallPadding)
                 )
                 .wrapContentHeight()
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            horizontalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
             verticalArrangement = Arrangement.Center
         ) {
             // Chips de elementos seleccionados
@@ -90,14 +92,14 @@ fun SearchableDropdownWithChips(
                     trailingIcon = {
                         Icon(
                             Icons.Filled.Close,
-                            contentDescription = "Remove",
+                            contentDescription = stringResource(R.string.discard),
                             modifier = Modifier
-                                .size(18.dp)
+                                .size(AppDimensions.mediumPadding)
                                 .clickable { onItemRemoved(item) }
                         )
                     },
                     modifier = Modifier
-                        .padding(horizontal = 4.dp)
+                        .padding(horizontal = AppDimensions.extraSmallPadding)
                 )
             }
 
@@ -110,7 +112,7 @@ fun SearchableDropdownWithChips(
                 },
                 modifier = Modifier
                     .weight(1f)
-                    .padding(16.dp),
+                    .padding(AppDimensions.mediumPadding),
                 decorationBox = { innerTextField ->
                     if (searchQuery.isEmpty()) {
                         Text(
@@ -131,15 +133,15 @@ fun SearchableDropdownWithChips(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.White)
-                    .border(1.dp, MaterialTheme.colorScheme.primary)
-                    .padding(8.dp)
+                    .border(AppDimensions.smallBorderWidth, MaterialTheme.colorScheme.primary)
+                    .padding(AppDimensions.smallPadding)
             ) {
                 filteredItems.forEach { item ->
                     Text(
                         text = item,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp)
+                            .padding(vertical = AppDimensions.extraSmallPadding)
                             .clickable {
                                 if (!selectedItems.contains(item)) {
                                     onItemSelected(item)
@@ -167,7 +169,7 @@ fun SearchableDropdownWithChipsPreview() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(8.dp),
+                .padding(AppDimensions.smallPadding),
             verticalArrangement = Arrangement.Center
         ) {
             SearchableDropdownWithChips(

@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.brios.miempresa.R
+import com.brios.miempresa.ui.dimens.AppDimensions
 
 @Composable
 fun DeleteDialog(itemName: String, onDismiss: () -> Unit, onConfirm: () -> Unit) {
@@ -23,7 +23,7 @@ fun DeleteDialog(itemName: String, onDismiss: () -> Unit, onConfirm: () -> Unit)
         icon = {
             Icon(imageVector = Icons.Outlined.Info,
                 contentDescription = stringResource(R.string.info),
-                modifier = Modifier.size(50.dp),
+                modifier = Modifier.size(AppDimensions.largeIconSize),
                 tint = MaterialTheme.colorScheme.primary
             )
         },

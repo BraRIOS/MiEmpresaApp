@@ -15,18 +15,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.brios.miempresa.R
+import com.brios.miempresa.ui.dimens.AppDimensions
 
 @Composable
 fun MessageWithIcon(message: String, icon: ImageVector) {
     Column(modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+        verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally)
     {
         Icon(imageVector = icon,
             contentDescription = stringResource(R.string.warning_icon_description),
-            modifier = Modifier.size(64.dp),
+            modifier = Modifier.size(AppDimensions.extraLargeIconSize),
             tint = MaterialTheme.colorScheme.primary)
         Text(message, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
     }

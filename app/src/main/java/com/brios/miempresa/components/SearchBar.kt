@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.dp
+import com.brios.miempresa.ui.dimens.AppDimensions
 
 @Composable
 fun SearchBar(
@@ -28,8 +28,8 @@ fun SearchBar(
         onValueChange = onQueryChange,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .border(1.dp, Color.Gray, MaterialTheme.shapes.medium)
+            .padding(horizontal = AppDimensions.mediumPadding)
+            .border(AppDimensions.smallBorderWidth, Color.Gray, MaterialTheme.shapes.medium)
             .clip(MaterialTheme.shapes.medium),
         placeholder = {
             Text(placeholderText, color = Color.Gray, style = MaterialTheme.typography.bodyLarge)

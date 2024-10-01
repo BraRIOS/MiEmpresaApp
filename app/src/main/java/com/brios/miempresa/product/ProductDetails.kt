@@ -43,7 +43,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
@@ -51,6 +50,7 @@ import com.brios.miempresa.R
 import com.brios.miempresa.components.DeleteDialog
 import com.brios.miempresa.components.MessageWithIcon
 import com.brios.miempresa.navigation.TopBar
+import com.brios.miempresa.ui.dimens.AppDimensions
 
 @Composable
 fun ProductDetails(
@@ -105,17 +105,17 @@ private fun ProductDetailsContent(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(16.dp)
+                            .padding(AppDimensions.mediumPadding)
                             .wrapContentSize(Alignment.Center)
                     ) {
-                        CircularProgressIndicator(modifier = Modifier.size(120.dp))
+                        CircularProgressIndicator(modifier = Modifier.size(AppDimensions.ProductDetails.progressIndicatorSize))
                     }
                 },
                 contentDescription = product.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(350.dp)
+                    .height(AppDimensions.ProductDetails.productImageSize)
             )
             TopBar(
                 navController = navController,
@@ -126,10 +126,10 @@ private fun ProductDetailsContent(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(start = 16.dp, end = 16.dp, top = 8.dp)
+                    .padding(start = AppDimensions.mediumPadding, end = AppDimensions.mediumPadding, top = AppDimensions.smallPadding)
 
             ) {
-                Spacer(modifier = Modifier.height(350.dp))
+                Spacer(modifier = Modifier.height(AppDimensions.ProductDetails.productImageSize))
                 Text(
                     text = product.name,
                     style = MaterialTheme.typography.headlineMedium,
@@ -139,7 +139,7 @@ private fun ProductDetailsContent(
                 Row(
                     modifier = Modifier.fillMaxWidth()
                         .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding)
                 ) {
                     product.categories.map { category ->
                         SuggestionChip(
@@ -159,18 +159,18 @@ private fun ProductDetailsContent(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
                 Text(
                     text = product.price,
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.primary
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
                 Text(
                     text = stringResource(id = R.string.description_label),
                     style = MaterialTheme.typography.labelLarge
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(AppDimensions.extraSmallPadding))
                 OutlinedTextField(
                     value = product.description,
                     onValueChange = {},
@@ -178,7 +178,7 @@ private fun ProductDetailsContent(
                     readOnly = true,
                     maxLines = 6,
                     textStyle = MaterialTheme.typography.bodyLarge,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                     colors = TextFieldDefaults.colors().copy(
                         unfocusedContainerColor = Color.White,
                         unfocusedIndicatorColor = MaterialTheme.colorScheme.primary,

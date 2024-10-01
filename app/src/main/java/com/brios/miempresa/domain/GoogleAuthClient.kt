@@ -106,7 +106,7 @@ class GoogleAuthClient @Inject constructor(
             }
         }else return SignInResult(
                 data = null,
-                errorMessage = "Invalid credential type: ${credential.type}"
+                errorMessage = context.getString(R.string.invalid_credential_type, credential.type)
             )
     }
 

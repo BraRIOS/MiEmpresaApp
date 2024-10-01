@@ -74,4 +74,10 @@
     <string name="edit">Editar</string>
     <string name="delete">Eliminar</string>
     <string name="error_deleting_category">No se pudo eliminar la categoría</string>
+    <string name="discard">Descartar</string>
+    <string name="invalid_credential_type">Tipo de credencial inválido: %1$s</string>
+    <string name="app_logo">Logo de la aplicación</string>
+    <string name="options">Opciones</string>
+    <string name="profile_picture">Foto de perfil</string>
+    <string name="image">imagen de %1$s</string>
 </resources>

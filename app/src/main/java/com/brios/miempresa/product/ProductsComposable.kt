@@ -37,7 +37,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
@@ -47,6 +46,7 @@ import com.brios.miempresa.components.ScaffoldedScreenComposable
 import com.brios.miempresa.components.SearchBar
 import com.brios.miempresa.navigation.MiEmpresaScreen
 import com.brios.miempresa.navigation.TopBarViewModel
+import com.brios.miempresa.ui.dimens.AppDimensions
 
 @Composable
 fun ProductsComposable(
@@ -92,7 +92,7 @@ fun ProductsComposable(
                             focusManager.clearFocus()
                         }
                     },
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 item {
@@ -103,7 +103,7 @@ fun ProductsComposable(
                             productsViewModel.onSearchQueryChange(it)
                         },
                         modifier = Modifier
-                            .padding(vertical = 8.dp),
+                            .padding(vertical = AppDimensions.smallPadding),
                         placeholderText = stringResource(id = R.string.productSearch)
                     )
                 }
@@ -140,12 +140,12 @@ fun ProductGrid(products: List<Product>, onProductClick: (product:Product) -> Un
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp),
+            .padding(bottom = AppDimensions.mediumPadding),
         contentAlignment = Alignment.Center
     ) {
         FlowRow(
-            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Top),
-            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+            verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding, Alignment.Top),
+            horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding, Alignment.CenterHorizontally),
         ) {
             products.forEach { product ->
                 ProductCard(product, onProductClick)
@@ -159,7 +159,7 @@ fun ProductGrid(products: List<Product>, onProductClick: (product:Product) -> Un
 fun ProductCard(product: Product, onProductClick: (product:Product) -> Unit) {
     ElevatedCard(
         modifier = Modifier
-            .width(150.dp)
+            .width(AppDimensions.Products.productCardWidth)
             .clickable(
                 onClick = { onProductClick(product) },
             ),
@@ -170,23 +170,23 @@ fun ProductCard(product: Product, onProductClick: (product:Product) -> Unit) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp)
+                        .padding(AppDimensions.mediumPadding)
                         .wrapContentSize(Alignment.Center)
                 ) {
-                    CircularProgressIndicator(modifier = Modifier.size(54.dp))
+                    CircularProgressIndicator(modifier = Modifier.size(AppDimensions.Products.progressIndicatorSize))
                 }
             },
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .height(80.dp)
+                .height(AppDimensions.Products.imageHeight)
                 .fillMaxWidth(),
-            contentDescription = product.name + " image",
+            contentDescription = stringResource(R.string.image, product.name),
             )
         Column(
             modifier = Modifier
-                .padding(8.dp)
+                .padding(AppDimensions.smallPadding)
                 .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding)
         ) {
             Text(text = product.name, style = MaterialTheme.typography.titleSmall,
                 overflow = TextOverflow.Ellipsis, maxLines = 2, minLines = 2)

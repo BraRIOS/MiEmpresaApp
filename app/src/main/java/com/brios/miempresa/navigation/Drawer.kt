@@ -144,9 +144,10 @@ private fun DrawerContent(
                                             showDropdown = false
                                             scope.launch {
                                                 drawerState.close()
-                                                signInViewModel!!.signOut(context!!)
-                                                navController.navigate(MiEmpresaScreen.Welcome.name) {
-                                                    popUpTo(0)
+                                                signInViewModel!!.signOut(context!!).also {
+                                                    navController.navigate(MiEmpresaScreen.SignIn.name) {
+                                                        popUpTo(0)
+                                                    }
                                                 }
                                             }
                                         }

@@ -38,10 +38,10 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
         if(signInViewModel.getSignedInUser() != null)
             MiEmpresaScreen.Initializer.name
         else
-            MiEmpresaScreen.Welcome.name,
+            MiEmpresaScreen.SignIn.name,
         modifier = Modifier.fillMaxSize()
     ) {
-        composable(route = MiEmpresaScreen.Welcome.name) {
+        composable(route = MiEmpresaScreen.SignIn.name) {
             val signInState by signInViewModel.signInStateFlow.collectAsStateWithLifecycle()
             val authState by signInViewModel.authStateFlow.collectAsStateWithLifecycle()
             val activity = LocalContext.current as Activity

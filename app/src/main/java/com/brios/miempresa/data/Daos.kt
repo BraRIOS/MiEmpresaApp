@@ -27,4 +27,8 @@ interface CompanyDao {
 
     @Query("SELECT * FROM companies")
     fun getCompanies(): LiveData<List<Company>>
+
+    @Query("DELETE FROM companies")
+    suspend fun clear()
+
 }

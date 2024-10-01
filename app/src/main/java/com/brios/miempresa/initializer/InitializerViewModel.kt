@@ -86,10 +86,9 @@ class InitializerViewModel @Inject constructor(
                 companyDao.insert(Company(folder.id, folder.name, selected = false))
             }
         }
-        val spreadsheetId = getFromDataStore(context, PreferencesKeys.SPREADSHEET_ID_KEY).firstOrNull()
         val selectedCompany = companyDao.getSelectedCompany().asFlow().firstOrNull()
-        if (spreadsheetId != null && selectedCompany != null) {
-            _uiState.value = InitializerUiState.NavigateToProducts
+        if (selectedCompany != null) {
+            searchSpreadsheet(selectedCompany)
         } else {
             _uiState.value = InitializerUiState.CompanyList(
                 companies = companyDao.getCompanies(),
@@ -98,17 +97,16 @@ class InitializerViewModel @Inject constructor(
         }
     }
 
-    fun selectCompany(company: Company) {
-        viewModelScope.launch {
-            _uiState.value = InitializerUiState.SearchingSpreadsheet
-            val spreadsheet = driveApi.findSpreadsheetInFolder(company.id)
-            if (spreadsheet != null) {
-                saveSpreadsheetIdAndCompany(spreadsheet.id, company)
-            } else {
-                _uiState.value = InitializerUiState.SpreadsheetNotFound(company)
-            }
+    fun searchSpreadsheet(company: Company) = viewModelScope.launch {
+        _uiState.value = InitializerUiState.SearchingSpreadsheet
+        val spreadsheet = driveApi.findSpreadsheetInFolder(company.id)
+        if (spreadsheet != null) {
+            saveSpreadsheetIdAndCompany(spreadsheet.id, company)
+        } else {
+            _uiState.value = InitializerUiState.SpreadsheetNotFound(company)
         }
     }
+
 
     private suspend fun saveSpreadsheetIdAndCompany(spreadsheetId: String, company: Company) {
         saveToDataStore(context, spreadsheetId, PreferencesKeys.SPREADSHEET_ID_KEY)
@@ -124,12 +122,10 @@ class InitializerViewModel @Inject constructor(
     }
 
     fun goToCompanyListScreen() {
-        viewModelScope.launch {
-            _uiState.value = InitializerUiState.CompanyList(
-                companies = companyDao.getCompanies(),
-                username = googleAuthClient.getSignedInUser()?.username?: context.getString(R.string.user)
-            )
-        }
+        _uiState.value = InitializerUiState.CompanyList(
+            companies = companyDao.getCompanies(),
+            username = googleAuthClient.getSignedInUser()?.username?: context.getString(R.string.user)
+        )
     }
 
     fun createCompany(companyName: String) {
@@ -160,7 +156,7 @@ class InitializerViewModel @Inject constructor(
         }
     }
 
-    fun searchSpreadsheet(companyId: String) = viewModelScope.launch {
+    fun retrySearchSpreadsheet(companyId: String) = viewModelScope.launch {
         _uiState.value = InitializerUiState.SearchingSpreadsheet
         val company = companyDao.getCompanyById(companyId)
         if (company == null) {

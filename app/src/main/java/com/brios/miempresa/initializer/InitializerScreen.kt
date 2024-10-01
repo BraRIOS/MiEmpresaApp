@@ -33,7 +33,7 @@ fun InitializerScreen(
             CompanyListView(
                 username = companyListState.username,
                 companies = companyListState.companies,
-                onSelectCompany = { viewModel.selectCompany(it) },
+                onSelectCompany = { viewModel.searchSpreadsheet(it) },
                 onCreateNewCompany = { viewModel.goToCreateCompanyScreen() }
             )
         }
@@ -43,7 +43,7 @@ fun InitializerScreen(
         is InitializerUiState.SpreadsheetNotFound -> {
             SpreadsheetNotFoundView(
                 (uiState as InitializerUiState.SpreadsheetNotFound).company,
-                onRetry = { viewModel.searchSpreadsheet(it) },
+                onRetry = { viewModel.retrySearchSpreadsheet(it) },
                 onCreateSpreadsheet = { viewModel.createAndInitializeSpreadsheet(it) },
                 onSelectAnotherCompany = { viewModel.goToCompanyListScreen() },
                 onDeleteCompany = { viewModel.deleteCompany(it) }

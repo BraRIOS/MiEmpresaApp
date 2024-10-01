@@ -1,6 +1,6 @@
 package com.brios.miempresa.navigation
 enum class MiEmpresaScreen {
-    Welcome,
+    SignIn,
     Initializer,
     Products,
     Product,
@@ -9,7 +9,7 @@ enum class MiEmpresaScreen {
 }
 
 val basePages = listOf(
-    MiEmpresaScreen.Welcome.name,
+    MiEmpresaScreen.SignIn.name,
     MiEmpresaScreen.Initializer.name,
     MiEmpresaScreen.Products.name,
     MiEmpresaScreen.Categories.name,

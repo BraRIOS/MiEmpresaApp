@@ -78,7 +78,7 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
                     )
                 }
                 else if (authState is AuthState.Authorized && signInViewModel.getSignedInUser()!=null) {
-                    navController.navigate(MiEmpresaScreen.Products.name){
+                    navController.navigate(MiEmpresaScreen.Initializer.name){
                         popUpTo(0)
                         launchSingleTop = true
                     }

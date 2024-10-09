@@ -1,6 +1,5 @@
 package com.brios.miempresa.components
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
@@ -16,7 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.tooling.preview.Preview
 import com.brios.miempresa.ui.dimens.AppDimensions
+import com.brios.miempresa.ui.theme.PlaceholderColor
 
 @Composable
 fun SearchBar(
@@ -29,10 +30,9 @@ fun SearchBar(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = AppDimensions.mediumPadding)
-            .border(AppDimensions.smallBorderWidth, Color.Gray, MaterialTheme.shapes.medium)
             .clip(MaterialTheme.shapes.medium),
         placeholder = {
-            Text(placeholderText, color = Color.Gray, style = MaterialTheme.typography.bodyLarge)
+            Text(placeholderText, style = MaterialTheme.typography.bodyLarge)
         },
         leadingIcon = {
             Icon(
@@ -41,19 +41,22 @@ fun SearchBar(
             )
         },
         colors = TextFieldDefaults.colors(
-            focusedTextColor = Color.Black,
-            unfocusedTextColor = Color.Gray,
             focusedContainerColor = MaterialTheme.colorScheme.surface,
             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             cursorColor = MaterialTheme.colorScheme.primary,
             focusedIndicatorColor = MaterialTheme.colorScheme.primary,
             unfocusedIndicatorColor = Color.Transparent,
             focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
-            unfocusedLeadingIconColor = Color.Gray,
-            focusedPlaceholderColor = Color.Gray,
-            unfocusedPlaceholderColor = Color.Gray,
+            unfocusedPlaceholderColor = PlaceholderColor,
+            focusedPlaceholderColor = PlaceholderColor,
         ),
         singleLine = true,
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
     )
+}
+
+@Preview
+@Composable
+fun SearchBarPreview() {
+    SearchBar(query = "", onQueryChange = {}, modifier = Modifier, placeholderText = "Search")
 }

@@ -7,6 +7,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.brios.miempresa.R
+import com.brios.miempresa.components.LoadingView
 import com.brios.miempresa.navigation.MiEmpresaScreen
 
 @Composable

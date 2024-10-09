@@ -36,6 +36,7 @@ import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
 import com.brios.miempresa.components.DeleteDialog
 import com.brios.miempresa.components.FABButton
+import com.brios.miempresa.components.LoadingView
 import com.brios.miempresa.components.ScaffoldedScreenComposable
 import com.brios.miempresa.navigation.MiEmpresaScreen
 import com.brios.miempresa.navigation.TopBarViewModel
@@ -121,13 +122,13 @@ private fun CategoriesScreenContent(
     showDeleteDialog: (Category) -> Unit,
     filteredCategories: List<Category>
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        if (isLoading) {
-            item { CircularProgressIndicator() }
-        } else {
+    if (isLoading)
+        LoadingView()
+    else
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
             items(filteredCategories) { category ->
                 CategoryListItem(category, showEditDialog, showDeleteDialog) {
                     navController.navigate(MiEmpresaScreen.Products.name)
@@ -135,7 +136,6 @@ private fun CategoriesScreenContent(
                 HorizontalDivider()
             }
         }
-    }
 }
 
 @Composable
@@ -150,7 +150,11 @@ fun CategoryListItem(
     }
     ListItem(
         headlineContent = { Text(category.name) },
-        supportingContent = { Text("${stringResource(id = R.string.home_title)}: ${category.productQty}") },
+        supportingContent = { Text(
+            stringResource(
+                R.string.products_label_count,
+                category.productQty
+            )) },
         leadingContent = {
             SubcomposeAsyncImage(
                 model = category.imageUrl,
@@ -168,7 +172,7 @@ fun CategoryListItem(
                     Icon(
                         Icons.Filled.MoreHoriz,
                         contentDescription =
-                        "${stringResource(R.string.show_category_options)} ${category.name}"
+                        stringResource(R.string.show_category_options, category.name)
                     )
                 }
                 DropdownMenu(expanded = showDropdown, onDismissRequest = { showDropdown = false}) {
@@ -221,6 +225,20 @@ fun PreviewCategoryListItem(){
                 imageUrl = "https://picsum.photos/200/300"
             )
         ),
+        showEditDialog = {showDialog = true},
+        showDeleteDialog = {showDeleteDialog = true}
+    )
+}
+
+@Preview
+@Composable
+fun PreviewCategoryLoadingListItem(){
+    var showDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    CategoriesScreenContent(
+        navController = NavHostController(LocalContext.current),
+        isLoading = true,
+        filteredCategories = listOf(),
         showEditDialog = {showDialog = true},
         showDeleteDialog = {showDeleteDialog = true}
     )

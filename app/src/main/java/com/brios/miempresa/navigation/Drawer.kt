@@ -20,6 +20,7 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Surface
@@ -34,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -115,7 +115,7 @@ private fun DrawerContent(
                                     text = user.username ?: stringResource(id = R.string.user),
                                     fontWeight = FontWeight.Bold
                                 )
-                                user.email?.let { it1 -> Text(text = it1, color = Color.Gray) }
+                                user.email?.let { it1 -> Text(text = it1, color = MaterialTheme.colorScheme.onSurface) }
                             }
                             Box {
                                 Icon(

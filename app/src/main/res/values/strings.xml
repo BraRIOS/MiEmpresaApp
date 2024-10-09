@@ -28,7 +28,7 @@
     <string name="name_label">Nombre</string>
     <string name="product_not_found">Producto no encontrado</string>
     <string name="error_updating_product">Error al actualizar el producto</string>
-    <string name="show_category_options">Mostrar opciones de la categoría</string>
+    <string name="show_category_options">Mostrar opciones de la categoría: %1$s</string>
     <string name="product_quantity">Cantidad de productos</string>
     <string name="add_category">Agregar categoría</string>
     <string name="edit_category">Editar categoría</string>
@@ -80,4 +80,5 @@
     <string name="options">Opciones</string>
     <string name="profile_picture">Foto de perfil</string>
     <string name="image">imagen de %1$s</string>
+    <string name="products_label_count">Productos: %1$s</string>
 </resources>

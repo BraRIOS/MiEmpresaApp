@@ -42,6 +42,7 @@ import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
 import com.brios.miempresa.components.FABButton
+import com.brios.miempresa.components.LoadingView
 import com.brios.miempresa.components.ScaffoldedScreenComposable
 import com.brios.miempresa.components.SearchBar
 import com.brios.miempresa.navigation.MiEmpresaScreen
@@ -77,12 +78,7 @@ fun ProductsComposable(
         }
     ) {
         if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
+            LoadingView()
         } else {
             LazyColumn(
                 modifier = Modifier

@@ -37,7 +37,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -48,6 +47,7 @@ import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
 import com.brios.miempresa.components.DeleteDialog
+import com.brios.miempresa.components.LoadingView
 import com.brios.miempresa.components.MessageWithIcon
 import com.brios.miempresa.navigation.TopBar
 import com.brios.miempresa.ui.dimens.AppDimensions
@@ -60,12 +60,7 @@ fun ProductDetails(
 ) {
     val loadingState by viewModel.isLoading.collectAsState()
     if (loadingState) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
-        }
+        LoadingView()
     }
 
     LaunchedEffect(key1 = rowIndex) {
@@ -126,7 +121,11 @@ private fun ProductDetailsContent(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(start = AppDimensions.mediumPadding, end = AppDimensions.mediumPadding, top = AppDimensions.smallPadding)
+                    .padding(
+                        start = AppDimensions.mediumPadding,
+                        end = AppDimensions.mediumPadding,
+                        top = AppDimensions.smallPadding
+                    )
 
             ) {
                 Spacer(modifier = Modifier.height(AppDimensions.ProductDetails.productImageSize))
@@ -137,7 +136,8 @@ private fun ProductDetailsContent(
                     fontWeight = FontWeight.Bold
                 )
                 Row(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding)
                 ) {
@@ -180,9 +180,9 @@ private fun ProductDetailsContent(
                     textStyle = MaterialTheme.typography.bodyLarge,
                     shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                     colors = TextFieldDefaults.colors().copy(
-                        unfocusedContainerColor = Color.White,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                         unfocusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                        focusedContainerColor = Color.White
+                        focusedContainerColor = MaterialTheme.colorScheme.surface
                     ),
                 )
             }

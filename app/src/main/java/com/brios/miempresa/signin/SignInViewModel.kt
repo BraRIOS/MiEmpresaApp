@@ -52,6 +52,7 @@ class SignInViewModel @Inject constructor(
             val database = MiEmpresaDatabase.getDatabase(activity)
             database.companyDao().clear()
             removeValueFromDataStore(activity, PreferencesKeys.SPREADSHEET_ID_KEY)
+            _authState.update { AuthState.Unauthorized }
             googleAuthClient.signOut(activity)
         }
     }

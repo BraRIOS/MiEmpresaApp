@@ -80,4 +80,6 @@
     <string name="profile_picture">Profile picture</string>
     <string name="image">%1$s image</string>
     <string name="products_label_count">Products: %1$s</string>
+    <string name="error_authentication">Error while authenticating</string>
+    <string name="try_again">Try again</string>
 </resources>

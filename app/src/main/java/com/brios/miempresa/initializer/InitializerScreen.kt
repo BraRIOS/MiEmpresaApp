@@ -1,8 +1,11 @@
 package com.brios.miempresa.initializer
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -10,14 +13,19 @@ import com.brios.miempresa.R
 import com.brios.miempresa.components.LoadingView
 import com.brios.miempresa.navigation.MiEmpresaScreen
 
+@RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun InitializerScreen(
-    viewModel: InitializerViewModel = hiltViewModel(),
     navController: NavHostController
 ) {
+    val context = LocalContext.current
+    val viewModel: InitializerViewModel = hiltViewModel<InitializerViewModel, InitializerViewModelFactory> { factory ->
+        factory.create(context)
+    }
     val uiState by viewModel.uiState.collectAsState()
     when (uiState) {
         is InitializerUiState.Loading -> LoadingView()
+        is InitializerUiState.Error -> ErrorView((uiState as InitializerUiState.Error).message)
         is InitializerUiState.Welcome -> {
             val welcomeState = uiState as InitializerUiState.Welcome
             WelcomeView(

@@ -81,4 +81,6 @@
     <string name="profile_picture">Foto de perfil</string>
     <string name="image">imagen de %1$s</string>
     <string name="products_label_count">Productos: %1$s</string>
+    <string name="error_authentication">Hubo un error en la autenticación</string>
+    <string name="try_again">Vuelva a intentar</string>
 </resources>

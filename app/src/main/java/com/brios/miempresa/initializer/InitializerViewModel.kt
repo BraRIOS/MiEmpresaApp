@@ -51,15 +51,15 @@ class InitializerViewModel @AssistedInject constructor(
     private val companyDao = miEmpresaDatabase.companyDao()
 
     init {
-        val alreadySelectedCompany = companyDao.getSelectedCompany().value != null
-        if (alreadySelectedCompany) {
-            reauthenticate()
-        }else {
-            viewModelScope.launch {
+        viewModelScope.launch {
+            val alreadySelectedCompany = companyDao.getSelectedCompany().asFlow().firstOrNull() != null
+            if (alreadySelectedCompany) {
+                reauthenticate()
+            }else {
                 _uiState.value = InitializerUiState.Loading
                 checkForMainFolder()
+                }
             }
-        }
     }
 
     private fun reauthenticate() {

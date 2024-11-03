@@ -34,7 +34,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.brios.miempresa.R
 import com.brios.miempresa.ui.dimens.AppDimensions
-import com.brios.miempresa.ui.theme.RedWarning
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -111,7 +110,7 @@ fun TopBar(
                         Icon(
                             imageVector = Icons.Outlined.Delete,
                             contentDescription = stringResource(R.string.delete_product),
-                            tint = RedWarning
+                            tint = MaterialTheme.colorScheme.error
                         )
                     }
                 }

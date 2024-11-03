@@ -24,7 +24,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.brios.miempresa.R
 import com.brios.miempresa.ui.dimens.AppDimensions
-import com.brios.miempresa.ui.theme.RedWarning
 
 @Composable
 fun CategoryDialog(
@@ -71,7 +70,7 @@ fun CategoryDialog(
                 if (showError) {
                     Text(
                         text = stringResource(R.string.category_dialog_error),
-                        color = RedWarning,
+                        color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall
                     )
                 }

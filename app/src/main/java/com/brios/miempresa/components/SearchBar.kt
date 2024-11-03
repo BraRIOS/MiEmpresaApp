@@ -17,7 +17,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import com.brios.miempresa.ui.dimens.AppDimensions
-import com.brios.miempresa.ui.theme.PlaceholderColor
 
 @Composable
 fun SearchBar(
@@ -47,8 +46,8 @@ fun SearchBar(
             focusedIndicatorColor = MaterialTheme.colorScheme.primary,
             unfocusedIndicatorColor = Color.Transparent,
             focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
-            unfocusedPlaceholderColor = PlaceholderColor,
-            focusedPlaceholderColor = PlaceholderColor,
+            unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ),
         singleLine = true,
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),

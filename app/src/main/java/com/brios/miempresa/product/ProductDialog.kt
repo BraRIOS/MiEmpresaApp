@@ -33,7 +33,6 @@ import com.brios.miempresa.R
 import com.brios.miempresa.categories.Category
 import com.brios.miempresa.components.SearchableDropdownWithChips
 import com.brios.miempresa.ui.dimens.AppDimensions
-import com.brios.miempresa.ui.theme.RedWarning
 
 @Composable
 fun ProductDialog(
@@ -129,7 +128,7 @@ fun ProductDialog(
                     item {
                         Text(
                             text = stringResource(R.string.product_dialog_required_fields),
-                            color = RedWarning,
+                            color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall
                         )
                     }

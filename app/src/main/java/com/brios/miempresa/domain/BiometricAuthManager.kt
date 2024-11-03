@@ -8,6 +8,7 @@ import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import com.brios.miempresa.R
 import javax.inject.Inject
 
 class BiometricAuthManager @Inject constructor() {
@@ -34,9 +35,8 @@ class BiometricAuthManager @Inject constructor() {
         )
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
             .setAllowedAuthenticators(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)
-            .setTitle("Biometric Authentication")
-            .setSubtitle("Log in using your biometric credentials")
-//            .setNegativeButtonText("Cancel")
+            .setTitle(context.getString(R.string.app_name))
+            .setSubtitle(context.getString(R.string.biometric_auth_subtitle))
             .build()
         biometricPrompt.authenticate(promptInfo)
     }

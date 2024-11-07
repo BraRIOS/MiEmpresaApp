@@ -1,5 +1,6 @@
 package com.brios.miempresa.navigation
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Home
@@ -8,13 +9,16 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import com.brios.miempresa.R
+import com.brios.miempresa.ui.dimens.AppDimensions
 
 @Composable
 fun BottomBar(
@@ -56,7 +60,9 @@ data class TabBarItem(
 fun TabView(tabBarItems: List<TabBarItem>, onNavigate: (String) -> Unit, currentRoute: String) {
     val selectedTabIndex = tabBarItems.indexOfFirst { it.screen.name == currentRoute }
 
-    NavigationBar {
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+    ) {
         tabBarItems.forEachIndexed { index, tabBarItem ->
             NavigationBarItem(
                 selected = selectedTabIndex == index,
@@ -65,18 +71,25 @@ fun TabView(tabBarItems: List<TabBarItem>, onNavigate: (String) -> Unit, current
                 },
                 icon = {
                     Icon(
+                        modifier = Modifier.size(AppDimensions.mediumIconSize),
                         imageVector =  tabBarItem.icon,
                         contentDescription=tabBarItem.title,
-                        tint = if (selectedTabIndex == index) tabBarItem.selectedColor else tabBarItem.unselectedColor
                         )
                 },
                 label = {
                     Text(
                         tabBarItem.title,
                         style = MaterialTheme.typography.labelLarge,
-                        color = if (selectedTabIndex == index) tabBarItem.selectedColor else tabBarItem.unselectedColor
                     )
-                })
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = tabBarItem.selectedColor,
+                    selectedTextColor = tabBarItem.selectedColor,
+                    indicatorColor = MaterialTheme.colorScheme.surfaceContainer,
+                    unselectedIconColor = tabBarItem.unselectedColor,
+                    unselectedTextColor = tabBarItem.unselectedColor,
+                )
+            )
         }
     }
 }

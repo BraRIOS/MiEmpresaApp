@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -91,7 +92,7 @@ private fun ProductDetailsContent(
         .fillMaxSize()
         .navigationBarsPadding()
         .statusBarsPadding()
-        .background(MaterialTheme.colorScheme.secondaryContainer)
+        .background(MaterialTheme.colorScheme.surfaceContainer)
     ) {
         if (product!=null) {
             SubcomposeAsyncImage(
@@ -132,7 +133,7 @@ private fun ProductDetailsContent(
                 Text(
                     text = product.name,
                     style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
                 )
                 Row(
@@ -150,8 +151,8 @@ private fun ProductDetailsContent(
                                     style = MaterialTheme.typography.labelSmall
                                 )},
                             colors = SuggestionChipDefaults.suggestionChipColors().copy(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                labelColor = MaterialTheme.colorScheme.onPrimary
+                                containerColor = MaterialTheme.colorScheme.secondary,
+                                labelColor = MaterialTheme.colorScheme.onSecondary
                             ),
                             border = null,
                             shape = CircleShape,
@@ -168,7 +169,8 @@ private fun ProductDetailsContent(
                 Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
                 Text(
                     text = stringResource(id = R.string.description_label),
-                    style = MaterialTheme.typography.labelLarge
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(AppDimensions.extraSmallPadding))
                 OutlinedTextField(
@@ -181,7 +183,8 @@ private fun ProductDetailsContent(
                     shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                     colors = TextFieldDefaults.colors().copy(
                         unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
                         focusedContainerColor = MaterialTheme.colorScheme.surface
                     ),
                 )

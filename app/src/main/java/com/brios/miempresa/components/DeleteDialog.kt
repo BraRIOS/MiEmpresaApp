@@ -21,7 +21,8 @@ import com.brios.miempresa.ui.dimens.AppDimensions
 fun DeleteDialog(itemName: String, onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
         icon = {
-            Icon(imageVector = Icons.Outlined.Info,
+            Icon(
+                imageVector = Icons.Outlined.Info,
                 contentDescription = stringResource(R.string.info),
                 modifier = Modifier.size(AppDimensions.largeIconSize),
                 tint = MaterialTheme.colorScheme.primary
@@ -48,7 +49,8 @@ fun DeleteDialog(itemName: String, onDismiss: () -> Unit, onConfirm: () -> Unit)
             ) {
                 Text(stringResource(R.string.cancel))
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.surface
     )
 
 }

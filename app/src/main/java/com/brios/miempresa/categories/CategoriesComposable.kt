@@ -1,8 +1,14 @@
 package com.brios.miempresa.categories
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,11 +29,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,6 +51,7 @@ import com.brios.miempresa.components.ScaffoldedScreenComposable
 import com.brios.miempresa.navigation.MiEmpresaScreen
 import com.brios.miempresa.navigation.TopBarViewModel
 import com.brios.miempresa.ui.dimens.AppDimensions
+import com.brios.miempresa.ui.theme.PlaceholderBG
 
 @Composable
 fun CategoriesComposable(
@@ -163,7 +174,26 @@ fun CategoryListItem(
                 modifier = Modifier
                     .size(AppDimensions.Categories.imageSize)
                     .clip(RectangleShape),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                error = {
+                    Column(
+                        modifier = Modifier
+                            .size(AppDimensions.Categories.imageSize)
+                            .background(color = PlaceholderBG)
+                            .padding(AppDimensions.smallPadding),
+                        verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding, Alignment.CenterVertically),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Image(
+                            modifier = Modifier.height(AppDimensions.Categories.imageSize/2),
+                            painter = painterResource(id = R.drawable.miempresa_logo_glyph),
+                            contentDescription = stringResource(
+                                R.string.placeholder
+                            ),
+                            colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+                        )
+                    }
+                }
             )
         },
         trailingContent = {

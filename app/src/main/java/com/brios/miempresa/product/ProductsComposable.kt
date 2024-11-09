@@ -1,5 +1,7 @@
 package com.brios.miempresa.product
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -31,9 +33,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,6 +53,8 @@ import com.brios.miempresa.components.SearchBar
 import com.brios.miempresa.navigation.MiEmpresaScreen
 import com.brios.miempresa.navigation.TopBarViewModel
 import com.brios.miempresa.ui.dimens.AppDimensions
+import com.brios.miempresa.ui.theme.OnPlaceholderBG
+import com.brios.miempresa.ui.theme.PlaceholderBG
 
 @Composable
 fun ProductsComposable(
@@ -177,7 +184,31 @@ fun ProductCard(product: Product, onProductClick: (product:Product) -> Unit) {
                 .height(AppDimensions.Products.imageHeight)
                 .fillMaxWidth(),
             contentDescription = stringResource(R.string.image, product.name),
-            )
+            error = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = PlaceholderBG)
+                        .padding(AppDimensions.smallPadding),
+                    verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding, Alignment.CenterVertically),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        modifier = Modifier.height(AppDimensions.Products.imageHeight/2),
+                        painter = painterResource(id = R.drawable.miempresa_logo_glyph),
+                        contentDescription = stringResource(
+                            R.string.placeholder
+                        ),
+                        colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+                    )
+                    Text(
+                        text = stringResource(R.string.sin_imagen),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = OnPlaceholderBG
+                    )
+                }
+            }
+        )
         Column(
             modifier = Modifier
                 .padding(AppDimensions.smallPadding)

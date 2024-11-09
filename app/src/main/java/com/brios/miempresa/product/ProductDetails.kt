@@ -1,5 +1,6 @@
 package com.brios.miempresa.product
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -38,8 +39,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,6 +56,8 @@ import com.brios.miempresa.components.LoadingView
 import com.brios.miempresa.components.MessageWithIcon
 import com.brios.miempresa.navigation.TopBar
 import com.brios.miempresa.ui.dimens.AppDimensions
+import com.brios.miempresa.ui.theme.OnPlaceholderBG
+import com.brios.miempresa.ui.theme.PlaceholderBG
 
 @Composable
 fun ProductDetails(
@@ -111,7 +117,31 @@ private fun ProductDetailsContent(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(AppDimensions.ProductDetails.productImageSize)
+                    .height(AppDimensions.ProductDetails.productImageSize),
+                error = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(color = PlaceholderBG)
+                            .padding(AppDimensions.smallPadding),
+                        verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding, Alignment.CenterVertically),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Image(
+                            modifier = Modifier.height(AppDimensions.ProductDetails.productImageSize/2),
+                            painter = painterResource(id = R.drawable.miempresa_logo_glyph),
+                            contentDescription = stringResource(
+                                R.string.placeholder
+                            ),
+                            colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+                        )
+                        Text(
+                            text = stringResource(R.string.sin_imagen),
+                            style = MaterialTheme.typography.displayMedium,
+                            color = OnPlaceholderBG
+                        )
+                    }
+                }
             )
             TopBar(
                 navController = navController,

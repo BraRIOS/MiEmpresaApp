@@ -44,8 +44,8 @@
     <string name="error_deleting_product">Could not delete the product</string>
     <string name="error_loading_categories">Could not load categories</string>
     <string name="checking_existing_projects">Searching for existing projects</string>
-    <string name="searching_database">Searching for the database</string>
-    <string name="creating_database">Creating database</string>
+    <string name="searching_database">Verifying your workspace...</string>
+    <string name="creating_database">Creating your workspace in Drive...</string>
     <string name="user">User</string>
     <string name="company_name_label">Company name</string>
     <string name="create">Create</string>
@@ -60,8 +60,6 @@
     <string name="database_not_found_for_company">Database not found in the company</string>
     <string name="or">or</string>
     <string name="sheet_1_name">Products</string>
-    <string name="main_folder_name">Generated with MiEmpresa app</string>
-    <string name="spreadsheet_name">Database</string>
     <string name="sheet_2_name">Categories</string>
     <string name="name_column">Name</string>
     <string name="description_column">Description</string>
@@ -83,4 +81,7 @@
     <string name="error_authentication">Error while authenticating</string>
     <string name="try_again">Try again</string>
     <string name="biometric_auth_subtitle">We want to verify that it\'s still you.</string>
+    <string name="placeholder">Placeholder</string>
+    <string name="sin_imagen">No image</string>
+    <string name="do_not_delete_advice">[DO NOT DELETE]</string>
 </resources>

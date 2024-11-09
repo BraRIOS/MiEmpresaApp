@@ -2,12 +2,14 @@ package com.brios.miempresa.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Shared colors
+// Logo colors
 val Red = Color(0xFFEA192F)
 val DarkBlue = Color(0xFF001F4F)
 val LightBlue = Color(0xFF04C4D9)
 val Orange = Color(0xFFF27D16)
 val DarkOrange = Color(0xFFF2561D)
+val PlaceholderBG = Color(0xFF919191)
+val OnPlaceholderBG = Color(0xFF575757)
 
 internal object MiEmpresaPaletteTokens {
     // Primario basado en el naranja del logo

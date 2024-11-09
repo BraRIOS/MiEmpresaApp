@@ -21,7 +21,7 @@
     <string name="cancel">Cancel</string>
     <string name="product_dialog_required_fields">The Name and Categories are required</string>
     <string name="image_url_label">Image URL</string>
-    <string name="categories_label">Categories</string>
+    <string name="categories_search">Search categories…</string>
     <string name="price_label">Price</string>
     <string name="description_label">Description</string>
     <string name="name_label">Name</string>

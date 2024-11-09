@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -22,12 +24,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.brios.miempresa.R
@@ -67,7 +71,10 @@ fun SearchableDropdownWithChips(
                 .border(
                     AppDimensions.smallBorderWidth, indicatorColor,
                     if (expanded && filteredItems.isNotEmpty())
-                        RoundedCornerShape(topStart = AppDimensions.extraSmallPadding, topEnd = AppDimensions.extraSmallPadding)
+                        RoundedCornerShape(
+                            topStart = AppDimensions.extraSmallPadding,
+                            topEnd = AppDimensions.extraSmallPadding
+                        )
                     else
                         RoundedCornerShape(AppDimensions.extraSmallPadding)
                 )
@@ -110,18 +117,27 @@ fun SearchableDropdownWithChips(
                 },
                 modifier = Modifier
                     .weight(1f)
+                    .height(TextFieldDefaults.MinHeight)
                     .padding(AppDimensions.mediumPadding),
                 decorationBox = { innerTextField ->
-                    if (searchQuery.isEmpty()) {
-                        Text(
-                            text = label,
-                            color = if (isError) OutlinedTextFieldDefaults.colors().errorLabelColor
-                            else OutlinedTextFieldDefaults.colors().unfocusedLabelColor,
-                        )
+                    if (searchQuery.isEmpty() && selectedItems.isEmpty()) {
+                        Column (
+                            modifier = Modifier
+                                .fillMaxHeight(),
+                            verticalArrangement = Arrangement.Center
+                        ){
+                            Text(
+                                text = label,
+                                color = if (isError) OutlinedTextFieldDefaults.colors().errorLabelColor
+                                else OutlinedTextFieldDefaults.colors().unfocusedLabelColor,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
                     }
                     innerTextField()
                 },
-                textStyle = LocalTextStyle.current
+                textStyle = LocalTextStyle.current,
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary)
             )
         }
 
@@ -171,7 +187,7 @@ fun SearchableDropdownWithChipsPreview() {
             verticalArrangement = Arrangement.Center
         ) {
             SearchableDropdownWithChips(
-                label = "Categories",
+                label = "Buscar categorías…",
                 items = items,
                 selectedItems = selectedItems,
                 onItemSelected = { selectedItems.add(it) },

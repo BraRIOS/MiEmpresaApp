@@ -63,7 +63,7 @@ fun ProductsComposable(
     navController: NavHostController
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    
+
     val isLoading by productsViewModel.isLoading.collectAsState()
     val filteredProducts by productsViewModel.filteredProducts.collectAsState()
 
@@ -74,53 +74,6 @@ fun ProductsComposable(
     var showDialog by remember { mutableStateOf(false) }
 
     productsViewModel.loadData()
-    ScaffoldedScreenComposable(
-        navController = navController,
-        floatingActionButton = {
-            FABButton(
-                action = { showDialog = true },
-                actionText = stringResource(id = R.string.add_product),
-                actionIcon = Icons.Filled.Add
-            )
-        }
-    ) {
-        if (isLoading) {
-            LoadingView()
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectTapGestures {
-                            focusManager.clearFocus()
-                        }
-                    },
-                verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                item {
-                    SearchBar(
-                        query = searchQuery,
-                        onQueryChange = {
-                            searchQuery = it
-                            productsViewModel.onSearchQueryChange(it)
-                        },
-                        modifier = Modifier
-                            .padding(vertical = AppDimensions.smallPadding),
-                        placeholderText = stringResource(id = R.string.productSearch)
-                    )
-                }
-
-                items(filteredProducts.chunked(10)) { rowItems ->
-                    ProductGrid(rowItems) { selectedProduct ->
-                        navController.navigate(MiEmpresaScreen.Product.name + "/${selectedProduct.rowIndex}")
-                        focusManager.clearFocus()
-                    }
-                }
-
-            }
-        }
-    }
     if (showDialog) {
         productsViewModel.loadCategories()
         val categories by productsViewModel.categories.collectAsState()
@@ -134,6 +87,54 @@ fun ProductsComposable(
                 }
             }
         )
+    } else {
+        ScaffoldedScreenComposable(
+            navController = navController,
+            floatingActionButton = {
+                FABButton(
+                    action = { showDialog = true },
+                    actionText = stringResource(id = R.string.add_product),
+                    actionIcon = Icons.Filled.Add
+                )
+            }
+        ) {
+            if (isLoading) {
+                LoadingView()
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(Unit) {
+                            detectTapGestures {
+                                focusManager.clearFocus()
+                            }
+                        },
+                    verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    item {
+                        SearchBar(
+                            query = searchQuery,
+                            onQueryChange = {
+                                searchQuery = it
+                                productsViewModel.onSearchQueryChange(it)
+                            },
+                            modifier = Modifier
+                                .padding(vertical = AppDimensions.smallPadding),
+                            placeholderText = stringResource(id = R.string.productSearch)
+                        )
+                    }
+
+                    items(filteredProducts.chunked(10)) { rowItems ->
+                        ProductGrid(rowItems) { selectedProduct ->
+                            navController.navigate(MiEmpresaScreen.Product.name + "/${selectedProduct.rowIndex}")
+                            focusManager.clearFocus()
+                        }
+                    }
+
+                }
+            }
+        }
     }
 }
 

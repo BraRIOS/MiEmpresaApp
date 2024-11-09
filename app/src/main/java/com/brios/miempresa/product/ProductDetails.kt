@@ -6,7 +6,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -77,13 +76,11 @@ fun ProductDetails(
     }
 
     val productState by viewModel.currentProduct.collectAsState()
-    val product = productState
 
-    ProductDetailsContent(product, loadingState, navController, viewModel)
+    ProductDetailsContent(productState, loadingState, navController, viewModel)
 
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ProductDetailsContent(
     product: Product? = null,
@@ -101,124 +98,6 @@ private fun ProductDetailsContent(
         .background(MaterialTheme.colorScheme.surfaceContainer)
     ) {
         if (product!=null) {
-            SubcomposeAsyncImage(
-                model = product.imageUrl,
-                loading = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(AppDimensions.mediumPadding)
-                            .wrapContentSize(Alignment.Center)
-                    ) {
-                        CircularProgressIndicator(modifier = Modifier.size(AppDimensions.ProductDetails.progressIndicatorSize))
-                    }
-                },
-                contentDescription = product.name,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(AppDimensions.ProductDetails.productImageSize),
-                error = {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(color = PlaceholderBG)
-                            .padding(AppDimensions.smallPadding),
-                        verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding, Alignment.CenterVertically),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Image(
-                            modifier = Modifier.height(AppDimensions.ProductDetails.productImageSize/2),
-                            painter = painterResource(id = R.drawable.miempresa_logo_glyph),
-                            contentDescription = stringResource(
-                                R.string.placeholder
-                            ),
-                            colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
-                        )
-                        Text(
-                            text = stringResource(R.string.sin_imagen),
-                            style = MaterialTheme.typography.displayMedium,
-                            color = OnPlaceholderBG
-                        )
-                    }
-                }
-            )
-            TopBar(
-                navController = navController,
-                title = "",
-                editProduct = { showEditDialog = true },
-                deleteProduct = { showDeleteDialog = true }
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(
-                        start = AppDimensions.mediumPadding,
-                        end = AppDimensions.mediumPadding,
-                        top = AppDimensions.smallPadding
-                    )
-
-            ) {
-                Spacer(modifier = Modifier.height(AppDimensions.ProductDetails.productImageSize))
-                Text(
-                    text = product.name,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding)
-                ) {
-                    product.categories.map { category ->
-                        SuggestionChip(
-                            onClick = { /*TODO ir a search de productos con filtro*/ },
-                            label = {
-                                Text(
-                                    category,
-                                    style = MaterialTheme.typography.labelSmall
-                                )},
-                            colors = SuggestionChipDefaults.suggestionChipColors().copy(
-                                containerColor = MaterialTheme.colorScheme.secondary,
-                                labelColor = MaterialTheme.colorScheme.onSecondary
-                            ),
-                            border = null,
-                            shape = CircleShape,
-                            modifier = Modifier
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
-                Text(
-                    text = product.price,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
-                Text(
-                    text = stringResource(id = R.string.description_label),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(AppDimensions.extraSmallPadding))
-                OutlinedTextField(
-                    value = product.description,
-                    onValueChange = {},
-                    modifier = Modifier.fillMaxWidth(),
-                    readOnly = true,
-                    maxLines = 6,
-                    textStyle = MaterialTheme.typography.bodyLarge,
-                    shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
-                    colors = TextFieldDefaults.colors().copy(
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = MaterialTheme.colorScheme.surface
-                    ),
-                )
-            }
             if (showEditDialog && viewModel != null) {
                 viewModel.loadCategories()
                 val categories by viewModel.categories.collectAsState()
@@ -232,6 +111,129 @@ private fun ProductDetailsContent(
                         }
                     }
                 )
+            } else {
+                SubcomposeAsyncImage(
+                    model = product.imageUrl,
+                    loading = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(AppDimensions.mediumPadding)
+                                .wrapContentSize(Alignment.Center)
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(AppDimensions.ProductDetails.progressIndicatorSize))
+                        }
+                    },
+                    contentDescription = product.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(AppDimensions.ProductDetails.productImageSize),
+                    error = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(color = PlaceholderBG)
+                                .padding(AppDimensions.smallPadding),
+                            verticalArrangement = Arrangement.spacedBy(
+                                AppDimensions.mediumPadding,
+                                Alignment.CenterVertically
+                            ),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Image(
+                                modifier = Modifier.height(AppDimensions.ProductDetails.productImageSize / 2),
+                                painter = painterResource(id = R.drawable.miempresa_logo_glyph),
+                                contentDescription = stringResource(
+                                    R.string.placeholder
+                                ),
+                                colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+                            )
+                            Text(
+                                text = stringResource(R.string.sin_imagen),
+                                style = MaterialTheme.typography.displayMedium,
+                                color = OnPlaceholderBG
+                            )
+                        }
+                    }
+                )
+                TopBar(
+                    navController = navController,
+                    title = "",
+                    editProduct = { showEditDialog = true },
+                    deleteProduct = { showDeleteDialog = true }
+                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            start = AppDimensions.mediumPadding,
+                            end = AppDimensions.mediumPadding,
+                            top = AppDimensions.smallPadding
+                        )
+
+                ) {
+                    Spacer(modifier = Modifier.height(AppDimensions.ProductDetails.productImageSize))
+                    Text(
+                        text = product.name,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding)
+                    ) {
+                        product.categories.map { category ->
+                            SuggestionChip(
+                                onClick = { /*TODO ir a search de productos con filtro*/ },
+                                label = {
+                                    Text(
+                                        category,
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                },
+                                colors = SuggestionChipDefaults.suggestionChipColors().copy(
+                                    containerColor = MaterialTheme.colorScheme.secondary,
+                                    labelColor = MaterialTheme.colorScheme.onSecondary
+                                ),
+                                border = null,
+                                shape = CircleShape,
+                                modifier = Modifier
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
+                    Text(
+                        text = product.price,
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
+                    Text(
+                        text = stringResource(id = R.string.description_label),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(AppDimensions.extraSmallPadding))
+                    OutlinedTextField(
+                        value = product.description,
+                        onValueChange = {},
+                        modifier = Modifier.fillMaxWidth(),
+                        readOnly = true,
+                        maxLines = 6,
+                        textStyle = MaterialTheme.typography.bodyLarge,
+                        shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                        colors = TextFieldDefaults.colors().copy(
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            focusedContainerColor = MaterialTheme.colorScheme.surface
+                        ),
+                    )
+                }
             }
             if (showDeleteDialog){
                     DeleteDialog(

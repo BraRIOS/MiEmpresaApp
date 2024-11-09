@@ -22,7 +22,7 @@
     <string name="cancel">Cancelar</string>
     <string name="product_dialog_required_fields">El Nombre y las Categorías son obligatorios</string>
     <string name="image_url_label">URL de la imagen</string>
-    <string name="categories_label">Categorías</string>
+    <string name="categories_search">Buscar categorías…</string>
     <string name="price_label">Precio</string>
     <string name="description_label">Descripción</string>
     <string name="name_label">Nombre</string>

@@ -1,8 +1,14 @@
 package com.brios.miempresa.categories
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,11 +29,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -36,10 +46,12 @@ import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
 import com.brios.miempresa.components.DeleteDialog
 import com.brios.miempresa.components.FABButton
+import com.brios.miempresa.components.LoadingView
 import com.brios.miempresa.components.ScaffoldedScreenComposable
 import com.brios.miempresa.navigation.MiEmpresaScreen
 import com.brios.miempresa.navigation.TopBarViewModel
 import com.brios.miempresa.ui.dimens.AppDimensions
+import com.brios.miempresa.ui.theme.PlaceholderBG
 
 @Composable
 fun CategoriesComposable(
@@ -121,13 +133,13 @@ private fun CategoriesScreenContent(
     showDeleteDialog: (Category) -> Unit,
     filteredCategories: List<Category>
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        if (isLoading) {
-            item { CircularProgressIndicator() }
-        } else {
+    if (isLoading)
+        LoadingView()
+    else
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
             items(filteredCategories) { category ->
                 CategoryListItem(category, showEditDialog, showDeleteDialog) {
                     navController.navigate(MiEmpresaScreen.Products.name)
@@ -135,7 +147,6 @@ private fun CategoriesScreenContent(
                 HorizontalDivider()
             }
         }
-    }
 }
 
 @Composable
@@ -150,7 +161,11 @@ fun CategoryListItem(
     }
     ListItem(
         headlineContent = { Text(category.name) },
-        supportingContent = { Text("${stringResource(id = R.string.home_title)}: ${category.productQty}") },
+        supportingContent = { Text(
+            stringResource(
+                R.string.products_label_count,
+                category.productQty
+            )) },
         leadingContent = {
             SubcomposeAsyncImage(
                 model = category.imageUrl,
@@ -159,7 +174,26 @@ fun CategoryListItem(
                 modifier = Modifier
                     .size(AppDimensions.Categories.imageSize)
                     .clip(RectangleShape),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                error = {
+                    Column(
+                        modifier = Modifier
+                            .size(AppDimensions.Categories.imageSize)
+                            .background(color = PlaceholderBG)
+                            .padding(AppDimensions.smallPadding),
+                        verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding, Alignment.CenterVertically),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Image(
+                            modifier = Modifier.height(AppDimensions.Categories.imageSize/2),
+                            painter = painterResource(id = R.drawable.miempresa_logo_glyph),
+                            contentDescription = stringResource(
+                                R.string.placeholder
+                            ),
+                            colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+                        )
+                    }
+                }
             )
         },
         trailingContent = {
@@ -168,7 +202,7 @@ fun CategoryListItem(
                     Icon(
                         Icons.Filled.MoreHoriz,
                         contentDescription =
-                        "${stringResource(R.string.show_category_options)} ${category.name}"
+                        stringResource(R.string.show_category_options, category.name)
                     )
                 }
                 DropdownMenu(expanded = showDropdown, onDismissRequest = { showDropdown = false}) {
@@ -221,6 +255,20 @@ fun PreviewCategoryListItem(){
                 imageUrl = "https://picsum.photos/200/300"
             )
         ),
+        showEditDialog = {showDialog = true},
+        showDeleteDialog = {showDeleteDialog = true}
+    )
+}
+
+@Preview
+@Composable
+fun PreviewCategoryLoadingListItem(){
+    var showDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    CategoriesScreenContent(
+        navController = NavHostController(LocalContext.current),
+        isLoading = true,
+        filteredCategories = listOf(),
         showEditDialog = {showDialog = true},
         showDeleteDialog = {showDeleteDialog = true}
     )

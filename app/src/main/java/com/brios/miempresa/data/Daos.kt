@@ -21,10 +21,17 @@ interface CompanyDao {
     @Query("SELECT * FROM companies WHERE id = :id")
     suspend fun getCompanyById(id: String): Company?
 
+    @Query("UPDATE companies SET selected = 0")
+    suspend fun unselectAllCompanies()
+
     @Query("SELECT * FROM companies WHERE selected = 1 LIMIT 1")
     fun getSelectedCompany(): LiveData<Company?>
 
 
     @Query("SELECT * FROM companies")
     fun getCompanies(): LiveData<List<Company>>
+
+    @Query("DELETE FROM companies")
+    suspend fun clear()
+
 }

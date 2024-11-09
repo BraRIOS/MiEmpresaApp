@@ -2,10 +2,12 @@ package com.brios.miempresa.navigation
 
 import android.app.Activity
 import android.content.Context
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,12 +25,14 @@ import androidx.navigation.navArgument
 import com.brios.miempresa.R
 import com.brios.miempresa.categories.CategoriesComposable
 import com.brios.miempresa.initializer.InitializerScreen
+import com.brios.miempresa.initializer.InitializerUiState
 import com.brios.miempresa.product.ProductDetails
 import com.brios.miempresa.product.ProductsComposable
 import com.brios.miempresa.signin.AuthState
 import com.brios.miempresa.signin.SignInScreen
 import com.brios.miempresa.signin.SignInViewModel
 
+@RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun NavHostComposable(applicationContext: Context, navController: NavHostController) {
     val signInViewModel = hiltViewModel<SignInViewModel>()
@@ -38,10 +42,10 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
         if(signInViewModel.getSignedInUser() != null)
             MiEmpresaScreen.Initializer.name
         else
-            MiEmpresaScreen.Welcome.name,
+            MiEmpresaScreen.SignIn.name,
         modifier = Modifier.fillMaxSize()
     ) {
-        composable(route = MiEmpresaScreen.Welcome.name) {
+        composable(route = MiEmpresaScreen.SignIn.name) {
             val signInState by signInViewModel.signInStateFlow.collectAsStateWithLifecycle()
             val authState by signInViewModel.authStateFlow.collectAsStateWithLifecycle()
             val activity = LocalContext.current as Activity
@@ -78,7 +82,7 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
                     )
                 }
                 else if (authState is AuthState.Authorized && signInViewModel.getSignedInUser()!=null) {
-                    navController.navigate(MiEmpresaScreen.Products.name){
+                    navController.navigate(MiEmpresaScreen.Initializer.name){
                         popUpTo(0)
                         launchSingleTop = true
                     }
@@ -95,6 +99,21 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
         composable(route = MiEmpresaScreen.Initializer.name) {
             InitializerScreen(
                 navController = navController
+            )
+        }
+        composable(
+            route = MiEmpresaScreen.Initializer.name + "/{uiState}",
+            arguments = listOf(navArgument("uiState") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val uiStateString = backStackEntry.arguments?.getString("uiState")
+            val startUIState = if (uiStateString == "ShowCompanyList") {
+                InitializerUiState.ShowCompanyList
+            } else {
+                InitializerUiState.Loading
+            }
+            InitializerScreen(
+                navController = navController,
+                startUIState = startUIState
             )
         }
         composable(route = MiEmpresaScreen.Products.name) {

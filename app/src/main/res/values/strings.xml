@@ -28,7 +28,7 @@
     <string name="name_label">Nombre</string>
     <string name="product_not_found">Producto no encontrado</string>
     <string name="error_updating_product">Error al actualizar el producto</string>
-    <string name="show_category_options">Mostrar opciones de la categoría</string>
+    <string name="show_category_options">Mostrar opciones de la categoría: %1$s</string>
     <string name="product_quantity">Cantidad de productos</string>
     <string name="add_category">Agregar categoría</string>
     <string name="edit_category">Editar categoría</string>
@@ -44,9 +44,9 @@
     <string name="delete_product">Eliminar producto</string>
     <string name="error_deleting_product">No se pudo eliminar el producto</string>
     <string name="error_loading_categories">No se pudieron cargar las categorías</string>
-    <string name="checking_existing_projects">Buscando proyectos existentes</string>
-    <string name="searching_database">Buscando la base de datos</string>
-    <string name="creating_database">Creando base de datos</string>
+    <string name="checking_existing_companies">Buscando empresas existentes</string>
+    <string name="searching_database">Verificando tu espacio de trabajo...</string>
+    <string name="creating_database">Creando tu espacio de trabajo en Drive...</string>
     <string name="user">Usuario</string>
     <string name="company_name_label">Nombre de la empresa</string>
     <string name="create">Crear</string>
@@ -62,8 +62,8 @@
     <string name="database_not_found_for_company">Base de datos no encontrada en la empresa</string>
     <string name="or">o</string>
     <string name="sheet_1_name">Productos</string>
-    <string name="main_folder_name">Generados con MiEmpresa app</string>
-    <string name="spreadsheet_name">Base de datos</string>
+    <string name="main_folder_name" translatable="false">MiEmpresa app</string>
+    <string name="spreadsheet_name" translatable="false">Database %1$s</string>
     <string name="sheet_2_name">Categorias</string>
     <string name="name_column">Nombre</string>
     <string name="description_column">Descripción</string>
@@ -80,4 +80,14 @@
     <string name="options">Opciones</string>
     <string name="profile_picture">Foto de perfil</string>
     <string name="image">imagen de %1$s</string>
+    <string name="products_label_count">Productos: %1$s</string>
+    <string name="error_authentication">Hubo un error en la autenticación</string>
+    <string name="try_again">Vuelva a intentar</string>
+    <string name="biometric_auth_subtitle">Queremos comprobar que seguís siendo vos.</string>
+    <string name="placeholder">Placeholder</string>
+    <string name="sin_imagen">Sin imagen</string>
+    <string name="do_not_delete_advice">[NO BORRAR]</string>
+    <string name="switch_company">Cambiar empresa</string>
+    <string name="current_company">Empresa actual</string>
+    <string name="loading_companies">Cargando empresas</string>
 </resources>

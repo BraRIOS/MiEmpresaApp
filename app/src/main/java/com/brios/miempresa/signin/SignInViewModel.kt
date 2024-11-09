@@ -6,14 +6,19 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
+import com.brios.miempresa.data.MiEmpresaDatabase
+import com.brios.miempresa.data.PreferencesKeys
+import com.brios.miempresa.data.removeValueFromDataStore
 import com.brios.miempresa.domain.GoogleAuthClient
 import com.brios.miempresa.domain.SignInResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,6 +30,9 @@ class SignInViewModel @Inject constructor(
     val signInStateFlow = _signInState.asStateFlow()
     private val _authState = MutableStateFlow<AuthState?>(null)
     val authStateFlow = _authState.asStateFlow()
+    private val miEmpresaDatabase = MiEmpresaDatabase.getDatabase(context)
+    private val companyDao = miEmpresaDatabase.companyDao()
+
 
     fun signIn(activity: Activity) = viewModelScope.launch {
         val signInResult : SignInResult = googleAuthClient.signIn(activity)
@@ -43,9 +51,13 @@ class SignInViewModel @Inject constructor(
     fun getSignedInUser() = googleAuthClient.getSignedInUser()
 
     fun signOut(activity: Activity) = viewModelScope.launch {
-        _authState.update { null }
-        _signInState.update { SignInState() }
-        googleAuthClient.signOut(activity)
+        withContext(Dispatchers.IO) {
+            val database = MiEmpresaDatabase.getDatabase(activity)
+            database.companyDao().clear()
+            removeValueFromDataStore(activity, PreferencesKeys.SPREADSHEET_ID_KEY)
+            _authState.update { AuthState.Unauthorized }
+            googleAuthClient.signOut(activity)
+        }
     }
 
     fun resetSignInState() {
@@ -72,4 +84,8 @@ class SignInViewModel @Inject constructor(
     fun updateAuthState(state: AuthState) {
         _authState.update { state }
     }
+
+    fun getCompanies() = companyDao.getCompanies()
+
+    fun getSelectedCompany() = companyDao.getSelectedCompany()
 }

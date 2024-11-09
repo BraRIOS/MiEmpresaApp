@@ -20,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.brios.miempresa.R
@@ -38,6 +37,7 @@ fun CategoryDialog(
     var showError by remember { mutableStateOf(false) }
 
     AlertDialog(
+        containerColor = MaterialTheme.colorScheme.surface,
         onDismissRequest = onDismiss,
         title = {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
@@ -51,7 +51,7 @@ fun CategoryDialog(
             Column(
                 modifier = Modifier
                     .clip(RoundedCornerShape(AppDimensions.mediumPadding))
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surfaceContainerLowest)
                     .padding(top = AppDimensions.smallPadding, bottom = AppDimensions.mediumPadding, start = AppDimensions.mediumPadding, end = AppDimensions.mediumPadding),
                 verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding)
             ) {
@@ -71,7 +71,7 @@ fun CategoryDialog(
                 if (showError) {
                     Text(
                         text = stringResource(R.string.category_dialog_error),
-                        color = Color.Red,
+                        color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall
                     )
                 }

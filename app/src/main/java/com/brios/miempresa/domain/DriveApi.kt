@@ -19,7 +19,8 @@ class DriveApi @Inject constructor(
 ) {
 
     private val mainFolderName = context.getString(R.string.main_folder_name)
-    private val spreadsheetName = context.getString(R.string.spreadsheet_name)
+    private val spreadsheetName = context.getString(R.string.spreadsheet_name,  context.getString(R.string.do_not_delete_advice))
+    private val spreadsheetNameToSearch = context.getString(R.string.spreadsheet_name, "")
     private val sheet1Name = context.getString(R.string.sheet_1_name)
     private val sheet2Name = context.getString(R.string.sheet_2_name)
 
@@ -57,11 +58,10 @@ class DriveApi @Inject constructor(
         return@withContext null
     }
 
-    suspend fun findSpreadsheetInFolder(parentFolderId: String, spreadsheetName: String = this.spreadsheetName): File? = withContext(Dispatchers.IO) {
+    suspend fun findSpreadsheetInFolder(parentFolderId: String, spreadsheetName: String = this.spreadsheetNameToSearch): File? = withContext(Dispatchers.IO) {
         val driveService = googleAuthClient.getGoogleDriveService()
-
         driveService?.let {
-            val query = "'$parentFolderId' in parents and mimeType = 'application/vnd.google-apps.spreadsheet' and name = '$spreadsheetName'"
+            val query = "'$parentFolderId' in parents and mimeType = 'application/vnd.google-apps.spreadsheet' and name contains '${spreadsheetName.trim()}'"
             val result = driveService.files().list()
                 .setQ(query)
                 .setSpaces("drive")

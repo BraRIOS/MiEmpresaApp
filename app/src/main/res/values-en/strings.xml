@@ -27,7 +27,7 @@
     <string name="name_label">Name</string>
     <string name="product_not_found">Product not found</string>
     <string name="error_updating_product">Error updating the product</string>
-    <string name="show_category_options">Show category options</string>
+    <string name="show_category_options">Show category options: %1$s</string>
     <string name="product_quantity">Number of products</string>
     <string name="add_category">Add category</string>
     <string name="edit_category">Edit category</string>
@@ -43,9 +43,9 @@
     <string name="delete_product">Delete product</string>
     <string name="error_deleting_product">Could not delete the product</string>
     <string name="error_loading_categories">Could not load categories</string>
-    <string name="checking_existing_projects">Searching for existing projects</string>
-    <string name="searching_database">Searching for the database</string>
-    <string name="creating_database">Creating database</string>
+    <string name="checking_existing_companies">Searching for existing companies</string>
+    <string name="searching_database">Verifying your workspace...</string>
+    <string name="creating_database">Creating your workspace in Drive...</string>
     <string name="user">User</string>
     <string name="company_name_label">Company name</string>
     <string name="create">Create</string>
@@ -60,8 +60,6 @@
     <string name="database_not_found_for_company">Database not found in the company</string>
     <string name="or">or</string>
     <string name="sheet_1_name">Products</string>
-    <string name="main_folder_name">Generated with MiEmpresa app</string>
-    <string name="spreadsheet_name">Database</string>
     <string name="sheet_2_name">Categories</string>
     <string name="name_column">Name</string>
     <string name="description_column">Description</string>
@@ -79,4 +77,14 @@
     <string name="options">Options</string>
     <string name="profile_picture">Profile picture</string>
     <string name="image">%1$s image</string>
+    <string name="products_label_count">Products: %1$s</string>
+    <string name="error_authentication">Error while authenticating</string>
+    <string name="try_again">Try again</string>
+    <string name="biometric_auth_subtitle">We want to verify that it\'s still you.</string>
+    <string name="placeholder">Placeholder</string>
+    <string name="sin_imagen">No image</string>
+    <string name="do_not_delete_advice">[DO NOT DELETE]</string>
+    <string name="switch_company">Switch company</string>
+    <string name="current_company">Current company</string>
+    <string name="loading_companies">Loading companies</string>
 </resources>

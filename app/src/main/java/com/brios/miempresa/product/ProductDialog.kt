@@ -25,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -52,12 +51,13 @@ fun ProductDialog(
     val context = LocalContext.current
 
     LaunchedEffect(key1 = product, key2 = categories) {
-        if (product != null) {
+        if (product != null && selectedCategoriesNames.isEmpty()) {
             selectedCategoriesNames.addAll(product.categories)
         }
     }
 
     AlertDialog(
+        containerColor = MaterialTheme.colorScheme.surface,
         onDismissRequest = onDismiss,
         title = {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){
@@ -72,7 +72,7 @@ fun ProductDialog(
             LazyColumn(
                 modifier = Modifier
                     .clip(RoundedCornerShape(AppDimensions.mediumPadding))
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surfaceContainerLowest)
                     .padding(top = AppDimensions.smallPadding, bottom = AppDimensions.mediumPadding, start = AppDimensions.mediumPadding, end = AppDimensions.mediumPadding),
                 verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding)
             ) {
@@ -129,7 +129,7 @@ fun ProductDialog(
                     item {
                         Text(
                             text = stringResource(R.string.product_dialog_required_fields),
-                            color = Color.Red,
+                            color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -192,7 +192,7 @@ fun UpdateProductDialogPreview(){
             name = "Product",
             description = "Description DescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescription",
             price = "10,00",
-            categories = listOf("Category 1", "Category 1"),
+            categories = listOf("Category 1", "Category 2"),
             imageUrl = "https://picsum.photos/200/300"
         ),
         categories = listOf(

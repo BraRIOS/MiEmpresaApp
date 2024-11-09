@@ -1,22 +1,32 @@
 package com.brios.miempresa.initializer
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.brios.miempresa.R
+import com.brios.miempresa.components.LoadingView
 import com.brios.miempresa.navigation.MiEmpresaScreen
 
+@RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun InitializerScreen(
-    viewModel: InitializerViewModel = hiltViewModel(),
-    navController: NavHostController
+    navController: NavHostController,
+    startUIState: InitializerUiState? = null
 ) {
+    val context = LocalContext.current
+    val viewModel: InitializerViewModel = hiltViewModel<InitializerViewModel, InitializerViewModelFactory> { factory ->
+        factory.create(context, startUIState)
+    }
     val uiState by viewModel.uiState.collectAsState()
     when (uiState) {
         is InitializerUiState.Loading -> LoadingView()
+        is InitializerUiState.Error -> ErrorView((uiState as InitializerUiState.Error).message)
         is InitializerUiState.Welcome -> {
             val welcomeState = uiState as InitializerUiState.Welcome
             WelcomeView(
@@ -26,14 +36,15 @@ fun InitializerScreen(
             )
         }
         is InitializerUiState.CheckingData -> LoadingView(
-            message = stringResource(R.string.checking_existing_projects)
+            message = stringResource(R.string.checking_existing_companies)
         )
+        is InitializerUiState.ShowCompanyList -> LoadingView()
         is InitializerUiState.CompanyList -> {
             val companyListState = uiState as InitializerUiState.CompanyList
             CompanyListView(
                 username = companyListState.username,
                 companies = companyListState.companies,
-                onSelectCompany = { viewModel.selectCompany(it) },
+                onSelectCompany = { viewModel.searchSpreadsheet(it) },
                 onCreateNewCompany = { viewModel.goToCreateCompanyScreen() }
             )
         }
@@ -43,7 +54,7 @@ fun InitializerScreen(
         is InitializerUiState.SpreadsheetNotFound -> {
             SpreadsheetNotFoundView(
                 (uiState as InitializerUiState.SpreadsheetNotFound).company,
-                onRetry = { viewModel.searchSpreadsheet(it) },
+                onRetry = { viewModel.retrySearchSpreadsheet(it) },
                 onCreateSpreadsheet = { viewModel.createAndInitializeSpreadsheet(it) },
                 onSelectAnotherCompany = { viewModel.goToCompanyListScreen() },
                 onDeleteCompany = { viewModel.deleteCompany(it) }

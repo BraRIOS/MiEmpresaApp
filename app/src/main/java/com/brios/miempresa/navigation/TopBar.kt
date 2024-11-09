@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,7 +35,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.brios.miempresa.R
 import com.brios.miempresa.ui.dimens.AppDimensions
-import com.brios.miempresa.ui.theme.RedWarning
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -111,20 +111,23 @@ fun TopBar(
                         Icon(
                             imageVector = Icons.Outlined.Delete,
                             contentDescription = stringResource(R.string.delete_product),
-                            tint = RedWarning
+                            tint = MaterialTheme.colorScheme.error
                         )
                     }
                 }
             }
         },
-        colors = if (isProductScreen)
+        colors =  if (isProductScreen)
             TopAppBarDefaults.largeTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primary.copy(alpha =0f),
-                scrolledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0f)
-            ) else TopAppBarDefaults.largeTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
+                containerColor = Color.Transparent,
+                scrolledContainerColor = Color.Transparent
+            )
+            else TopAppBarDefaults.largeTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ),
         modifier = Modifier
             .background(
                 brush = Brush.verticalGradient(

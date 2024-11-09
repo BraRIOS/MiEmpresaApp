@@ -162,6 +162,7 @@ fun SearchableDropdownWithChipsPreview() {
     val items = listOf("Category 1", "Category 2", "Category 3")
 
     val selectedItems = remember { mutableListOf<String>() }
+    val actualItems = remember { mutableListOf<String>(items[0]) }
     Surface(){
         Column(
             modifier = Modifier
@@ -181,6 +182,13 @@ fun SearchableDropdownWithChipsPreview() {
                 items = items,
                 isError = true,
                 selectedItems = selectedItems,
+                onItemSelected = { selectedItems.add(it) },
+                onItemRemoved = { selectedItems.remove(it) }
+            )
+            SearchableDropdownWithChips(
+                label = "Categories",
+                items = items,
+                selectedItems = actualItems,
                 onItemSelected = { selectedItems.add(it) },
                 onItemRemoved = { selectedItems.remove(it) }
             )

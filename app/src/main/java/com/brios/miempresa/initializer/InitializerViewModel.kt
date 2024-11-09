@@ -207,6 +207,7 @@ class InitializerViewModel @AssistedInject constructor(
 
     private suspend fun saveSpreadsheetIdAndCompany(spreadsheetId: String, company: Company) {
         saveToDataStore(context, spreadsheetId, PreferencesKeys.SPREADSHEET_ID_KEY)
+        companyDao.unselectAllCompanies()
         companyDao.update(company.copy(selected = true))
         _uiState.value = InitializerUiState.NavigateToProducts
     }

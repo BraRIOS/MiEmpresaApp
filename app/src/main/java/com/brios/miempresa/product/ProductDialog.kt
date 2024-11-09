@@ -51,12 +51,13 @@ fun ProductDialog(
     val context = LocalContext.current
 
     LaunchedEffect(key1 = product, key2 = categories) {
-        if (product != null) {
+        if (product != null && selectedCategoriesNames.isEmpty()) {
             selectedCategoriesNames.addAll(product.categories)
         }
     }
 
     AlertDialog(
+        containerColor = MaterialTheme.colorScheme.surface,
         onDismissRequest = onDismiss,
         title = {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){

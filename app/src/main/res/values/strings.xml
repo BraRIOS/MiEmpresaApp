@@ -44,7 +44,7 @@
     <string name="delete_product">Eliminar producto</string>
     <string name="error_deleting_product">No se pudo eliminar el producto</string>
     <string name="error_loading_categories">No se pudieron cargar las categorías</string>
-    <string name="checking_existing_projects">Buscando proyectos existentes</string>
+    <string name="checking_existing_companies">Buscando empresas existentes</string>
     <string name="searching_database">Verificando tu espacio de trabajo...</string>
     <string name="creating_database">Creando tu espacio de trabajo en Drive...</string>
     <string name="user">Usuario</string>
@@ -87,4 +87,7 @@
     <string name="placeholder">Placeholder</string>
     <string name="sin_imagen">Sin imagen</string>
     <string name="do_not_delete_advice">[NO BORRAR]</string>
+    <string name="switch_company">Cambiar empresa</string>
+    <string name="current_company">Empresa actual</string>
+    <string name="loading_companies">Cargando empresas</string>
 </resources>

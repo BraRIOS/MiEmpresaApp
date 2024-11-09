@@ -155,7 +155,7 @@ internal object MiEmpresaDarkColorTokens {
     val SecondaryFixedDim = MiEmpresaPaletteTokens.Secondary80
     val Surface = MiEmpresaPaletteTokens.Primary10
     val SurfaceContainer = MiEmpresaPaletteTokens.Primary20
-    val SurfaceContainerLow = MiEmpresaPaletteTokens.Primary30
+    val SurfaceContainerLow = MiEmpresaPaletteTokens.Primary20
     val SurfaceTint = Primary
     val SurfaceVariant = MiEmpresaPaletteTokens.Primary30
     val Tertiary = MiEmpresaPaletteTokens.Tertiary80

@@ -35,31 +35,38 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import java.io.Serializable
 
 @RequiresApi(Build.VERSION_CODES.R)
 @HiltViewModel( assistedFactory = InitializerViewModelFactory::class )
 class InitializerViewModel @AssistedInject constructor(
     private val driveApi: DriveApi,
     @Assisted private val context: Context,
+    @Assisted private val startUIState: InitializerUiState?,
     private val googleAuthClient: GoogleAuthClient,
     private val biometricAuthManager: BiometricAuthManager
 ) : ViewModel() {
 
     private val miEmpresaDatabase = MiEmpresaDatabase.getDatabase(context)
-    private val _uiState = MutableStateFlow<InitializerUiState>(InitializerUiState.Loading)
+    private val _uiState = MutableStateFlow(startUIState ?: InitializerUiState.Loading)
     val uiState: StateFlow<InitializerUiState> = _uiState.asStateFlow()
     private val companyDao = miEmpresaDatabase.companyDao()
 
     init {
         viewModelScope.launch {
-            val alreadySelectedCompany = companyDao.getSelectedCompany().asFlow().firstOrNull() != null
-            if (alreadySelectedCompany) {
-                reauthenticate()
-            }else {
-                _uiState.value = InitializerUiState.Loading
-                checkForMainFolder()
+            if (_uiState.value is InitializerUiState.ShowCompanyList) {
+                goToCompanyListScreen()
+            } else {
+                val alreadySelectedCompany =
+                    companyDao.getSelectedCompany().asFlow().firstOrNull() != null
+                if (alreadySelectedCompany) {
+                    reauthenticate()
+                } else {
+                    _uiState.value = InitializerUiState.Loading
+                    checkForMainFolder()
                 }
             }
+        }
     }
 
     private fun reauthenticate() {
@@ -281,9 +288,12 @@ sealed class InitializerUiState {
     data object CreatingCompany : InitializerUiState()
     data object CreatingSpreadsheet : InitializerUiState()
     data object NavigateToProducts : InitializerUiState()
+    data object ShowCompanyList : InitializerUiState(), Serializable {
+        private fun readResolve(): Any = ShowCompanyList
+    }
 }
 
 @AssistedFactory
 interface InitializerViewModelFactory {
-    fun create(context: Context): InitializerViewModel
+    fun create(context: Context, startUIState: InitializerUiState? = null): InitializerViewModel
 }

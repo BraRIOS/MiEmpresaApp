@@ -30,6 +30,9 @@ class SignInViewModel @Inject constructor(
     val signInStateFlow = _signInState.asStateFlow()
     private val _authState = MutableStateFlow<AuthState?>(null)
     val authStateFlow = _authState.asStateFlow()
+    private val miEmpresaDatabase = MiEmpresaDatabase.getDatabase(context)
+    private val companyDao = miEmpresaDatabase.companyDao()
+
 
     fun signIn(activity: Activity) = viewModelScope.launch {
         val signInResult : SignInResult = googleAuthClient.signIn(activity)
@@ -81,4 +84,8 @@ class SignInViewModel @Inject constructor(
     fun updateAuthState(state: AuthState) {
         _authState.update { state }
     }
+
+    fun getCompanies() = companyDao.getCompanies()
+
+    fun getSelectedCompany() = companyDao.getSelectedCompany()
 }

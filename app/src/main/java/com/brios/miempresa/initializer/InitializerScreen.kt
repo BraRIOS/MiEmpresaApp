@@ -16,11 +16,12 @@ import com.brios.miempresa.navigation.MiEmpresaScreen
 @RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun InitializerScreen(
-    navController: NavHostController
+    navController: NavHostController,
+    startUIState: InitializerUiState? = null
 ) {
     val context = LocalContext.current
     val viewModel: InitializerViewModel = hiltViewModel<InitializerViewModel, InitializerViewModelFactory> { factory ->
-        factory.create(context)
+        factory.create(context, startUIState)
     }
     val uiState by viewModel.uiState.collectAsState()
     when (uiState) {
@@ -35,8 +36,9 @@ fun InitializerScreen(
             )
         }
         is InitializerUiState.CheckingData -> LoadingView(
-            message = stringResource(R.string.checking_existing_projects)
+            message = stringResource(R.string.checking_existing_companies)
         )
+        is InitializerUiState.ShowCompanyList -> LoadingView()
         is InitializerUiState.CompanyList -> {
             val companyListState = uiState as InitializerUiState.CompanyList
             CompanyListView(

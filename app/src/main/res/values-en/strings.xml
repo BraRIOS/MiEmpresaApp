@@ -43,7 +43,7 @@
     <string name="delete_product">Delete product</string>
     <string name="error_deleting_product">Could not delete the product</string>
     <string name="error_loading_categories">Could not load categories</string>
-    <string name="checking_existing_projects">Searching for existing projects</string>
+    <string name="checking_existing_companies">Searching for existing companies</string>
     <string name="searching_database">Verifying your workspace...</string>
     <string name="creating_database">Creating your workspace in Drive...</string>
     <string name="user">User</string>
@@ -84,4 +84,7 @@
     <string name="placeholder">Placeholder</string>
     <string name="sin_imagen">No image</string>
     <string name="do_not_delete_advice">[DO NOT DELETE]</string>
+    <string name="switch_company">Switch company</string>
+    <string name="current_company">Current company</string>
+    <string name="loading_companies">Loading companies</string>
 </resources>

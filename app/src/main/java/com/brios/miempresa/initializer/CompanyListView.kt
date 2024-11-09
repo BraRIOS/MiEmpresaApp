@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.DividerDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -36,11 +35,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.brios.miempresa.R
+import com.brios.miempresa.components.LoadingView
 import com.brios.miempresa.components.MessageWithIcon
 import com.brios.miempresa.data.Company
 import com.brios.miempresa.ui.dimens.AppDimensions
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CompanyListView(
     username: String,
@@ -81,28 +80,40 @@ fun CompanyListView(
             it.name.contains(searchText, ignoreCase = true)
         }
 
-        if (filteredCompanies.isNotEmpty()) {
-            LazyColumn(modifier = Modifier
-                .height(AppDimensions.CompanyListView.listHeight)
-                .fillMaxWidth()
-                .border(
-                    AppDimensions.smallBorderWidth,
-                    MaterialTheme.colorScheme.surfaceContainerHighest,
-                    RoundedCornerShape(bottomStart = AppDimensions.smallPadding, bottomEnd = AppDimensions.smallPadding))
-            ) {
-                items(filteredCompanies.size) { index ->
-                    val company = filteredCompanies[index]
-                    ListItem(
-                        headlineContent = { Text(company.name) },
-                        modifier = Modifier.clickable { onSelectCompany(company) }
-                    )
+        when {
+            companyList.isEmpty() && companies.value == null -> { // Show loading when LiveData is still loading
+                LoadingView(message = stringResource(R.string.loading_companies))
+            }
+
+            filteredCompanies.isNotEmpty() -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .height(AppDimensions.CompanyListView.listHeight)
+                        .fillMaxWidth()
+                        .border(
+                            AppDimensions.smallBorderWidth,
+                            MaterialTheme.colorScheme.surfaceContainerHighest,
+                            RoundedCornerShape(
+                                bottomStart = AppDimensions.smallPadding,
+                                bottomEnd = AppDimensions.smallPadding
+                            )
+                        )
+                ) {
+                    items(filteredCompanies.size) { index ->
+                        val company = filteredCompanies[index]
+                        ListItem(
+                            headlineContent = { Text(company.name) },
+                            modifier = Modifier.clickable { onSelectCompany(company) }
+                        )
+                    }
                 }
             }
-        } else {
-            MessageWithIcon(
-                message = stringResource(id = R.string.no_companies_found),
-                icon = Icons.Filled.Warning
-            )
+            else -> {
+                MessageWithIcon(
+                    message = stringResource(id = R.string.no_companies_found),
+                    icon = Icons.Filled.Warning
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))

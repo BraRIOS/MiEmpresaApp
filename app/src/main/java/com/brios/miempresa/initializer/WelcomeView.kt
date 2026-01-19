@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.brios.miempresa.R
 import com.brios.miempresa.ui.dimens.AppDimensions
+import com.brios.miempresa.ui.theme.MiEmpresaTheme
 
 @Composable
 fun WelcomeView(username: String, isFirstTime: Boolean, onCompanyNameEntered: (String) -> Unit) {
@@ -68,8 +69,10 @@ fun WelcomeView(username: String, isFirstTime: Boolean, onCompanyNameEntered: (S
 @Preview
 @Composable
 fun WelcomeScreenPreview() {
-    Surface {
-        WelcomeView("John Doe", true) {}
+    MiEmpresaTheme {
+        Surface {
+            WelcomeView("John Doe", true) {}
+        }
     }
 
 }

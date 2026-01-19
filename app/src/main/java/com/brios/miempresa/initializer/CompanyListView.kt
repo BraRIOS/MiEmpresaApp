@@ -39,6 +39,7 @@ import com.brios.miempresa.components.LoadingView
 import com.brios.miempresa.components.MessageWithIcon
 import com.brios.miempresa.data.Company
 import com.brios.miempresa.ui.dimens.AppDimensions
+import com.brios.miempresa.ui.theme.MiEmpresaTheme
 
 @Composable
 fun CompanyListView(
@@ -152,12 +153,14 @@ private fun CompanyListScreenPreview() {
         Company("2", "Company 2", false),
         Company("3", "Company 3", false)
     ))
-    Surface{
-        CompanyListView(
-            username = "John Doe",
-            companies = companies,
-            onSelectCompany = {},
-            onCreateNewCompany = {},
-        )
+    MiEmpresaTheme (darkTheme = false) {
+        Surface {
+            CompanyListView(
+                username = "John Doe",
+                companies = companies,
+                onSelectCompany = {},
+                onCreateNewCompany = {},
+            )
+        }
     }
 }

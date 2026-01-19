@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -59,13 +60,15 @@ import kotlinx.coroutines.launch
 fun DrawerComposable(
     navController: NavHostController,
     drawerState: DrawerState,
-    signInViewModel: SignInViewModel = hiltViewModel(),
+    signInViewModel: SignInViewModel? = null,
     content: @Composable () -> Unit
 ){
-    val user = signInViewModel.getSignedInUser()
-    val selectedCompany by signInViewModel.getSelectedCompany().observeAsState()
-    val context = LocalContext.current as Activity
-    DrawerContent(drawerState, user, selectedCompany, context, signInViewModel, navController, content)
+    val viewModel = signInViewModel ?: if (!LocalInspectionMode.current) hiltViewModel() else null
+    val user = viewModel?.getSignedInUser()
+    val selectedCompanyState = viewModel?.getSelectedCompany()?.observeAsState()
+    val selectedCompany by selectedCompanyState ?: remember { mutableStateOf(null) }
+    val context = LocalContext.current as? Activity
+    DrawerContent(drawerState, user, selectedCompany, context, viewModel, navController, content)
 }
 
 @Composable
@@ -198,9 +201,11 @@ private fun DrawerContent(
                                                 showDropdown = false
                                                 scope.launch {
                                                     drawerState.close()
-                                                    signInViewModel!!.signOut(context!!).also {
-                                                        navController.navigate(MiEmpresaScreen.SignIn.name) {
-                                                            popUpTo(0)
+                                                    if (signInViewModel != null && context != null) {
+                                                        signInViewModel.signOut(context).also {
+                                                            navController.navigate(MiEmpresaScreen.SignIn.name) {
+                                                                popUpTo(0)
+                                                            }
                                                         }
                                                     }
                                                 }

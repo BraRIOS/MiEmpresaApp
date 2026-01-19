@@ -8,6 +8,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.brios.miempresa.navigation.BottomBar
@@ -19,10 +20,13 @@ import kotlinx.coroutines.launch
 @Composable
 fun ScaffoldedScreenComposable(
     navController: NavHostController,
-    topBarViewModel: TopBarViewModel = hiltViewModel(),
+    topBarViewModel: TopBarViewModel? = null,
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable () -> Unit
 ) {
+    val actualTopBarViewModel = topBarViewModel ?: if (!LocalInspectionMode.current) hiltViewModel() else null
+    val title = actualTopBarViewModel?.topBarTitle ?: ""
+
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     DrawerComposable(
@@ -33,7 +37,7 @@ fun ScaffoldedScreenComposable(
             topBar = {
                 TopBar(
                     navController,
-                    topBarViewModel.topBarTitle,
+                    title,
                     openDrawer = {scope.launch { drawerState.open() }})
             },
             floatingActionButton = floatingActionButton,

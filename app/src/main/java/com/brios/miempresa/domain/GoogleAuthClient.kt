@@ -8,6 +8,7 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
+import com.brios.miempresa.BuildConfig
 import com.brios.miempresa.R
 import com.google.android.gms.auth.api.identity.AuthorizationRequest
 import com.google.android.gms.auth.api.identity.AuthorizationResult
@@ -55,7 +56,7 @@ class GoogleAuthClient @Inject constructor(
 //        .setAutoSelectEnabled(true)
 //        .setNonce(nonce)
 //        .build()
-        val googleSignInOption = GetSignInWithGoogleOption.Builder(activity.getString(R.string.web_client_id))
+        val googleSignInOption = GetSignInWithGoogleOption.Builder(BuildConfig.WEB_CLIENT_ID)
             .setNonce(nonce)
             .build()
 

@@ -26,6 +26,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,8 +45,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
+import com.brios.miempresa.categories.Category
 import com.brios.miempresa.components.FABButton
 import com.brios.miempresa.components.LoadingView
 import com.brios.miempresa.components.ScaffoldedScreenComposable
@@ -53,6 +56,7 @@ import com.brios.miempresa.components.SearchBar
 import com.brios.miempresa.navigation.MiEmpresaScreen
 import com.brios.miempresa.navigation.TopBarViewModel
 import com.brios.miempresa.ui.dimens.AppDimensions
+import com.brios.miempresa.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.ui.theme.OnPlaceholderBG
 import com.brios.miempresa.ui.theme.PlaceholderBG
 
@@ -62,78 +66,109 @@ fun ProductsComposable(
     productsViewModel: ProductsViewModel = hiltViewModel(),
     navController: NavHostController
 ) {
-    var searchQuery by remember { mutableStateOf("") }
-    
     val isLoading by productsViewModel.isLoading.collectAsState()
     val filteredProducts by productsViewModel.filteredProducts.collectAsState()
+    val categories by productsViewModel.categories.collectAsState()
 
     topBarViewModel.topBarTitle = stringResource(id = R.string.home_title)
 
-    val focusManager = LocalFocusManager.current
+    LaunchedEffect(Unit) {
+        productsViewModel.loadData()
+    }
 
+    ProductsScreen(
+        navController = navController,
+        isLoading = isLoading,
+        filteredProducts = filteredProducts,
+        categories = categories,
+        onSearchQueryChange = productsViewModel::onSearchQueryChange,
+        onProductClick = { selectedProduct ->
+            navController.navigate(MiEmpresaScreen.Product.name + "/${selectedProduct.rowIndex}")
+        },
+        onLoadCategories = productsViewModel::loadCategories,
+        getNextAvailableRowIndex = productsViewModel::getNextAvailableRowIndex,
+        onAddProduct = { newProduct, selectedCategories, onResult ->
+            productsViewModel.addProduct(newProduct, selectedCategories, onResult)
+        }
+    )
+}
+
+@Composable
+fun ProductsScreen(
+    navController: NavHostController,
+    isLoading: Boolean,
+    filteredProducts: List<Product>,
+    categories: List<Category>,
+    onSearchQueryChange: (String) -> Unit,
+    onProductClick: (Product) -> Unit,
+    onLoadCategories: () -> Unit,
+    getNextAvailableRowIndex: () -> Int,
+    onAddProduct: (Product, List<Category>, (Boolean) -> Unit) -> Unit
+) {
+    var searchQuery by remember { mutableStateOf("") }
+    val focusManager = LocalFocusManager.current
     var showDialog by remember { mutableStateOf(false) }
 
-    productsViewModel.loadData()
-    ScaffoldedScreenComposable(
-        navController = navController,
-        floatingActionButton = {
-            FABButton(
-                action = { showDialog = true },
-                actionText = stringResource(id = R.string.add_product),
-                actionIcon = Icons.Filled.Add
-            )
-        }
-    ) {
-        if (isLoading) {
-            LoadingView()
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectTapGestures {
-                            focusManager.clearFocus()
-                        }
-                    },
-                verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                item {
-                    SearchBar(
-                        query = searchQuery,
-                        onQueryChange = {
-                            searchQuery = it
-                            productsViewModel.onSearchQueryChange(it)
-                        },
-                        modifier = Modifier
-                            .padding(vertical = AppDimensions.smallPadding),
-                        placeholderText = stringResource(id = R.string.productSearch)
-                    )
-                }
-
-                items(filteredProducts.chunked(10)) { rowItems ->
-                    ProductGrid(rowItems) { selectedProduct ->
-                        navController.navigate(MiEmpresaScreen.Product.name + "/${selectedProduct.rowIndex}")
-                        focusManager.clearFocus()
-                    }
-                }
-
-            }
-        }
-    }
     if (showDialog) {
-        productsViewModel.loadCategories()
-        val categories by productsViewModel.categories.collectAsState()
+        onLoadCategories()
         ProductDialog(
-            rowIndex = productsViewModel.getNextAvailableRowIndex(),
+            rowIndex = getNextAvailableRowIndex(),
             categories = categories,
             onDismiss = { showDialog = false },
             onSave = { newProduct, selectedCategories, onResult ->
-                productsViewModel.addProduct(newProduct, selectedCategories) { success ->
+                onAddProduct(newProduct, selectedCategories) { success ->
                     onResult(success)
                 }
             }
         )
+    } else {
+        ScaffoldedScreenComposable(
+            navController = navController,
+            floatingActionButton = {
+                FABButton(
+                    action = { showDialog = true },
+                    actionText = stringResource(id = R.string.add_product),
+                    actionIcon = Icons.Filled.Add
+                )
+            }
+        ) {
+            if (isLoading) {
+                LoadingView()
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(Unit) {
+                            detectTapGestures {
+                                focusManager.clearFocus()
+                            }
+                        },
+                    verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    item {
+                        SearchBar(
+                            query = searchQuery,
+                            onQueryChange = {
+                                searchQuery = it
+                                onSearchQueryChange(it)
+                            },
+                            modifier = Modifier
+                                .padding(vertical = AppDimensions.smallPadding),
+                            placeholderText = stringResource(id = R.string.productSearch)
+                        )
+                    }
+
+                    items(filteredProducts.chunked(10)) { rowItems ->
+                        ProductGrid(rowItems) { selectedProduct ->
+                            onProductClick(selectedProduct)
+                            focusManager.clearFocus()
+                        }
+                    }
+
+                }
+            }
+        }
     }
 }
 
@@ -272,4 +307,46 @@ fun PreviewProductGrid() {
             )
         )
     ){}
+}
+
+@Preview
+@Composable
+fun PreviewProductsScreen() {
+    val sampleProducts = listOf(
+        Product(
+            rowIndex = 1,
+            name = "Product 1",
+            description = "Description 1",
+            price = "$100",
+            categories = listOf("Category 1"),
+            imageUrl = "https://picsum.photos/200/300"
+        ),
+        Product(
+            rowIndex = 2,
+            name = "Product 2",
+            description = "Description 2",
+            price = "$200",
+            categories = listOf("Category 2"),
+            imageUrl = "https://picsum.photos/200/301"
+        )
+    )
+
+    val sampleCategories = listOf(
+        Category(1, "Category 1", 5, ""),
+        Category(2, "Category 2", 10, "")
+    )
+
+    MiEmpresaTheme {
+        ProductsScreen(
+            navController = rememberNavController(),
+            isLoading = false,
+            filteredProducts = sampleProducts,
+            categories = sampleCategories,
+            onSearchQueryChange = {},
+            onProductClick = {},
+            onLoadCategories = {},
+            getNextAvailableRowIndex = { 3 },
+            onAddProduct = { _, _, result -> result(true) }
+        )
+    }
 }

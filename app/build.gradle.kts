@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -33,6 +35,11 @@ android {
             useSupportLibrary = true
         }
         signingConfig = signingConfigs.getByName("debug")
+        // Obtener la propiedad de forma estándar usando una utilidad de AGP
+        val webClientId: String = gradleLocalProperties(rootDir, providers).getProperty("WEB_CLIENT_ID") ?: ""
+
+        // IMPORTANTE: El tercer parámetro debe incluir comillas escapadas "\"valor\""
+        buildConfigField("String", "WEB_CLIENT_ID", "\"$webClientId\"")
     }
 
     buildTypes {
@@ -42,14 +49,15 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -75,6 +83,7 @@ dependencies {
     implementation(libs.google.googleid)
     implementation(libs.google.play.services.auth)
     implementation(libs.firebase.auth.ktx)
+    implementation(platform(libs.firebase.bom))
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

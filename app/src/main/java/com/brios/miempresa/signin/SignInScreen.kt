@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
@@ -69,7 +70,9 @@ fun SignInScreen(
 fun GoogleSignInButton(onClick: () -> Unit) {
     AndroidView(
         modifier = Modifier
-            .wrapContentHeight(),
+            .wrapContentHeight()
+            .fillMaxWidth()
+            .padding(AppDimensions.largePadding),
         factory = { context ->
             SignInButton(context).apply {
                 setSize(SignInButton.SIZE_WIDE)

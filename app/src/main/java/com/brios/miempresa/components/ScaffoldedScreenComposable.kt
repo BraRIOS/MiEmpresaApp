@@ -22,7 +22,7 @@ fun ScaffoldedScreenComposable(
     navController: NavHostController,
     topBarViewModel: TopBarViewModel? = null,
     floatingActionButton: @Composable () -> Unit = {},
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val actualTopBarViewModel = topBarViewModel ?: if (!LocalInspectionMode.current) hiltViewModel() else null
     val title = actualTopBarViewModel?.topBarTitle ?: ""
@@ -31,20 +31,22 @@ fun ScaffoldedScreenComposable(
     val scope = rememberCoroutineScope()
     DrawerComposable(
         navController,
-        drawerState
+        drawerState,
     ) {
         Scaffold(
             topBar = {
                 TopBar(
                     navController,
                     title,
-                    openDrawer = {scope.launch { drawerState.open() }})
+                    openDrawer = { scope.launch { drawerState.open() } },
+                )
             },
             floatingActionButton = floatingActionButton,
             content = { paddingValues ->
                 Box(
-                    modifier = Modifier
-                        .padding(paddingValues)
+                    modifier =
+                        Modifier
+                            .padding(paddingValues),
                 ) {
                     content()
                 }
@@ -53,7 +55,7 @@ fun ScaffoldedScreenComposable(
                 BottomBar(navController) {
                     navController.navigate(it)
                 }
-            }
+            },
         )
     }
 }

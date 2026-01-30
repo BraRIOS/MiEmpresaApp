@@ -5,6 +5,7 @@ coilCompose = "2.7.0"
 credentials = "1.5.0"
 datastore = "1.1.1"
 firebaseBom="33.12.0"
+ktlint = "12.1.2"
 googleApiClientAndroid = "2.7.2"
 googleApiServicesDrive = "v3-rev20240903-2.0.0"
 googleApiServicesSheets = "v4-rev20240730-2.0.0"
@@ -76,3 +77,4 @@ jetbrains-kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version
 dagger-hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "daggerHilt" }
 google-mobile-services = {id= "com.google.gms.google-services", version.ref= "googleMobileServices"}
 google-devtools-ksp =  {id = "com.google.devtools.ksp", version = "2.0.20-1.0.25"}
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }

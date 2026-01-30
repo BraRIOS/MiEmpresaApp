@@ -43,7 +43,7 @@ fun TopBar(
     title: String,
     openDrawer: () -> Unit = {},
     editProduct: () -> Unit = {},
-    deleteProduct: () -> Unit = {}
+    deleteProduct: () -> Unit = {},
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
 
@@ -57,22 +57,28 @@ fun TopBar(
 
     TopAppBar(
         navigationIcon = {
-            if(!isProductScreen) {
+            if (!isProductScreen) {
                 Icon(
-                    imageVector = if(!showBackButton) Icons.Filled.Menu else Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = if(!showBackButton) stringResource(id = R.string.show_menu)
-                        else stringResource(id = R.string.go_back),
-                    modifier = Modifier
-                        .padding(start = AppDimensions.smallPadding, end = AppDimensions.mediumPadding)
-                        .clickable {
-                            if (showBackButton) {
-                                navController.popBackStack()
-                            } else openDrawer()
-                        }
+                    imageVector = if (!showBackButton) Icons.Filled.Menu else Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription =
+                        if (!showBackButton) {
+                            stringResource(id = R.string.show_menu)
+                        } else {
+                            stringResource(id = R.string.go_back)
+                        },
+                    modifier =
+                        Modifier
+                            .padding(start = AppDimensions.smallPadding, end = AppDimensions.mediumPadding)
+                            .clickable {
+                                if (showBackButton) {
+                                    navController.popBackStack()
+                                } else {
+                                    openDrawer()
+                                }
+                            },
                 )
-            }
-            else{
-                Box(modifier = Modifier.padding(start = AppDimensions.smallPadding)){
+            } else {
+                Box(modifier = Modifier.padding(start = AppDimensions.smallPadding)) {
                     FloatingActionButton(
                         onClick = { navController.popBackStack() },
                         shape = CircleShape,
@@ -92,8 +98,12 @@ fun TopBar(
             if (isProductScreen) {
                 Row(
                     modifier = Modifier.padding(end = AppDimensions.smallPadding),
-                    horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding, Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement =
+                        Arrangement.spacedBy(
+                            AppDimensions.smallPadding,
+                            Alignment.CenterHorizontally,
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     FloatingActionButton(
                         onClick = { editProduct() },
@@ -111,34 +121,40 @@ fun TopBar(
                         Icon(
                             imageVector = Icons.Outlined.Delete,
                             contentDescription = stringResource(R.string.delete_product),
-                            tint = MaterialTheme.colorScheme.error
+                            tint = MaterialTheme.colorScheme.error,
                         )
                     }
                 }
             }
         },
-        colors =  if (isProductScreen)
-            TopAppBarDefaults.largeTopAppBarColors(
-                containerColor = Color.Transparent,
-                scrolledContainerColor = Color.Transparent
-            )
-            else TopAppBarDefaults.largeTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            ),
-        modifier = Modifier
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 1f),
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0f)
-                    )
+        colors =
+            if (isProductScreen) {
+                TopAppBarDefaults.largeTopAppBarColors(
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = Color.Transparent,
                 )
-            )
-            .padding(top = if (isProductScreen) AppDimensions.mediumPadding else 0.dp)
+            } else {
+                TopAppBarDefaults.largeTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            },
+        modifier =
+            Modifier
+                .background(
+                    brush =
+                        Brush.verticalGradient(
+                            colors =
+                                listOf(
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 1f),
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0f),
+                                ),
+                        ),
+                )
+                .padding(top = if (isProductScreen) AppDimensions.mediumPadding else 0.dp),
     )
 }
 

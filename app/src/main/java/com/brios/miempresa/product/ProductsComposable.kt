@@ -64,7 +64,7 @@ import com.brios.miempresa.ui.theme.PlaceholderBG
 fun ProductsComposable(
     topBarViewModel: TopBarViewModel = hiltViewModel(),
     productsViewModel: ProductsViewModel = hiltViewModel(),
-    navController: NavHostController
+    navController: NavHostController,
 ) {
     val isLoading by productsViewModel.isLoading.collectAsState()
     val filteredProducts by productsViewModel.filteredProducts.collectAsState()
@@ -89,7 +89,7 @@ fun ProductsComposable(
         getNextAvailableRowIndex = productsViewModel::getNextAvailableRowIndex,
         onAddProduct = { newProduct, selectedCategories, onResult ->
             productsViewModel.addProduct(newProduct, selectedCategories, onResult)
-        }
+        },
     )
 }
 
@@ -103,7 +103,7 @@ fun ProductsScreen(
     onProductClick: (Product) -> Unit,
     onLoadCategories: () -> Unit,
     getNextAvailableRowIndex: () -> Int,
-    onAddProduct: (Product, List<Category>, (Boolean) -> Unit) -> Unit
+    onAddProduct: (Product, List<Category>, (Boolean) -> Unit) -> Unit,
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
@@ -119,7 +119,7 @@ fun ProductsScreen(
                 onAddProduct(newProduct, selectedCategories) { success ->
                     onResult(success)
                 }
-            }
+            },
         )
     } else {
         ScaffoldedScreenComposable(
@@ -128,21 +128,22 @@ fun ProductsScreen(
                 FABButton(
                     action = { showDialog = true },
                     actionText = stringResource(id = R.string.add_product),
-                    actionIcon = Icons.Filled.Add
+                    actionIcon = Icons.Filled.Add,
                 )
-            }
+            },
         ) {
             if (isLoading) {
                 LoadingView()
             } else {
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .pointerInput(Unit) {
-                            detectTapGestures {
-                                focusManager.clearFocus()
-                            }
-                        },
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .pointerInput(Unit) {
+                                detectTapGestures {
+                                    focusManager.clearFocus()
+                                }
+                            },
                     verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
@@ -153,9 +154,10 @@ fun ProductsScreen(
                                 searchQuery = it
                                 onSearchQueryChange(it)
                             },
-                            modifier = Modifier
-                                .padding(vertical = AppDimensions.smallPadding),
-                            placeholderText = stringResource(id = R.string.productSearch)
+                            modifier =
+                                Modifier
+                                    .padding(vertical = AppDimensions.smallPadding),
+                            placeholderText = stringResource(id = R.string.productSearch),
                         )
                     }
 
@@ -165,7 +167,6 @@ fun ProductsScreen(
                             focusManager.clearFocus()
                         }
                     }
-
                 }
             }
         }
@@ -174,12 +175,16 @@ fun ProductsScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ProductGrid(products: List<Product>, onProductClick: (product:Product) -> Unit) {
+fun ProductGrid(
+    products: List<Product>,
+    onProductClick: (product: Product) -> Unit,
+) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = AppDimensions.mediumPadding),
-        contentAlignment = Alignment.Center
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = AppDimensions.mediumPadding),
+        contentAlignment = Alignment.Center,
     ) {
         FlowRow(
             verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding, Alignment.Top),
@@ -192,69 +197,89 @@ fun ProductGrid(products: List<Product>, onProductClick: (product:Product) -> Un
     }
 }
 
-
 @Composable
-fun ProductCard(product: Product, onProductClick: (product:Product) -> Unit) {
+fun ProductCard(
+    product: Product,
+    onProductClick: (product: Product) -> Unit,
+) {
     ElevatedCard(
-        modifier = Modifier
-            .width(AppDimensions.Products.productCardWidth)
-            .clickable(
-                onClick = { onProductClick(product) },
-            ),
+        modifier =
+            Modifier
+                .width(AppDimensions.Products.productCardWidth)
+                .clickable(
+                    onClick = { onProductClick(product) },
+                ),
     ) {
         SubcomposeAsyncImage(
             model = product.imageUrl,
             loading = {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(AppDimensions.mediumPadding)
-                        .wrapContentSize(Alignment.Center)
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(AppDimensions.mediumPadding)
+                            .wrapContentSize(Alignment.Center),
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(AppDimensions.Products.progressIndicatorSize))
                 }
             },
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .height(AppDimensions.Products.imageHeight)
-                .fillMaxWidth(),
+            modifier =
+                Modifier
+                    .height(AppDimensions.Products.imageHeight)
+                    .fillMaxWidth(),
             contentDescription = stringResource(R.string.image, product.name),
             error = {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(color = PlaceholderBG)
-                        .padding(AppDimensions.smallPadding),
-                    verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding, Alignment.CenterVertically),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .background(color = PlaceholderBG)
+                            .padding(AppDimensions.smallPadding),
+                    verticalArrangement =
+                        Arrangement.spacedBy(
+                            AppDimensions.extraSmallPadding,
+                            Alignment.CenterVertically,
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Image(
-                        modifier = Modifier.height(AppDimensions.Products.imageHeight/2),
+                        modifier = Modifier.height(AppDimensions.Products.imageHeight / 2),
                         painter = painterResource(id = R.drawable.miempresa_logo_glyph),
-                        contentDescription = stringResource(
-                            R.string.placeholder
-                        ),
-                        colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+                        contentDescription =
+                            stringResource(
+                                R.string.placeholder,
+                            ),
+                        colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) }),
                     )
                     Text(
                         text = stringResource(R.string.sin_imagen),
                         style = MaterialTheme.typography.labelMedium,
-                        color = OnPlaceholderBG
+                        color = OnPlaceholderBG,
                     )
                 }
-            }
+            },
         )
         Column(
-            modifier = Modifier
-                .padding(AppDimensions.smallPadding)
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding)
+            modifier =
+                Modifier
+                    .padding(AppDimensions.smallPadding)
+                    .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
         ) {
-            Text(text = product.name, style = MaterialTheme.typography.titleSmall,
-                overflow = TextOverflow.Ellipsis, maxLines = 2, minLines = 2)
+            Text(
+                text = product.name,
+                style = MaterialTheme.typography.titleSmall,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 2,
+                minLines = 2,
+            )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                Text(text = product.price, style = MaterialTheme.typography.titleLarge,
-                    overflow = TextOverflow.Ellipsis)
+                Text(
+                    text = product.price,
+                    style = MaterialTheme.typography.titleLarge,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
     }
@@ -265,15 +290,15 @@ fun ProductCard(product: Product, onProductClick: (product:Product) -> Unit) {
 fun PreviewProductCard() {
     ProductCard(
         product =
-        Product(
-            rowIndex = 1,
-            name = "Preview",
-            description = "",
-            price = "$100",
-            categories = listOf(),
-            imageUrl = "https://picsum.photos/200/300"
-        )
-    ){}
+            Product(
+                rowIndex = 1,
+                name = "Preview",
+                description = "",
+                price = "$100",
+                categories = listOf(),
+                imageUrl = "https://picsum.photos/200/300",
+            ),
+    ) {}
 }
 
 @Preview
@@ -287,7 +312,7 @@ fun PreviewProductGrid() {
                 description = "",
                 price = "$100",
                 categories = listOf(),
-                imageUrl = "https://picsum.photos/200/300"
+                imageUrl = "https://picsum.photos/200/300",
             ),
             Product(
                 rowIndex = 1,
@@ -295,7 +320,7 @@ fun PreviewProductGrid() {
                 description = "",
                 price = "$100",
                 categories = listOf(),
-                imageUrl = "https://picsum.photos/200/300"
+                imageUrl = "https://picsum.photos/200/300",
             ),
             Product(
                 rowIndex = 1,
@@ -303,38 +328,40 @@ fun PreviewProductGrid() {
                 description = "",
                 price = "$100",
                 categories = listOf(),
-                imageUrl = "https://picsum.photos/200/300"
-            )
-        )
-    ){}
+                imageUrl = "https://picsum.photos/200/300",
+            ),
+        ),
+    ) {}
 }
 
 @Preview
 @Composable
 fun PreviewProductsScreen() {
-    val sampleProducts = listOf(
-        Product(
-            rowIndex = 1,
-            name = "Product 1",
-            description = "Description 1",
-            price = "$100",
-            categories = listOf("Category 1"),
-            imageUrl = "https://picsum.photos/200/300"
-        ),
-        Product(
-            rowIndex = 2,
-            name = "Product 2",
-            description = "Description 2",
-            price = "$200",
-            categories = listOf("Category 2"),
-            imageUrl = "https://picsum.photos/200/301"
+    val sampleProducts =
+        listOf(
+            Product(
+                rowIndex = 1,
+                name = "Product 1",
+                description = "Description 1",
+                price = "$100",
+                categories = listOf("Category 1"),
+                imageUrl = "https://picsum.photos/200/300",
+            ),
+            Product(
+                rowIndex = 2,
+                name = "Product 2",
+                description = "Description 2",
+                price = "$200",
+                categories = listOf("Category 2"),
+                imageUrl = "https://picsum.photos/200/301",
+            ),
         )
-    )
 
-    val sampleCategories = listOf(
-        Category(1, "Category 1", 5, ""),
-        Category(2, "Category 2", 10, "")
-    )
+    val sampleCategories =
+        listOf(
+            Category(1, "Category 1", 5, ""),
+            Category(2, "Category 2", 10, ""),
+        )
 
     MiEmpresaTheme {
         ProductsScreen(
@@ -346,7 +373,7 @@ fun PreviewProductsScreen() {
             onProductClick = {},
             onLoadCategories = {},
             getNextAvailableRowIndex = { 3 },
-            onAddProduct = { _, _, result -> result(true) }
+            onAddProduct = { _, _, result -> result(true) },
         )
     }
 }

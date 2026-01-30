@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.compose)
     alias(libs.plugins.dagger.hilt.android)
     alias(libs.plugins.google.mobile.services)
+    alias(libs.plugins.ktlint)
     id("kotlin-kapt")
     id("com.google.devtools.ksp")
 }
@@ -15,7 +16,7 @@ android {
     compileSdk = 35
 
     signingConfigs {
-        create("UnifiedDebugKeystore"){
+        create("UnifiedDebugKeystore") {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
             storeFile = file("debug.keystore")

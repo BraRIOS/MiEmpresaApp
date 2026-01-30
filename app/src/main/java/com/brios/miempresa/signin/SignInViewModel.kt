@@ -22,70 +22,78 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class SignInViewModel @Inject constructor(
-    @ApplicationContext context: Context
-) : ViewModel() {
-    private val googleAuthClient = GoogleAuthClient(context)
-    private val _signInState = MutableStateFlow(SignInState())
-    val signInStateFlow = _signInState.asStateFlow()
-    private val _authState = MutableStateFlow<AuthState?>(null)
-    val authStateFlow = _authState.asStateFlow()
-    private val miEmpresaDatabase = MiEmpresaDatabase.getDatabase(context)
-    private val companyDao = miEmpresaDatabase.companyDao()
+class SignInViewModel
+    @Inject
+    constructor(
+        @ApplicationContext context: Context,
+    ) : ViewModel() {
+        private val googleAuthClient = GoogleAuthClient(context)
+        private val _signInState = MutableStateFlow(SignInState())
+        val signInStateFlow = _signInState.asStateFlow()
+        private val _authState = MutableStateFlow<AuthState?>(null)
+        val authStateFlow = _authState.asStateFlow()
+        private val miEmpresaDatabase = MiEmpresaDatabase.getDatabase(context)
+        private val companyDao = miEmpresaDatabase.companyDao()
 
-
-    fun signIn(activity: Activity) = viewModelScope.launch {
-        val signInResult : SignInResult = googleAuthClient.signIn(activity)
-        val signInSucceed = signInResult.data != null
-        if (!signInSucceed) {
-            println("\u001B${signInResult.errorMessage}\u001B")
-        }
-        _signInState.update {
-            it.copy(
-                isSignInSuccessful = signInSucceed,
-                signInError = if (signInSucceed) null else activity.getString(R.string.sign_in_error)
-            )
-        }
-    }
-
-    fun getSignedInUser() = googleAuthClient.getSignedInUser()
-
-    fun signOut(activity: Activity) = viewModelScope.launch {
-        withContext(Dispatchers.IO) {
-            val database = MiEmpresaDatabase.getDatabase(activity)
-            database.companyDao().clear()
-            removeValueFromDataStore(activity, PreferencesKeys.SPREADSHEET_ID_KEY)
-            _authState.update { AuthState.Unauthorized }
-            googleAuthClient.signOut(activity)
-        }
-    }
-
-    fun resetSignInState() {
-        _signInState.update { SignInState() }
-    }
-
-    fun authorizeDriveAndSheets(activity: Activity) = viewModelScope.launch {
-        val authorizationResult = googleAuthClient.authorizeDriveAndSheets()
-        if (authorizationResult.hasResolution()) {
-            authorizationResult.pendingIntent?.let { intent ->
-                _authState.update { AuthState.PendingAuth(intent.intentSender) }
-            } ?: run {
-                Toast.makeText(activity, activity.getString(R.string.authorization_failed), Toast.LENGTH_SHORT).show()
-                _authState.update {
-                    AuthState.Unauthorized
+        fun signIn(activity: Activity) =
+            viewModelScope.launch {
+                val signInResult: SignInResult = googleAuthClient.signIn(activity)
+                val signInSucceed = signInResult.data != null
+                if (!signInSucceed) {
+                    println("\u001B${signInResult.errorMessage}\u001B")
+                }
+                _signInState.update {
+                    it.copy(
+                        isSignInSuccessful = signInSucceed,
+                        signInError = if (signInSucceed) null else activity.getString(R.string.sign_in_error),
+                    )
                 }
             }
-        } else {
-            Toast.makeText(activity, activity.getString(R.string.authorization_success), Toast.LENGTH_SHORT).show()
-            _authState.update { AuthState.Authorized }
+
+        fun getSignedInUser() = googleAuthClient.getSignedInUser()
+
+        fun signOut(activity: Activity) =
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) {
+                    val database = MiEmpresaDatabase.getDatabase(activity)
+                    database.companyDao().clear()
+                    removeValueFromDataStore(activity, PreferencesKeys.SPREADSHEET_ID_KEY)
+                    _authState.update { AuthState.Unauthorized }
+                    googleAuthClient.signOut(activity)
+                }
+            }
+
+        fun resetSignInState() {
+            _signInState.update { SignInState() }
         }
+
+        fun authorizeDriveAndSheets(activity: Activity) =
+            viewModelScope.launch {
+                val authorizationResult = googleAuthClient.authorizeDriveAndSheets()
+                if (authorizationResult.hasResolution()) {
+                    authorizationResult.pendingIntent?.let { intent ->
+                        _authState.update { AuthState.PendingAuth(intent.intentSender) }
+                    } ?: run {
+                        Toast.makeText(activity, activity.getString(R.string.authorization_failed), Toast.LENGTH_SHORT).show()
+                        _authState.update {
+                            AuthState.Unauthorized
+                        }
+                    }
+                } else {
+                    Toast.makeText(
+                        activity,
+                        activity.getString(R.string.authorization_success),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                    _authState.update { AuthState.Authorized }
+                }
+            }
+
+        fun updateAuthState(state: AuthState) {
+            _authState.update { state }
+        }
+
+        fun getCompanies() = companyDao.getCompanies()
+
+        fun getSelectedCompany() = companyDao.getSelectedCompany()
     }
-
-    fun updateAuthState(state: AuthState) {
-        _authState.update { state }
-    }
-
-    fun getCompanies() = companyDao.getCompanies()
-
-    fun getSelectedCompany() = companyDao.getSelectedCompany()
-}

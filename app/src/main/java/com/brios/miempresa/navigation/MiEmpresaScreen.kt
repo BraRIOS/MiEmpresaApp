@@ -1,4 +1,5 @@
 package com.brios.miempresa.navigation
+
 enum class MiEmpresaScreen {
     SignIn,
     Initializer,
@@ -8,9 +9,10 @@ enum class MiEmpresaScreen {
     Categories,
 }
 
-val basePages = listOf(
-    MiEmpresaScreen.SignIn.name,
-    MiEmpresaScreen.Initializer.name,
-    MiEmpresaScreen.Products.name,
-    MiEmpresaScreen.Categories.name,
-)
+val basePages =
+    listOf(
+        MiEmpresaScreen.SignIn.name,
+        MiEmpresaScreen.Initializer.name,
+        MiEmpresaScreen.Products.name,
+        MiEmpresaScreen.Categories.name,
+    )

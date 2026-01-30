@@ -17,12 +17,13 @@ import com.brios.miempresa.navigation.MiEmpresaScreen
 @Composable
 fun InitializerScreen(
     navController: NavHostController,
-    startUIState: InitializerUiState? = null
+    startUIState: InitializerUiState? = null,
 ) {
     val context = LocalContext.current
-    val viewModel: InitializerViewModel = hiltViewModel<InitializerViewModel, InitializerViewModelFactory> { factory ->
-        factory.create(context, startUIState)
-    }
+    val viewModel: InitializerViewModel =
+        hiltViewModel<InitializerViewModel, InitializerViewModelFactory> { factory ->
+            factory.create(context, startUIState)
+        }
     val uiState by viewModel.uiState.collectAsState()
     when (uiState) {
         is InitializerUiState.Loading -> LoadingView()
@@ -32,12 +33,13 @@ fun InitializerScreen(
             WelcomeView(
                 welcomeState.username,
                 welcomeState.isFirstTime,
-                onCompanyNameEntered = { viewModel.createCompany(it) }
+                onCompanyNameEntered = { viewModel.createCompany(it) },
             )
         }
-        is InitializerUiState.CheckingData -> LoadingView(
-            message = stringResource(R.string.checking_existing_companies)
-        )
+        is InitializerUiState.CheckingData ->
+            LoadingView(
+                message = stringResource(R.string.checking_existing_companies),
+            )
         is InitializerUiState.ShowCompanyList -> LoadingView()
         is InitializerUiState.CompanyList -> {
             val companyListState = uiState as InitializerUiState.CompanyList
@@ -45,25 +47,27 @@ fun InitializerScreen(
                 username = companyListState.username,
                 companies = companyListState.companies,
                 onSelectCompany = { viewModel.searchSpreadsheet(it) },
-                onCreateNewCompany = { viewModel.goToCreateCompanyScreen() }
+                onCreateNewCompany = { viewModel.goToCreateCompanyScreen() },
             )
         }
-        is InitializerUiState.SearchingSpreadsheet -> LoadingView(
-            message = stringResource(R.string.searching_database)
-        )
+        is InitializerUiState.SearchingSpreadsheet ->
+            LoadingView(
+                message = stringResource(R.string.searching_database),
+            )
         is InitializerUiState.SpreadsheetNotFound -> {
             SpreadsheetNotFoundView(
                 (uiState as InitializerUiState.SpreadsheetNotFound).company,
                 onRetry = { viewModel.retrySearchSpreadsheet(it) },
                 onCreateSpreadsheet = { viewModel.createAndInitializeSpreadsheet(it) },
                 onSelectAnotherCompany = { viewModel.goToCompanyListScreen() },
-                onDeleteCompany = { viewModel.deleteCompany(it) }
+                onDeleteCompany = { viewModel.deleteCompany(it) },
             )
         }
         is InitializerUiState.CreatingCompany -> LoadingView()
-        is InitializerUiState.CreatingSpreadsheet -> LoadingView(
-            message = stringResource(R.string.creating_database)
-        )
+        is InitializerUiState.CreatingSpreadsheet ->
+            LoadingView(
+                message = stringResource(R.string.creating_database),
+            )
 
         is InitializerUiState.NavigateToProducts -> navController.navigate(MiEmpresaScreen.Products.name)
     }

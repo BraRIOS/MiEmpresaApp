@@ -62,7 +62,7 @@ import com.brios.miempresa.ui.theme.PlaceholderBG
 fun ProductDetails(
     navController: NavHostController,
     rowIndex: Int?,
-    viewModel: ProductViewModel = hiltViewModel()
+    viewModel: ProductViewModel = hiltViewModel(),
 ) {
     val loadingState by viewModel.isLoading.collectAsState()
     if (loadingState) {
@@ -78,7 +78,6 @@ fun ProductDetails(
     val productState by viewModel.currentProduct.collectAsState()
 
     ProductDetailsContent(productState, loadingState, navController, viewModel)
-
 }
 
 @Composable
@@ -86,18 +85,20 @@ private fun ProductDetailsContent(
     product: Product? = null,
     loadingState: Boolean,
     navController: NavHostController,
-    viewModel: ProductViewModel? = null
+    viewModel: ProductViewModel? = null,
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .navigationBarsPadding()
-        .statusBarsPadding()
-        .background(MaterialTheme.colorScheme.surfaceContainer)
+    Box(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .navigationBarsPadding()
+                .statusBarsPadding()
+                .background(MaterialTheme.colorScheme.surfaceContainer),
     ) {
-        if (product!=null) {
+        if (product != null) {
             if (showEditDialog && viewModel != null) {
                 viewModel.loadCategories()
                 val categories by viewModel.categories.collectAsState()
@@ -109,82 +110,90 @@ private fun ProductDetailsContent(
                         viewModel.updateProduct(updatedProduct, selectedCategories) { success ->
                             onResult(success)
                         }
-                    }
+                    },
                 )
             } else {
                 SubcomposeAsyncImage(
                     model = product.imageUrl,
                     loading = {
                         Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(AppDimensions.mediumPadding)
-                                .wrapContentSize(Alignment.Center)
+                            modifier =
+                                Modifier
+                                    .fillMaxSize()
+                                    .padding(AppDimensions.mediumPadding)
+                                    .wrapContentSize(Alignment.Center),
                         ) {
-                            CircularProgressIndicator(modifier = Modifier.size(AppDimensions.ProductDetails.progressIndicatorSize))
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(AppDimensions.ProductDetails.progressIndicatorSize),
+                            )
                         }
                     },
                     contentDescription = product.name,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(AppDimensions.ProductDetails.productImageSize),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(AppDimensions.ProductDetails.productImageSize),
                     error = {
                         Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(color = PlaceholderBG)
-                                .padding(AppDimensions.smallPadding),
-                            verticalArrangement = Arrangement.spacedBy(
-                                AppDimensions.mediumPadding,
-                                Alignment.CenterVertically
-                            ),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            modifier =
+                                Modifier
+                                    .fillMaxSize()
+                                    .background(color = PlaceholderBG)
+                                    .padding(AppDimensions.smallPadding),
+                            verticalArrangement =
+                                Arrangement.spacedBy(
+                                    AppDimensions.mediumPadding,
+                                    Alignment.CenterVertically,
+                                ),
+                            horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Image(
                                 modifier = Modifier.height(AppDimensions.ProductDetails.productImageSize / 2),
                                 painter = painterResource(id = R.drawable.miempresa_logo_glyph),
-                                contentDescription = stringResource(
-                                    R.string.placeholder
-                                ),
-                                colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+                                contentDescription =
+                                    stringResource(
+                                        R.string.placeholder,
+                                    ),
+                                colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) }),
                             )
                             Text(
                                 text = stringResource(R.string.sin_imagen),
                                 style = MaterialTheme.typography.displayMedium,
-                                color = OnPlaceholderBG
+                                color = OnPlaceholderBG,
                             )
                         }
-                    }
+                    },
                 )
                 TopBar(
                     navController = navController,
                     title = "",
                     editProduct = { showEditDialog = true },
-                    deleteProduct = { showDeleteDialog = true }
+                    deleteProduct = { showDeleteDialog = true },
                 )
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(
-                            start = AppDimensions.mediumPadding,
-                            end = AppDimensions.mediumPadding,
-                            top = AppDimensions.smallPadding
-                        )
-
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(
+                                start = AppDimensions.mediumPadding,
+                                end = AppDimensions.mediumPadding,
+                                top = AppDimensions.smallPadding,
+                            ),
                 ) {
                     Spacer(modifier = Modifier.height(AppDimensions.ProductDetails.productImageSize))
                     Text(
                         text = product.name,
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
                     ) {
                         product.categories.map { category ->
                             SuggestionChip(
@@ -192,16 +201,17 @@ private fun ProductDetailsContent(
                                 label = {
                                     Text(
                                         category,
-                                        style = MaterialTheme.typography.labelSmall
+                                        style = MaterialTheme.typography.labelSmall,
                                     )
                                 },
-                                colors = SuggestionChipDefaults.suggestionChipColors().copy(
-                                    containerColor = MaterialTheme.colorScheme.secondary,
-                                    labelColor = MaterialTheme.colorScheme.onSecondary
-                                ),
+                                colors =
+                                    SuggestionChipDefaults.suggestionChipColors().copy(
+                                        containerColor = MaterialTheme.colorScheme.secondary,
+                                        labelColor = MaterialTheme.colorScheme.onSecondary,
+                                    ),
                                 border = null,
                                 shape = CircleShape,
-                                modifier = Modifier
+                                modifier = Modifier,
                             )
                         }
                     }
@@ -209,13 +219,13 @@ private fun ProductDetailsContent(
                     Text(
                         text = product.price,
                         style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                     Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
                     Text(
                         text = stringResource(id = R.string.description_label),
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Spacer(modifier = Modifier.height(AppDimensions.extraSmallPadding))
                     OutlinedTextField(
@@ -226,34 +236,34 @@ private fun ProductDetailsContent(
                         maxLines = 6,
                         textStyle = MaterialTheme.typography.bodyLarge,
                         shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
-                        colors = TextFieldDefaults.colors().copy(
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            focusedContainerColor = MaterialTheme.colorScheme.surface
-                        ),
+                        colors =
+                            TextFieldDefaults.colors().copy(
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            ),
                     )
                 }
             }
-            if (showDeleteDialog){
-                    DeleteDialog(
-                        itemName = product.name,
-                        onDismiss = { showDeleteDialog = false },
-                        onConfirm = {
-                            viewModel!!.deleteProduct(product.rowIndex) { success ->
-                                if (success) {
-                                    navController.popBackStack()
-                                }
+            if (showDeleteDialog) {
+                DeleteDialog(
+                    itemName = product.name,
+                    onDismiss = { showDeleteDialog = false },
+                    onConfirm = {
+                        viewModel!!.deleteProduct(product.rowIndex) { success ->
+                            if (success) {
+                                navController.popBackStack()
                             }
                         }
-                    )
+                    },
+                )
             }
-        }else if (!loadingState){
+        } else if (!loadingState) {
             TopBar(
                 navController = navController,
                 title = "",
                 editProduct = { showEditDialog = true },
-                
             )
             MessageWithIcon(stringResource(R.string.product_not_found), Icons.Filled.Warning)
         }
@@ -262,27 +272,33 @@ private fun ProductDetailsContent(
 
 @Preview
 @Composable
-fun ProductDetailsWithProduct(){
+fun ProductDetailsWithProduct() {
     ProductDetailsContent(
-        product = Product(
-            rowIndex = 1,
-            name = "Preview",
-            description = "Descripción de un producto para su vista previa",
-            price = "$100",
-            categories = listOf("Vista previa", "Elemento de prueba",
-                "Probando categoría larga", "Probando"),
-            imageUrl = "https://picsum.photos/200/300"
-        ),
+        product =
+            Product(
+                rowIndex = 1,
+                name = "Preview",
+                description = "Descripción de un producto para su vista previa",
+                price = "$100",
+                categories =
+                    listOf(
+                        "Vista previa",
+                        "Elemento de prueba",
+                        "Probando categoría larga",
+                        "Probando",
+                    ),
+                imageUrl = "https://picsum.photos/200/300",
+            ),
         loadingState = false,
-        navController = NavHostController(LocalContext.current)
+        navController = NavHostController(LocalContext.current),
     )
 }
 
 @Preview
 @Composable
-fun ProductDetailsWithoutProduct(){
+fun ProductDetailsWithoutProduct() {
     ProductDetailsContent(
         loadingState = false,
-        navController = NavHostController(LocalContext.current)
+        navController = NavHostController(LocalContext.current),
     )
 }

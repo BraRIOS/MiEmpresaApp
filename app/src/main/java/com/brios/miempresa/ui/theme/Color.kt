@@ -4,8 +4,6 @@ import androidx.compose.ui.graphics.Color
 val PlaceholderBG = Color(0xFF919191)
 val OnPlaceholderBG = Color(0xFF575757)
 
-
-
 val primaryLight = Color(0xFFF18824)
 val onPrimaryLight = Color(0xFFFFFFFF)
 val primaryContainerLight = Color(0xFFFFDCC4)

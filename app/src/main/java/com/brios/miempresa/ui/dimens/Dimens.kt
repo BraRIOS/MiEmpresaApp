@@ -18,33 +18,32 @@ object AppDimensions {
 
     val smallBorderWidth = 1.dp
 
-    object SignInScreen{
+    object SignInScreen {
         val topPadding = 80.dp
         val logoSize = 200.dp
         val spaceBetweenLogoAndSignInButton = 80.dp
     }
 
-    object Drawer{
+    object Drawer {
         val appLogoSize = 64.dp
     }
 
-    object ProductDetails{
+    object ProductDetails {
         val productImageSize = 300.dp
         val progressIndicatorSize = 64.dp
     }
 
-    object Products{
+    object Products {
         val productCardWidth = 150.dp
         val progressIndicatorSize = 54.dp
         val imageHeight = 80.dp
     }
 
-    object Categories{
+    object Categories {
         val imageSize = 40.dp
     }
 
-    object CompanyListView{
+    object CompanyListView {
         val listHeight = 140.dp
     }
-
 }

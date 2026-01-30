@@ -8,6 +8,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class TopBarViewModel @Inject constructor(): ViewModel() {
-    var topBarTitle by mutableStateOf("")
-}
+class TopBarViewModel
+    @Inject
+    constructor() : ViewModel() {
+        var topBarTitle by mutableStateOf("")
+    }

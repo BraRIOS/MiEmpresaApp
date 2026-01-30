@@ -6,6 +6,6 @@ import androidx.compose.runtime.Composable
 import com.brios.miempresa.components.MessageWithIcon
 
 @Composable
-fun ErrorView(message:String) {
+fun ErrorView(message: String) {
     MessageWithIcon(message = message, icon = Icons.Filled.Warning)
 }

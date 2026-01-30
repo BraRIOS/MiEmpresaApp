@@ -20,16 +20,19 @@ import com.brios.miempresa.ui.dimens.AppDimensions
 
 @Composable
 fun SearchBar(
-    query: String, onQueryChange: (String) -> Unit,
-    modifier: Modifier, placeholderText: String
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier,
+    placeholderText: String,
 ) {
     TextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = AppDimensions.mediumPadding)
-            .clip(MaterialTheme.shapes.medium),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = AppDimensions.mediumPadding)
+                .clip(MaterialTheme.shapes.medium),
         placeholder = {
             Text(placeholderText, style = MaterialTheme.typography.bodyLarge)
         },
@@ -39,16 +42,17 @@ fun SearchBar(
                 contentDescription = null,
             )
         },
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            cursorColor = MaterialTheme.colorScheme.primary,
-            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-            unfocusedIndicatorColor = Color.Transparent,
-            focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
-            unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        ),
+        colors =
+            TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                cursorColor = MaterialTheme.colorScheme.primary,
+                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                unfocusedIndicatorColor = Color.Transparent,
+                focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
         singleLine = true,
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
     )

@@ -34,34 +34,38 @@ fun SpreadsheetNotFoundView(
     onRetry: (String) -> Unit,
     onCreateSpreadsheet: (String) -> Unit,
     onDeleteCompany: (Company) -> Unit,
-    onSelectAnotherCompany: () -> Unit
+    onSelectAnotherCompany: () -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(AppDimensions.mediumPadding),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(AppDimensions.mediumPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Text(
             text = stringResource(R.string.database_not_found_for_company),
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
         Text(
             text = company.name,
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
         Spacer(modifier = Modifier.height(AppDimensions.extraLargePadding))
         Button(onClick = { onRetry(company.id) }) {
             Icon(
                 imageVector = Icons.Filled.Refresh,
-                contentDescription = stringResource(R.string.retry_search),modifier = Modifier.size(
-                    ButtonDefaults.IconSize)
+                contentDescription = stringResource(R.string.retry_search),
+                modifier =
+                    Modifier.size(
+                        ButtonDefaults.IconSize,
+                    ),
             )
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
             Text(text = stringResource(R.string.retry_search))
@@ -71,7 +75,7 @@ fun SpreadsheetNotFoundView(
             Icon(
                 imageVector = Icons.Filled.Add,
                 contentDescription = stringResource(R.string.create_database),
-                modifier = Modifier.size(ButtonDefaults.IconSize)
+                modifier = Modifier.size(ButtonDefaults.IconSize),
             )
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
             Text(text = stringResource(R.string.create_database))
@@ -81,7 +85,7 @@ fun SpreadsheetNotFoundView(
             Icon(
                 imageVector = Icons.Filled.Delete,
                 contentDescription = stringResource(R.string.delete_company),
-                modifier = Modifier.size(ButtonDefaults.IconSize)
+                modifier = Modifier.size(ButtonDefaults.IconSize),
             )
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
             Text(text = stringResource(R.string.delete_company))
@@ -91,7 +95,7 @@ fun SpreadsheetNotFoundView(
             Icon(
                 imageVector = Icons.Filled.SwapHoriz,
                 contentDescription = stringResource(R.string.select_another_company),
-                modifier = Modifier.size(ButtonDefaults.IconSize)
+                modifier = Modifier.size(ButtonDefaults.IconSize),
             )
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
             Text(text = stringResource(R.string.select_another_company))
@@ -101,7 +105,7 @@ fun SpreadsheetNotFoundView(
 
 @Preview
 @Composable
-fun SpreadsheetNotFoundViewPreview(){
+fun SpreadsheetNotFoundViewPreview() {
     val company = Company("123", "Test Company", selected = true)
     Surface {
         SpreadsheetNotFoundView(
@@ -109,6 +113,7 @@ fun SpreadsheetNotFoundViewPreview(){
             onRetry = {},
             onCreateSpreadsheet = {},
             onDeleteCompany = {},
-            onSelectAnotherCompany = {})
+            onSelectAnotherCompany = {},
+        )
     }
 }

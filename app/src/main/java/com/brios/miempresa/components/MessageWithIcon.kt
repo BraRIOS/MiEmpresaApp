@@ -19,21 +19,27 @@ import com.brios.miempresa.R
 import com.brios.miempresa.ui.dimens.AppDimensions
 
 @Composable
-fun MessageWithIcon(message: String, icon: ImageVector) {
-    Column(modifier = Modifier.fillMaxSize(),
+fun MessageWithIcon(
+    message: String,
+    icon: ImageVector,
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally)
-    {
-        Icon(imageVector = icon,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            imageVector = icon,
             contentDescription = stringResource(R.string.warning_icon_description),
             modifier = Modifier.size(AppDimensions.extraLargeIconSize),
-            tint = MaterialTheme.colorScheme.primary)
+            tint = MaterialTheme.colorScheme.primary,
+        )
         Text(message, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
     }
 }
 
 @Preview
 @Composable
-private fun MessageWithIconPreview(){
+private fun MessageWithIconPreview() {
     MessageWithIcon(stringResource(R.string.product_not_found), Icons.Filled.Warning)
 }

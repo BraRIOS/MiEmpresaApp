@@ -14,10 +14,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.brios.miempresa.ui.dimens.AppDimensions
 
 @Composable
-fun LoadingView(message:String = "") {
-    Column(modifier = Modifier.fillMaxSize(),
+fun LoadingView(message: String = "") {
+    Column(
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         CircularProgressIndicator()
         Text(text = message, color = MaterialTheme.colorScheme.onSurface)
@@ -27,11 +28,11 @@ fun LoadingView(message:String = "") {
 @Preview
 @Composable
 fun LoadingScreenPreview() {
-    Surface{ LoadingView() }
+    Surface { LoadingView() }
 }
 
 @Preview
 @Composable
 fun LoadingScreenPreviewWithMessage() {
-    Surface{ LoadingView("Cargando") }
+    Surface { LoadingView("Cargando") }
 }

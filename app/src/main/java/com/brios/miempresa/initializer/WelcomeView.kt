@@ -25,39 +25,45 @@ import com.brios.miempresa.ui.dimens.AppDimensions
 import com.brios.miempresa.ui.theme.MiEmpresaTheme
 
 @Composable
-fun WelcomeView(username: String, isFirstTime: Boolean, onCompanyNameEntered: (String) -> Unit) {
+fun WelcomeView(
+    username: String,
+    isFirstTime: Boolean,
+    onCompanyNameEntered: (String) -> Unit,
+) {
     var companyName by remember { mutableStateOf("") }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(AppDimensions.mediumPadding),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(AppDimensions.mediumPadding),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (isFirstTime) {
             Text(
                 text = stringResource(R.string.greeting_user, username),
                 style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
             Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
             Text(
                 text = stringResource(R.string.create_your_company),
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
-        }else
+        } else {
             Text(
                 "${stringResource(id = R.string.create_your_company)}, $username",
                 style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
+        }
         Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
         OutlinedTextField(
             value = companyName,
             onValueChange = { companyName = it },
-            label = { Text(stringResource(id = R.string.company_name_label)) }
+            label = { Text(stringResource(id = R.string.company_name_label)) },
         )
         Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
         Button(onClick = { onCompanyNameEntered(companyName) }) {
@@ -74,7 +80,6 @@ fun WelcomeScreenPreview() {
             WelcomeView("John Doe", true) {}
         }
     }
-
 }
 
 @Preview

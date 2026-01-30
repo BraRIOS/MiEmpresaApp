@@ -18,14 +18,18 @@ import com.brios.miempresa.R
 import com.brios.miempresa.ui.dimens.AppDimensions
 
 @Composable
-fun DeleteDialog(itemName: String, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+fun DeleteDialog(
+    itemName: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
     AlertDialog(
         icon = {
             Icon(
                 imageVector = Icons.Outlined.Info,
                 contentDescription = stringResource(R.string.info),
                 modifier = Modifier.size(AppDimensions.largeIconSize),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
             )
         },
         onDismissRequest = onDismiss,
@@ -33,7 +37,7 @@ fun DeleteDialog(itemName: String, onDismiss: () -> Unit, onConfirm: () -> Unit)
             Text(
                 stringResource(R.string.delete_dialog_title) + "\n\"$itemName\"?",
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
         },
         confirmButton = {
@@ -50,17 +54,16 @@ fun DeleteDialog(itemName: String, onDismiss: () -> Unit, onConfirm: () -> Unit)
                 Text(stringResource(R.string.cancel))
             }
         },
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = MaterialTheme.colorScheme.surface,
     )
-
 }
 
 @Preview
 @Composable
-fun DeleteDialogPreview(){
+fun DeleteDialogPreview() {
     DeleteDialog(
         itemName = "Producto re loco",
         onDismiss = {},
-        onConfirm = {}
+        onConfirm = {},
     )
 }

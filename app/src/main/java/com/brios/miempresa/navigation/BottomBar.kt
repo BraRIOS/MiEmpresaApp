@@ -23,23 +23,24 @@ import com.brios.miempresa.ui.dimens.AppDimensions
 @Composable
 fun BottomBar(
     navController: NavHostController,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit,
 ) {
-
-    val productsTab = TabBarItem(
-        title = stringResource(id = R.string.home_title),
-        screen = MiEmpresaScreen.Products,
-        icon = Icons.Filled.Home,
-        selectedColor = MaterialTheme.colorScheme.primary,
-        unselectedColor = LocalContentColor.current.copy(alpha = 0.6f)
+    val productsTab =
+        TabBarItem(
+            title = stringResource(id = R.string.home_title),
+            screen = MiEmpresaScreen.Products,
+            icon = Icons.Filled.Home,
+            selectedColor = MaterialTheme.colorScheme.primary,
+            unselectedColor = LocalContentColor.current.copy(alpha = 0.6f),
         )
-    val categoriesTab = TabBarItem(
-        title = stringResource(id = R.string.categories_title),
-        screen = MiEmpresaScreen.Categories,
-        icon = Icons.Filled.GridView,
-        selectedColor = MaterialTheme.colorScheme.primary,
-        unselectedColor = LocalContentColor.current.copy(alpha = 0.6f)
-       )
+    val categoriesTab =
+        TabBarItem(
+            title = stringResource(id = R.string.categories_title),
+            screen = MiEmpresaScreen.Categories,
+            icon = Icons.Filled.GridView,
+            selectedColor = MaterialTheme.colorScheme.primary,
+            unselectedColor = LocalContentColor.current.copy(alpha = 0.6f),
+        )
 
     val tabBarItems = listOf(productsTab, categoriesTab)
 
@@ -57,7 +58,11 @@ data class TabBarItem(
 )
 
 @Composable
-fun TabView(tabBarItems: List<TabBarItem>, onNavigate: (String) -> Unit, currentRoute: String) {
+fun TabView(
+    tabBarItems: List<TabBarItem>,
+    onNavigate: (String) -> Unit,
+    currentRoute: String,
+) {
     val selectedTabIndex = tabBarItems.indexOfFirst { it.screen.name == currentRoute }
 
     NavigationBar(
@@ -72,9 +77,9 @@ fun TabView(tabBarItems: List<TabBarItem>, onNavigate: (String) -> Unit, current
                 icon = {
                     Icon(
                         modifier = Modifier.size(AppDimensions.mediumIconSize),
-                        imageVector =  tabBarItem.icon,
-                        contentDescription=tabBarItem.title,
-                        )
+                        imageVector = tabBarItem.icon,
+                        contentDescription = tabBarItem.title,
+                    )
                 },
                 label = {
                     Text(
@@ -82,13 +87,14 @@ fun TabView(tabBarItems: List<TabBarItem>, onNavigate: (String) -> Unit, current
                         style = MaterialTheme.typography.labelLarge,
                     )
                 },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = tabBarItem.selectedColor,
-                    selectedTextColor = tabBarItem.selectedColor,
-                    indicatorColor = MaterialTheme.colorScheme.surfaceContainer,
-                    unselectedIconColor = tabBarItem.unselectedColor,
-                    unselectedTextColor = tabBarItem.unselectedColor,
-                )
+                colors =
+                    NavigationBarItemDefaults.colors(
+                        selectedIconColor = tabBarItem.selectedColor,
+                        selectedTextColor = tabBarItem.selectedColor,
+                        indicatorColor = MaterialTheme.colorScheme.surfaceContainer,
+                        unselectedIconColor = tabBarItem.unselectedColor,
+                        unselectedTextColor = tabBarItem.unselectedColor,
+                    ),
             )
         }
     }

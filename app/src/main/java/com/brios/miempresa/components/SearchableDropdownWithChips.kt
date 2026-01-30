@@ -45,7 +45,7 @@ fun SearchableDropdownWithChips(
     isError: Boolean = false,
     selectedItems: MutableList<String>,
     onItemSelected: (String) -> Unit,
-    onItemRemoved: (String) -> Unit
+    onItemRemoved: (String) -> Unit,
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
@@ -53,35 +53,42 @@ fun SearchableDropdownWithChips(
     // Filtramos los elementos según el input del usuario
     val filteredItems = items.filter { it.contains(searchQuery, ignoreCase = true) }
 
-    val indicatorColor = if (isError)
-        OutlinedTextFieldDefaults.colors().errorIndicatorColor
-    else if (expanded)
-        MaterialTheme.colorScheme.primary
-    else
-        OutlinedTextFieldDefaults.colors().unfocusedIndicatorColor
-
+    val indicatorColor =
+        if (isError) {
+            OutlinedTextFieldDefaults.colors().errorIndicatorColor
+        } else if (expanded) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            OutlinedTextFieldDefaults.colors().unfocusedIndicatorColor
+        }
 
     // La columna que contiene la fila de chips y el buscador
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(top = AppDimensions.smallPadding)) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(top = AppDimensions.smallPadding),
+    ) {
         // Campo de entrada con chips en FlowRow
         FlowRow(
-            modifier = Modifier
-                .border(
-                    AppDimensions.smallBorderWidth, indicatorColor,
-                    if (expanded && filteredItems.isNotEmpty())
-                        RoundedCornerShape(
-                            topStart = AppDimensions.extraSmallPadding,
-                            topEnd = AppDimensions.extraSmallPadding
-                        )
-                    else
-                        RoundedCornerShape(AppDimensions.extraSmallPadding)
-                )
-                .wrapContentHeight()
-                .fillMaxWidth(),
+            modifier =
+                Modifier
+                    .border(
+                        AppDimensions.smallBorderWidth,
+                        indicatorColor,
+                        if (expanded && filteredItems.isNotEmpty()) {
+                            RoundedCornerShape(
+                                topStart = AppDimensions.extraSmallPadding,
+                                topEnd = AppDimensions.extraSmallPadding,
+                            )
+                        } else {
+                            RoundedCornerShape(AppDimensions.extraSmallPadding)
+                        },
+                    )
+                    .wrapContentHeight()
+                    .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             // Chips de elementos seleccionados
             selectedItems.forEach { item ->
@@ -98,13 +105,15 @@ fun SearchableDropdownWithChips(
                         Icon(
                             Icons.Filled.Close,
                             contentDescription = stringResource(R.string.discard),
-                            modifier = Modifier
-                                .size(AppDimensions.mediumPadding)
-                                .clickable { onItemRemoved(item) }
+                            modifier =
+                                Modifier
+                                    .size(AppDimensions.mediumPadding)
+                                    .clickable { onItemRemoved(item) },
                         )
                     },
-                    modifier = Modifier
-                        .padding(horizontal = AppDimensions.extraSmallPadding)
+                    modifier =
+                        Modifier
+                            .padding(horizontal = AppDimensions.extraSmallPadding),
                 )
             }
 
@@ -115,62 +124,67 @@ fun SearchableDropdownWithChips(
                     searchQuery = it
                     expanded = true
                 },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(TextFieldDefaults.MinHeight)
-                    .padding(AppDimensions.mediumPadding),
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .height(TextFieldDefaults.MinHeight)
+                        .padding(AppDimensions.mediumPadding),
                 decorationBox = { innerTextField ->
                     if (searchQuery.isEmpty() && selectedItems.isEmpty()) {
-                        Column (
-                            modifier = Modifier
-                                .fillMaxHeight(),
-                            verticalArrangement = Arrangement.Center
-                        ){
+                        Column(
+                            modifier =
+                                Modifier
+                                    .fillMaxHeight(),
+                            verticalArrangement = Arrangement.Center,
+                        ) {
                             Text(
                                 text = label,
-                                color = if (isError) OutlinedTextFieldDefaults.colors().errorLabelColor
-                                else OutlinedTextFieldDefaults.colors().unfocusedLabelColor,
-                                style = MaterialTheme.typography.bodyLarge
+                                color =
+                                    if (isError) {
+                                        OutlinedTextFieldDefaults.colors().errorLabelColor
+                                    } else {
+                                        OutlinedTextFieldDefaults.colors().unfocusedLabelColor
+                                    },
+                                style = MaterialTheme.typography.bodyLarge,
                             )
                         }
                     }
                     innerTextField()
                 },
                 textStyle = LocalTextStyle.current,
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary)
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             )
         }
 
         // Mostramos los resultados de búsqueda debajo del campo de búsqueda
         if (expanded && filteredItems.isNotEmpty()) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(AppDimensions.smallBorderWidth, MaterialTheme.colorScheme.primary)
-                    .padding(AppDimensions.smallPadding)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .border(AppDimensions.smallBorderWidth, MaterialTheme.colorScheme.primary)
+                        .padding(AppDimensions.smallPadding),
             ) {
                 filteredItems.forEach { item ->
                     Text(
                         text = item,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = AppDimensions.extraSmallPadding)
-                            .clickable {
-                                if (!selectedItems.contains(item)) {
-                                    onItemSelected(item)
-                                }
-                                searchQuery = ""
-                                expanded = false
-                            }
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = AppDimensions.extraSmallPadding)
+                                .clickable {
+                                    if (!selectedItems.contains(item)) {
+                                        onItemSelected(item)
+                                    }
+                                    searchQuery = ""
+                                    expanded = false
+                                },
                     )
                 }
             }
         }
     }
 }
-
-
-
 
 @Preview
 @Composable
@@ -179,19 +193,20 @@ fun SearchableDropdownWithChipsPreview() {
 
     val selectedItems = remember { mutableListOf<String>() }
     val actualItems = remember { mutableListOf<String>(items[0]) }
-    Surface(){
+    Surface {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(AppDimensions.smallPadding),
-            verticalArrangement = Arrangement.Center
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(AppDimensions.smallPadding),
+            verticalArrangement = Arrangement.Center,
         ) {
             SearchableDropdownWithChips(
                 label = "Buscar categorías…",
                 items = items,
                 selectedItems = selectedItems,
                 onItemSelected = { selectedItems.add(it) },
-                onItemRemoved = { selectedItems.remove(it) }
+                onItemRemoved = { selectedItems.remove(it) },
             )
             SearchableDropdownWithChips(
                 label = "Categories error",
@@ -199,16 +214,15 @@ fun SearchableDropdownWithChipsPreview() {
                 isError = true,
                 selectedItems = selectedItems,
                 onItemSelected = { selectedItems.add(it) },
-                onItemRemoved = { selectedItems.remove(it) }
+                onItemRemoved = { selectedItems.remove(it) },
             )
             SearchableDropdownWithChips(
                 label = "Categories",
                 items = items,
                 selectedItems = actualItems,
                 onItemSelected = { selectedItems.add(it) },
-                onItemRemoved = { selectedItems.remove(it) }
+                onItemRemoved = { selectedItems.remove(it) },
             )
         }
     }
-
 }

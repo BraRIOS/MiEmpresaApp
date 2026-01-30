@@ -34,16 +34,20 @@ import com.brios.miempresa.signin.SignInViewModel
 
 @RequiresApi(Build.VERSION_CODES.R)
 @Composable
-fun NavHostComposable(applicationContext: Context, navController: NavHostController) {
+fun NavHostComposable(
+    applicationContext: Context,
+    navController: NavHostController,
+) {
     val signInViewModel = hiltViewModel<SignInViewModel>()
     NavHost(
         navController = navController,
         startDestination =
-        if(signInViewModel.getSignedInUser() != null)
-            MiEmpresaScreen.Initializer.name
-        else
-            MiEmpresaScreen.SignIn.name,
-        modifier = Modifier.fillMaxSize()
+            if (signInViewModel.getSignedInUser() != null) {
+                MiEmpresaScreen.Initializer.name
+            } else {
+                MiEmpresaScreen.SignIn.name
+            },
+        modifier = Modifier.fillMaxSize(),
     ) {
         composable(route = MiEmpresaScreen.SignIn.name) {
             val signInState by signInViewModel.signInStateFlow.collectAsStateWithLifecycle()
@@ -55,7 +59,7 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
             val authorizationFailed = stringResource(R.string.authorization_failed)
 
             LaunchedEffect(key1 = signInState.isSignInSuccessful) {
-                if(signInState.isSignInSuccessful) {
+                if (signInState.isSignInSuccessful) {
                     Toast.makeText(applicationContext, signInSuccess, Toast.LENGTH_LONG).show()
 
                     signInViewModel.authorizeDriveAndSheets(activity)
@@ -63,26 +67,26 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
                 }
             }
 
-            val authorizationLauncher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.StartIntentSenderForResult()
-            ) { result ->
-                if (result.resultCode == Activity.RESULT_OK) {
-                    Toast.makeText(applicationContext, authorizationSuccess, Toast.LENGTH_LONG).show()
-                    signInViewModel.updateAuthState(AuthState.Authorized)
-                } else {
-                    Toast.makeText(applicationContext, authorizationFailed, Toast.LENGTH_LONG).show()
-                    signInViewModel.updateAuthState(AuthState.Unauthorized)
-                    signInViewModel.signOut(activity)
+            val authorizationLauncher =
+                rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.StartIntentSenderForResult(),
+                ) { result ->
+                    if (result.resultCode == Activity.RESULT_OK) {
+                        Toast.makeText(applicationContext, authorizationSuccess, Toast.LENGTH_LONG).show()
+                        signInViewModel.updateAuthState(AuthState.Authorized)
+                    } else {
+                        Toast.makeText(applicationContext, authorizationFailed, Toast.LENGTH_LONG).show()
+                        signInViewModel.updateAuthState(AuthState.Unauthorized)
+                        signInViewModel.signOut(activity)
+                    }
                 }
-            }
             LaunchedEffect(key1 = authState, key2 = signInViewModel.getSignedInUser()) {
                 if (authState is AuthState.PendingAuth) {
                     authorizationLauncher.launch(
-                        IntentSenderRequest.Builder((authState as AuthState.PendingAuth).intentSender).build()
+                        IntentSenderRequest.Builder((authState as AuthState.PendingAuth).intentSender).build(),
                     )
-                }
-                else if (authState is AuthState.Authorized && signInViewModel.getSignedInUser()!=null) {
-                    navController.navigate(MiEmpresaScreen.Initializer.name){
+                } else if (authState is AuthState.Authorized && signInViewModel.getSignedInUser() != null) {
+                    navController.navigate(MiEmpresaScreen.Initializer.name) {
                         popUpTo(0)
                         launchSingleTop = true
                     }
@@ -93,47 +97,48 @@ fun NavHostComposable(applicationContext: Context, navController: NavHostControl
                 signInState,
                 onSignInClick = {
                     signInViewModel.signIn(activity)
-                }
+                },
             )
         }
         composable(route = MiEmpresaScreen.Initializer.name) {
             InitializerScreen(
-                navController = navController
+                navController = navController,
             )
         }
         composable(
             route = MiEmpresaScreen.Initializer.name + "/{uiState}",
-            arguments = listOf(navArgument("uiState") { type = NavType.StringType })
+            arguments = listOf(navArgument("uiState") { type = NavType.StringType }),
         ) { backStackEntry ->
             val uiStateString = backStackEntry.arguments?.getString("uiState")
-            val startUIState = if (uiStateString == "ShowCompanyList") {
-                InitializerUiState.ShowCompanyList
-            } else {
-                InitializerUiState.Loading
-            }
+            val startUIState =
+                if (uiStateString == "ShowCompanyList") {
+                    InitializerUiState.ShowCompanyList
+                } else {
+                    InitializerUiState.Loading
+                }
             InitializerScreen(
                 navController = navController,
-                startUIState = startUIState
+                startUIState = startUIState,
             )
         }
         composable(route = MiEmpresaScreen.Products.name) {
             ProductsComposable(
-                navController = navController
+                navController = navController,
             )
         }
         composable(
             route = MiEmpresaScreen.Product.name + "/{rowIndex}",
-            arguments = listOf(navArgument("rowIndex") { type = NavType.IntType })
+            arguments = listOf(navArgument("rowIndex") { type = NavType.IntType }),
         ) { backStackEntry ->
             val rowIndex = backStackEntry.arguments?.getInt("rowIndex")
             ProductDetails(
                 navController = navController,
-                rowIndex = rowIndex
+                rowIndex = rowIndex,
             )
         }
         composable(route = MiEmpresaScreen.Categories.name) {
             CategoriesComposable(
-                navController = navController
+                navController = navController,
             )
         }
     }

@@ -44,42 +44,45 @@ import com.brios.miempresa.ui.theme.MiEmpresaTheme
 @Composable
 fun CompanyListView(
     username: String,
-    companies:LiveData<List<Company>>,
+    companies: LiveData<List<Company>>,
     onSelectCompany: (Company) -> Unit,
-    onCreateNewCompany: () -> Unit
+    onCreateNewCompany: () -> Unit,
 ) {
     val companyList by companies.observeAsState(emptyList())
     var searchText by remember { mutableStateOf("") }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(AppDimensions.mediumPadding),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(AppDimensions.mediumPadding),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = stringResource(R.string.greeting_user, username),
             style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
         Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
         Text(
             text = stringResource(R.string.select_company_question),
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface)
+            color = MaterialTheme.colorScheme.onSurface,
+        )
         Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
 
         TextField(
             value = searchText,
             onValueChange = { searchText = it },
             label = { Text("Search") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
 
-        val filteredCompanies = companyList.filter {
-            it.name.contains(searchText, ignoreCase = true)
-        }
+        val filteredCompanies =
+            companyList.filter {
+                it.name.contains(searchText, ignoreCase = true)
+            }
 
         when {
             companyList.isEmpty() && companies.value == null -> { // Show loading when LiveData is still loading
@@ -88,23 +91,24 @@ fun CompanyListView(
 
             filteredCompanies.isNotEmpty() -> {
                 LazyColumn(
-                    modifier = Modifier
-                        .height(AppDimensions.CompanyListView.listHeight)
-                        .fillMaxWidth()
-                        .border(
-                            AppDimensions.smallBorderWidth,
-                            MaterialTheme.colorScheme.surfaceContainerHighest,
-                            RoundedCornerShape(
-                                bottomStart = AppDimensions.smallPadding,
-                                bottomEnd = AppDimensions.smallPadding
-                            )
-                        )
+                    modifier =
+                        Modifier
+                            .height(AppDimensions.CompanyListView.listHeight)
+                            .fillMaxWidth()
+                            .border(
+                                AppDimensions.smallBorderWidth,
+                                MaterialTheme.colorScheme.surfaceContainerHighest,
+                                RoundedCornerShape(
+                                    bottomStart = AppDimensions.smallPadding,
+                                    bottomEnd = AppDimensions.smallPadding,
+                                ),
+                            ),
                 ) {
                     items(filteredCompanies.size) { index ->
                         val company = filteredCompanies[index]
                         ListItem(
                             headlineContent = { Text(company.name) },
-                            modifier = Modifier.clickable { onSelectCompany(company) }
+                            modifier = Modifier.clickable { onSelectCompany(company) },
                         )
                     }
                 }
@@ -112,24 +116,25 @@ fun CompanyListView(
             else -> {
                 MessageWithIcon(
                     message = stringResource(id = R.string.no_companies_found),
-                    icon = Icons.Filled.Warning
+                    icon = Icons.Filled.Warning,
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = AppDimensions.mediumPadding),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = AppDimensions.mediumPadding),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceAround
+            horizontalArrangement = Arrangement.SpaceAround,
         ) {
             HorizontalDivider(modifier = Modifier.weight(1f))
             Text(
                 text = stringResource(id = R.string.or),
                 modifier = Modifier.padding(horizontal = AppDimensions.smallPadding),
-                color = DividerDefaults.color
+                color = DividerDefaults.color,
             )
             HorizontalDivider(modifier = Modifier.weight(1f))
         }
@@ -138,7 +143,7 @@ fun CompanyListView(
 
         Button(
             onClick = { onCreateNewCompany() },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text(text = stringResource(R.string.create_new_company))
         }
@@ -148,12 +153,15 @@ fun CompanyListView(
 @Preview
 @Composable
 private fun CompanyListScreenPreview() {
-    val companies = MutableLiveData(listOf(
-        Company("1", "Company 1", false),
-        Company("2", "Company 2", false),
-        Company("3", "Company 3", false)
-    ))
-    MiEmpresaTheme (darkTheme = false) {
+    val companies =
+        MutableLiveData(
+            listOf(
+                Company("1", "Company 1", false),
+                Company("2", "Company 2", false),
+                Company("3", "Company 3", false),
+            ),
+        )
+    MiEmpresaTheme(darkTheme = false) {
         Surface {
             CompanyListView(
                 username = "John Doe",

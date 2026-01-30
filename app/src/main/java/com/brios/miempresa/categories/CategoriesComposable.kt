@@ -57,7 +57,7 @@ import com.brios.miempresa.ui.theme.PlaceholderBG
 fun CategoriesComposable(
     viewModel: TopBarViewModel = hiltViewModel(),
     categoriesViewModel: CategoriesViewModel = hiltViewModel(),
-    navController: NavHostController
+    navController: NavHostController,
 ) {
     val isLoading by categoriesViewModel.isLoading.collectAsState()
     val filteredCategories by categoriesViewModel.filteredCategories.collectAsState()
@@ -73,9 +73,9 @@ fun CategoriesComposable(
             FABButton(
                 action = { showAddDialog = true },
                 actionText = stringResource(id = R.string.categories_action),
-                actionIcon = Icons.Filled.Add
+                actionIcon = Icons.Filled.Add,
             )
-        }
+        },
     ) {
         CategoriesScreenContent(
             navController,
@@ -88,40 +88,44 @@ fun CategoriesComposable(
                 showDeleteDialog = true
                 selectedCategory = it
             },
-            filteredCategories)
+            filteredCategories,
+        )
     }
-    if (showAddDialog){
+    if (showAddDialog) {
         CategoryDialog(
             rowIndex = categoriesViewModel.getNextAvailableRowIndex(),
             onDismiss = { showAddDialog = false },
             onSave = { newCategory, onResult ->
-                categoriesViewModel.addCategory(newCategory){ success ->
+                categoriesViewModel.addCategory(newCategory) { success ->
                     onResult(success)
                 }
-            }
+            },
         )
-    } else if (selectedCategory != null){
-        if (showEditDialog)
+    } else if (selectedCategory != null) {
+        if (showEditDialog) {
             CategoryDialog(
                 category = selectedCategory,
                 onDismiss = { showEditDialog = false },
                 onSave = { newCategory, onResult ->
-                    categoriesViewModel.updateCategory(newCategory){ success ->
+                    categoriesViewModel.updateCategory(newCategory) { success ->
                         onResult(success)
                     }
-                }
+                },
             )
-        else if (showDeleteDialog)
+        } else if (showDeleteDialog) {
             DeleteDialog(
                 itemName = selectedCategory!!.name,
                 onDismiss = { showDeleteDialog = false },
-                onConfirm = { categoriesViewModel.deleteCategory(selectedCategory!!){ success ->
-                    if (success){
-                        showDeleteDialog = false
-                        selectedCategory = null
+                onConfirm = {
+                    categoriesViewModel.deleteCategory(selectedCategory!!) { success ->
+                        if (success) {
+                            showDeleteDialog = false
+                            selectedCategory = null
+                        }
                     }
-                } }
+                },
             )
+        }
     }
 }
 
@@ -131,14 +135,15 @@ private fun CategoriesScreenContent(
     isLoading: Boolean,
     showEditDialog: (Category) -> Unit,
     showDeleteDialog: (Category) -> Unit,
-    filteredCategories: List<Category>
+    filteredCategories: List<Category>,
 ) {
-    if (isLoading)
+    if (isLoading) {
         LoadingView()
-    else
+    } else {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
+            modifier =
+                Modifier
+                    .fillMaxSize(),
         ) {
             items(filteredCategories) { category ->
                 CategoryListItem(category, showEditDialog, showDeleteDialog) {
@@ -147,6 +152,7 @@ private fun CategoriesScreenContent(
                 HorizontalDivider()
             }
         }
+    }
 }
 
 @Composable
@@ -154,46 +160,56 @@ fun CategoryListItem(
     category: Category,
     showEditDialog: (Category) -> Unit,
     showDeleteDialog: (Category) -> Unit,
-    onCategoryClick: (Category) -> Unit
+    onCategoryClick: (Category) -> Unit,
 ) {
-    var showDropdown by remember{
+    var showDropdown by remember {
         mutableStateOf(false)
     }
     ListItem(
         headlineContent = { Text(category.name) },
-        supportingContent = { Text(
-            stringResource(
-                R.string.products_label_count,
-                category.productQty
-            )) },
+        supportingContent = {
+            Text(
+                stringResource(
+                    R.string.products_label_count,
+                    category.productQty,
+                ),
+            )
+        },
         leadingContent = {
             SubcomposeAsyncImage(
                 model = category.imageUrl,
                 loading = { CircularProgressIndicator() },
                 contentDescription = null,
-                modifier = Modifier
-                    .size(AppDimensions.Categories.imageSize)
-                    .clip(RectangleShape),
+                modifier =
+                    Modifier
+                        .size(AppDimensions.Categories.imageSize)
+                        .clip(RectangleShape),
                 contentScale = ContentScale.Crop,
                 error = {
                     Column(
-                        modifier = Modifier
-                            .size(AppDimensions.Categories.imageSize)
-                            .background(color = PlaceholderBG)
-                            .padding(AppDimensions.smallPadding),
-                        verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding, Alignment.CenterVertically),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        modifier =
+                            Modifier
+                                .size(AppDimensions.Categories.imageSize)
+                                .background(color = PlaceholderBG)
+                                .padding(AppDimensions.smallPadding),
+                        verticalArrangement =
+                            Arrangement.spacedBy(
+                                AppDimensions.extraSmallPadding,
+                                Alignment.CenterVertically,
+                            ),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Image(
-                            modifier = Modifier.height(AppDimensions.Categories.imageSize/2),
+                            modifier = Modifier.height(AppDimensions.Categories.imageSize / 2),
                             painter = painterResource(id = R.drawable.miempresa_logo_glyph),
-                            contentDescription = stringResource(
-                                R.string.placeholder
-                            ),
-                            colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+                            contentDescription =
+                                stringResource(
+                                    R.string.placeholder,
+                                ),
+                            colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) }),
                         )
                     }
-                }
+                },
             )
         },
         trailingContent = {
@@ -202,74 +218,75 @@ fun CategoryListItem(
                     Icon(
                         Icons.Filled.MoreHoriz,
                         contentDescription =
-                        stringResource(R.string.show_category_options, category.name)
+                            stringResource(R.string.show_category_options, category.name),
                     )
                 }
-                DropdownMenu(expanded = showDropdown, onDismissRequest = { showDropdown = false}) {
+                DropdownMenu(expanded = showDropdown, onDismissRequest = { showDropdown = false }) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.edit)) },
                         onClick = {
                             showEditDialog(category)
                             showDropdown = false
-                        }
+                        },
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(id = R.string.delete)) },
                         onClick = {
                             showDeleteDialog(category)
                             showDropdown = false
-                        }
+                        },
                     )
                 }
             }
         },
-        modifier = Modifier.clickable { onCategoryClick(category) }
+        modifier = Modifier.clickable { onCategoryClick(category) },
     )
 }
 
 @Preview
 @Composable
-fun PreviewCategoryListItem(){
+fun PreviewCategoryListItem() {
     var showDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     CategoriesScreenContent(
         navController = NavHostController(LocalContext.current),
         isLoading = false,
-        filteredCategories = listOf(
-            Category(
-                rowIndex = 1,
-                name = "Category 1",
-                productQty = 10,
-                imageUrl = "https://picsum.photos/200/300"
+        filteredCategories =
+            listOf(
+                Category(
+                    rowIndex = 1,
+                    name = "Category 1",
+                    productQty = 10,
+                    imageUrl = "https://picsum.photos/200/300",
+                ),
+                Category(
+                    rowIndex = 2,
+                    name = "Category 2",
+                    productQty = 5,
+                    imageUrl = "https://picsum.photos/200/300",
+                ),
+                Category(
+                    rowIndex = 3,
+                    name = "Category 3",
+                    productQty = 8,
+                    imageUrl = "https://picsum.photos/200/300",
+                ),
             ),
-            Category(
-                rowIndex = 2,
-                name = "Category 2",
-                productQty = 5,
-                imageUrl = "https://picsum.photos/200/300"
-            ),
-            Category(
-                rowIndex = 3,
-                name = "Category 3",
-                productQty = 8,
-                imageUrl = "https://picsum.photos/200/300"
-            )
-        ),
-        showEditDialog = {showDialog = true},
-        showDeleteDialog = {showDeleteDialog = true}
+        showEditDialog = { showDialog = true },
+        showDeleteDialog = { showDeleteDialog = true },
     )
 }
 
 @Preview
 @Composable
-fun PreviewCategoryLoadingListItem(){
+fun PreviewCategoryLoadingListItem() {
     var showDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     CategoriesScreenContent(
         navController = NavHostController(LocalContext.current),
         isLoading = true,
         filteredCategories = listOf(),
-        showEditDialog = {showDialog = true},
-        showDeleteDialog = {showDeleteDialog = true}
+        showEditDialog = { showDialog = true },
+        showDeleteDialog = { showDeleteDialog = true },
     )
 }

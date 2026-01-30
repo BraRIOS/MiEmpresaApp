@@ -61,8 +61,8 @@ fun DrawerComposable(
     navController: NavHostController,
     drawerState: DrawerState,
     signInViewModel: SignInViewModel? = null,
-    content: @Composable () -> Unit
-){
+    content: @Composable () -> Unit,
+) {
     val viewModel = signInViewModel ?: if (!LocalInspectionMode.current) hiltViewModel() else null
     val user = viewModel?.getSignedInUser()
     val selectedCompanyState = viewModel?.getSelectedCompany()?.observeAsState()
@@ -75,11 +75,11 @@ fun DrawerComposable(
 private fun DrawerContent(
     drawerState: DrawerState,
     user: UserData?,
-    selectedCompany:  Company?,
+    selectedCompany: Company?,
     context: Activity?,
     signInViewModel: SignInViewModel?,
     navController: NavHostController,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     var showDropdown by remember { mutableStateOf(false) }
@@ -89,88 +89,95 @@ private fun DrawerContent(
         drawerContent = {
             ModalDrawerSheet {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(AppDimensions.mediumPadding),
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(AppDimensions.mediumPadding),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.SpaceBetween
+                    verticalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.miempresa_logo_glyph),
                         contentDescription = stringResource(R.string.app_logo),
                         modifier = Modifier.size(AppDimensions.Drawer.appLogoSize),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
                     )
                     Column(
                         modifier = Modifier.wrapContentHeight(),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         HorizontalDivider()
                         selectedCompany?.let {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(AppDimensions.mediumPadding),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(AppDimensions.mediumPadding),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
                                 Column(
                                     modifier = Modifier.wrapContentHeight(),
-                                    verticalArrangement = Arrangement.SpaceBetween
+                                    verticalArrangement = Arrangement.SpaceBetween,
                                 ) {
                                     Text(
-                                        text = it.name, style = MaterialTheme.typography.bodyLarge,
+                                        text = it.name,
+                                        style = MaterialTheme.typography.bodyLarge,
                                     )
                                     Text(
                                         text = stringResource(R.string.current_company),
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
                                 Icon(
-                                    modifier = Modifier
-                                        .size(AppDimensions.mediumIconSize)
-                                        .clickable {
-                                            scope.launch {
-                                                drawerState.close()
-                                            }
-                                            navController.navigate(MiEmpresaScreen.Initializer.name+"/ShowCompanyList")
-                                        },
+                                    modifier =
+                                        Modifier
+                                            .size(AppDimensions.mediumIconSize)
+                                            .clickable {
+                                                scope.launch {
+                                                    drawerState.close()
+                                                }
+                                                navController.navigate(
+                                                    MiEmpresaScreen.Initializer.name + "/ShowCompanyList",
+                                                )
+                                            },
                                     imageVector = Icons.AutoMirrored.Filled.CompareArrows,
                                     contentDescription = stringResource(R.string.switch_company),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
                         HorizontalDivider()
                         user?.let {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(AppDimensions.mediumPadding),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(AppDimensions.mediumPadding),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding)
+                                horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
                             ) {
-
                                 Image(
                                     painter = rememberAsyncImagePainter(model = user.profilePictureUrl),
                                     contentDescription = stringResource(R.string.profile_picture),
-                                    modifier = Modifier
-                                        .size(AppDimensions.largeIconSize)
-                                        .clip(CircleShape)
+                                    modifier =
+                                        Modifier
+                                            .size(AppDimensions.largeIconSize)
+                                            .clip(CircleShape),
                                 )
 
                                 Column(
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f),
                                 ) {
                                     Text(
                                         text = user.username ?: stringResource(id = R.string.user),
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
                                     )
                                     user.email?.let { it1 ->
                                         Text(
                                             text = it1,
-                                            color = MaterialTheme.colorScheme.onSurface
+                                            color = MaterialTheme.colorScheme.onSurface,
                                         )
                                     }
                                 }
@@ -178,12 +185,13 @@ private fun DrawerContent(
                                     Icon(
                                         imageVector = Icons.Default.MoreVert,
                                         contentDescription = stringResource(R.string.options),
-                                        modifier = Modifier
-                                            .clickable { showDropdown = !showDropdown }
+                                        modifier =
+                                            Modifier
+                                                .clickable { showDropdown = !showDropdown },
                                     )
                                     DropdownMenu(
                                         expanded = showDropdown,
-                                        onDismissRequest = { showDropdown = false }
+                                        onDismissRequest = { showDropdown = false },
                                     ) {
                                         DropdownMenuItem(
                                             text = { Text(stringResource(R.string.view_profile)) },
@@ -193,7 +201,7 @@ private fun DrawerContent(
                                                     drawerState.close()
                                                 }
 //                                        navController.navigate("profile")
-                                            }
+                                            },
                                         )
                                         DropdownMenuItem(
                                             text = { Text(stringResource(R.string.log_out)) },
@@ -209,7 +217,7 @@ private fun DrawerContent(
                                                         }
                                                     }
                                                 }
-                                            }
+                                            },
                                         )
                                     }
                                 }
@@ -218,13 +226,13 @@ private fun DrawerContent(
                     }
                 }
             }
-        }
+        },
     ) { content() }
 }
 
 @Preview
 @Composable
-fun DrawerContentPreview(){
+fun DrawerContentPreview() {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     DrawerContent(
@@ -233,20 +241,19 @@ fun DrawerContentPreview(){
         Company("Test", "Test Company", true),
         null,
         null,
-        NavHostController(LocalContext.current)
-    ){
+        NavHostController(LocalContext.current),
+    ) {
         Surface(modifier = Modifier.fillMaxSize()) {
             Column(
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ){
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
                 Button(
-                    onClick = { scope.launch { drawerState.open() } }) {
+                    onClick = { scope.launch { drawerState.open() } },
+                ) {
                     Text(text = "Open Drawer")
                 }
             }
         }
-
     }
-
 }

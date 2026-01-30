@@ -13,7 +13,7 @@ fun FABButton(
 ) {
     FloatingActionButton(
         onClick = action,
-    ){
+    ) {
         Icon(imageVector = actionIcon, contentDescription = actionText)
     }
 }

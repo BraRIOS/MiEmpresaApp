@@ -27,11 +27,9 @@ interface CompanyDao {
     @Query("SELECT * FROM companies WHERE selected = 1 LIMIT 1")
     fun getSelectedCompany(): LiveData<Company?>
 
-
     @Query("SELECT * FROM companies")
     fun getCompanies(): LiveData<List<Company>>
 
     @Query("DELETE FROM companies")
     suspend fun clear()
-
 }

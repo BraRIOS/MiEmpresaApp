@@ -30,7 +30,7 @@ fun CategoryDialog(
     rowIndex: Int? = null,
     category: Category? = null,
     onDismiss: () -> Unit,
-    onSave: (Category, (Boolean) -> Unit) -> Unit
+    onSave: (Category, (Boolean) -> Unit) -> Unit,
 ) {
     var name by remember { mutableStateOf(category?.name ?: "") }
     var imageUrl by remember { mutableStateOf(category?.imageUrl ?: "") }
@@ -42,37 +42,49 @@ fun CategoryDialog(
         title = {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 Text(
-                    if (category == null) stringResource(R.string.add_category) else stringResource(R.string.edit_category),
-                    color = MaterialTheme.colorScheme.primary
+                    if (category == null) {
+                        stringResource(
+                            R.string.add_category,
+                        )
+                    } else {
+                        stringResource(R.string.edit_category)
+                    },
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         },
         text = {
             Column(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(AppDimensions.mediumPadding))
-                    .background(MaterialTheme.colorScheme.surfaceContainerLowest)
-                    .padding(top = AppDimensions.smallPadding, bottom = AppDimensions.mediumPadding, start = AppDimensions.mediumPadding, end = AppDimensions.mediumPadding),
-                verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding)
+                modifier =
+                    Modifier
+                        .clip(RoundedCornerShape(AppDimensions.mediumPadding))
+                        .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                        .padding(
+                            top = AppDimensions.smallPadding,
+                            bottom = AppDimensions.mediumPadding,
+                            start = AppDimensions.mediumPadding,
+                            end = AppDimensions.mediumPadding,
+                        ),
+                verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
             ) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text(stringResource(id = R.string.name_label)) },
                     isError = name.isBlank() && showError,
-                    singleLine = true
+                    singleLine = true,
                 )
                 OutlinedTextField(
                     value = imageUrl,
                     onValueChange = { imageUrl = it },
                     label = { Text(stringResource(id = R.string.image_url_label)) },
-                    singleLine = true
+                    singleLine = true,
                 )
                 if (showError) {
                     Text(
                         text = stringResource(R.string.category_dialog_error),
                         color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
             }
@@ -80,13 +92,14 @@ fun CategoryDialog(
         confirmButton = {
             Button(onClick = {
                 if (name.isNotBlank()) {
-                    val updatedCategory = Category(
-                        rowIndex ?: category!!.rowIndex,
-                        name,
-                        -1,
-                        imageUrl
-                    )
-                    onSave(updatedCategory){ success ->
+                    val updatedCategory =
+                        Category(
+                            rowIndex ?: category!!.rowIndex,
+                            name,
+                            -1,
+                            imageUrl,
+                        )
+                    onSave(updatedCategory) { success ->
                         if (success) onDismiss()
                     }
                 } else {
@@ -98,11 +111,11 @@ fun CategoryDialog(
         },
         dismissButton = {
             OutlinedButton(
-                onClick = onDismiss
+                onClick = onDismiss,
             ) {
                 Text(stringResource(id = R.string.cancel))
             }
-        }
+        },
     )
 }
 
@@ -111,21 +124,22 @@ fun CategoryDialog(
 fun NewCategoryDialogPreview() {
     CategoryDialog(
         onDismiss = {},
-        onSave = {_,_->}
+        onSave = { _, _ -> },
     )
 }
 
 @Preview
 @Composable
-fun UpdateCategoryDialog(){
+fun UpdateCategoryDialog() {
     CategoryDialog(
-        category = Category(
-            rowIndex = 1,
-            name = "Category",
-            productQty = 120,
-            imageUrl = "https://picsum.photos/200/300"
-        ),
+        category =
+            Category(
+                rowIndex = 1,
+                name = "Category",
+                productQty = 120,
+                imageUrl = "https://picsum.photos/200/300",
+            ),
         onDismiss = {},
-        onSave = {_,_->}
+        onSave = { _, _ -> },
     )
 }

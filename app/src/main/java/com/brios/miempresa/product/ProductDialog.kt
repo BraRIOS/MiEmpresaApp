@@ -49,8 +49,8 @@ fun ProductDialog(
     rowIndex: Int? = null,
     product: Product? = null,
     categories: List<Category>,
-    onDismiss: () ->Unit,
-    onSave: (Product, List<Category>, (Boolean) -> Unit) -> Unit
+    onDismiss: () -> Unit,
+    onSave: (Product, List<Category>, (Boolean) -> Unit) -> Unit,
 ) {
     var name by remember { mutableStateOf(product?.name ?: "") }
     var description by remember { mutableStateOf(product?.description ?: "") }
@@ -66,32 +66,37 @@ fun ProductDialog(
         }
     }
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .navigationBarsPadding()
-            .statusBarsPadding()
-            .background(MaterialTheme.colorScheme.surface),
-        verticalArrangement = Arrangement.Top
-    ){
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .navigationBarsPadding()
+                .statusBarsPadding()
+                .background(MaterialTheme.colorScheme.surface),
+        verticalArrangement = Arrangement.Top,
+    ) {
         TopAppBar(
             navigationIcon = {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(id = R.string.go_back),
-                    modifier = Modifier
-                        .padding(start = AppDimensions.smallPadding, end = AppDimensions.mediumPadding)
-                        .size(AppDimensions.mediumIconSize)
-                        .clickable {
-                            onDismiss()
-                        }
+                    modifier =
+                        Modifier
+                            .padding(start = AppDimensions.smallPadding, end = AppDimensions.mediumPadding)
+                            .size(AppDimensions.mediumIconSize)
+                            .clickable {
+                                onDismiss()
+                            },
                 )
             },
             title = {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                     Text(
-                        if (product == null)
-                            stringResource(R.string.add_product) else stringResource(R.string.edit_product),
-                        color = MaterialTheme.colorScheme.onSurface
+                        if (product == null) {
+                            stringResource(R.string.add_product)
+                        } else {
+                            stringResource(R.string.edit_product)
+                        },
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             },
@@ -99,38 +104,46 @@ fun ProductDialog(
                 Icon(
                     imageVector = Icons.Filled.Done,
                     contentDescription = stringResource(R.string.save),
-                    modifier = Modifier
-                        .padding(start = AppDimensions.smallPadding, end = AppDimensions.mediumPadding)
-                        .size(AppDimensions.mediumIconSize)
-                        .clickable {
-                            if (name.isNotBlank() && selectedCategoriesNames.isNotEmpty()) {
-                                val updatedProduct = Product(
-                                    rowIndex ?: product!!.rowIndex,
-                                    name,
-                                    description,
-                                    price,
-                                    selectedCategoriesNames,
-                                    imageUrl
-                                )
-                                val selectedCategories = categories.filter { updatedProduct.categories.contains(it.name) }
-                                onSave(updatedProduct, selectedCategories) { success ->
-                                    if (success) {
-                                        onDismiss()
+                    modifier =
+                        Modifier
+                            .padding(start = AppDimensions.smallPadding, end = AppDimensions.mediumPadding)
+                            .size(AppDimensions.mediumIconSize)
+                            .clickable {
+                                if (name.isNotBlank() && selectedCategoriesNames.isNotEmpty()) {
+                                    val updatedProduct =
+                                        Product(
+                                            rowIndex ?: product!!.rowIndex,
+                                            name,
+                                            description,
+                                            price,
+                                            selectedCategoriesNames,
+                                            imageUrl,
+                                        )
+                                    val selectedCategories =
+                                        categories.filter {
+                                            updatedProduct.categories.contains(
+                                                it.name,
+                                            )
+                                        }
+                                    onSave(updatedProduct, selectedCategories) { success ->
+                                        if (success) {
+                                            onDismiss()
+                                        }
                                     }
+                                } else {
+                                    showError = true
                                 }
-                            } else {
-                                showError = true
-                            }
-                        },
-                    tint = MaterialTheme.colorScheme.primary
+                            },
+                    tint = MaterialTheme.colorScheme.primary,
                 )
-            }
+            },
         )
         LazyColumn(
-            modifier = Modifier
-                .clip(RoundedCornerShape(AppDimensions.mediumPadding))
-                .padding(AppDimensions.mediumPadding),
-            verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding)
+            modifier =
+                Modifier
+                    .clip(RoundedCornerShape(AppDimensions.mediumPadding))
+                    .padding(AppDimensions.mediumPadding),
+            verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
         ) {
             item {
                 OutlinedTextField(
@@ -140,7 +153,7 @@ fun ProductDialog(
                     label = { Text(stringResource(R.string.name_label)) },
                     isError = name.isBlank() && showError,
                     singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors()
+                    colors = OutlinedTextFieldDefaults.colors(),
                 )
             }
             item {
@@ -149,30 +162,31 @@ fun ProductDialog(
                     value = description,
                     onValueChange = { description = it },
                     label = { Text(stringResource(R.string.description_label)) },
-                    maxLines = 4
+                    maxLines = 4,
                 )
             }
             item {
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
-                    prefix = { Text(text = "$")},
+                    prefix = { Text(text = "$") },
                     value = price,
                     onValueChange = { price = it },
                     label = { Text(stringResource(R.string.price_label)) },
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Number
-                    )
+                    keyboardOptions =
+                        KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Number,
+                        ),
                 )
             }
             item {
                 SearchableDropdownWithChips(
                     label = stringResource(R.string.categories_search),
                     items = categories.map { it.name },
-                    isError= selectedCategoriesNames.isEmpty() && showError,
+                    isError = selectedCategoriesNames.isEmpty() && showError,
                     selectedItems = selectedCategoriesNames,
                     onItemSelected = { selectedCategoriesNames.add(it) },
-                    onItemRemoved = { selectedCategoriesNames.remove(it) }
+                    onItemRemoved = { selectedCategoriesNames.remove(it) },
                 )
             }
             item {
@@ -181,7 +195,7 @@ fun ProductDialog(
                     value = imageUrl,
                     onValueChange = { imageUrl = it },
                     label = { Text(stringResource(R.string.image_url_label)) },
-                    singleLine = true
+                    singleLine = true,
                 )
             }
             if (showError) {
@@ -190,7 +204,7 @@ fun ProductDialog(
                     Text(
                         text = stringResource(R.string.product_dialog_required_fields),
                         color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
             }
@@ -200,34 +214,43 @@ fun ProductDialog(
 
 @Preview
 @Composable
-fun NewProductDialogPreview(){
+fun NewProductDialogPreview() {
     ProductDialog(
-        categories = listOf(
-            Category(1, "Category 1",4,""),
-            Category(2, "Category 2", 10, "")
-        ),
+        categories =
+            listOf(
+                Category(1, "Category 1", 4, ""),
+                Category(2, "Category 2", 10, ""),
+            ),
         onDismiss = {},
-        onSave = { _, _, _-> }
+        onSave = { _, _, _ -> },
     )
 }
 
 @Preview
 @Composable
-fun UpdateProductDialogPreview(){
+fun UpdateProductDialogPreview() {
     ProductDialog(
-        product = Product(
-            rowIndex = 1,
-            name = "Product",
-            description = "Description DescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescriptionDescription",
-            price = "10,00",
-            categories = listOf("Category 1", "Category 2"),
-            imageUrl = "https://picsum.photos/200/300"
-        ),
-        categories = listOf(
-            Category(1, "Category 1",4,""),
-            Category(2, "Category 2", 10, "")
-        ),
+        product =
+            Product(
+                rowIndex = 1,
+                name = "Product",
+                description =
+                    "Description DescriptionDescriptionDescriptionDescription" +
+                        "DescriptionDescriptionDescriptionDescriptionDescription" +
+                        "DescriptionDescriptionDescriptionDescriptionDescription" +
+                        "DescriptionDescriptionDescriptionDescriptionDescription" +
+                        "DescriptionDescriptionDescriptionDescriptionDescription" +
+                        "DescriptionDescriptionDescriptionDescriptionDescription",
+                price = "10,00",
+                categories = listOf("Category 1", "Category 2"),
+                imageUrl = "https://picsum.photos/200/300",
+            ),
+        categories =
+            listOf(
+                Category(1, "Category 1", 4, ""),
+                Category(2, "Category 2", 10, ""),
+            ),
         onDismiss = {},
-        onSave = { _, _, _ -> }
+        onSave = { _, _, _ -> },
     )
 }

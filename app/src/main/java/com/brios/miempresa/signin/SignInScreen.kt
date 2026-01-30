@@ -27,11 +27,10 @@ import com.brios.miempresa.R
 import com.brios.miempresa.ui.dimens.AppDimensions
 import com.google.android.gms.common.SignInButton
 
-
 @Composable
 fun SignInScreen(
     state: SignInState,
-    onSignInClick: () -> Unit
+    onSignInClick: () -> Unit,
 ) {
     val context = LocalContext.current
     LaunchedEffect(key1 = state.signInError) {
@@ -39,47 +38,50 @@ fun SignInScreen(
             Toast.makeText(
                 context,
                 error,
-                Toast.LENGTH_LONG
+                Toast.LENGTH_LONG,
             ).show()
         }
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorResource(id = R.color.miempresa_ic_launcher_background))
-            .windowInsetsPadding(WindowInsets.safeContent)
-            .padding(top = AppDimensions.SignInScreen.topPadding),
-        verticalArrangement = Arrangement.spacedBy(
-            AppDimensions.SignInScreen.spaceBetweenLogoAndSignInButton, Alignment.Top),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(colorResource(id = R.color.miempresa_ic_launcher_background))
+                .windowInsetsPadding(WindowInsets.safeContent)
+                .padding(top = AppDimensions.SignInScreen.topPadding),
+        verticalArrangement =
+            Arrangement.spacedBy(
+                AppDimensions.SignInScreen.spaceBetweenLogoAndSignInButton,
+                Alignment.Top,
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-
         Image(
             modifier = Modifier.size(AppDimensions.SignInScreen.logoSize),
             painter = painterResource(id = R.drawable.miempresa_logo_round),
-            contentDescription = stringResource(id = R.string.app_logo)
+            contentDescription = stringResource(id = R.string.app_logo),
         )
 
         GoogleSignInButton(onClick = onSignInClick)
-
     }
 }
 
 @Composable
 fun GoogleSignInButton(onClick: () -> Unit) {
     AndroidView(
-        modifier = Modifier
-            .wrapContentHeight()
-            .fillMaxWidth()
-            .padding(AppDimensions.largePadding),
+        modifier =
+            Modifier
+                .wrapContentHeight()
+                .fillMaxWidth()
+                .padding(AppDimensions.largePadding),
         factory = { context ->
             SignInButton(context).apply {
                 setSize(SignInButton.SIZE_WIDE)
                 setOnClickListener { onClick() }
                 setColorScheme(SignInButton.COLOR_DARK)
             }
-        }
+        },
     )
 }
 
@@ -88,6 +90,6 @@ fun GoogleSignInButton(onClick: () -> Unit) {
 fun WelcomeComposablePreview() {
     SignInScreen(
         state = SignInState(),
-        onSignInClick = {}
+        onSignInClick = {},
     )
 }

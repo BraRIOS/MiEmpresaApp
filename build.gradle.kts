@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.dagger.hilt.android) apply false
     alias(libs.plugins.google.mobile.services) apply false
     alias(libs.plugins.google.devtools.ksp) apply false
-    alias(libs.plugins.ktlint)
+    alias(libs.plugins.ktlint) apply false
 }
 
 // Tarea para instalar Git hooks automáticamente

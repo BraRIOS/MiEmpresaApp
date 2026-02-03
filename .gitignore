@@ -36,3 +36,6 @@ client_secret.json
 # ktlint reports
 **/build/reports/ktlint/
 
+# Worktrees (isolated workspaces)
+.worktrees/
+

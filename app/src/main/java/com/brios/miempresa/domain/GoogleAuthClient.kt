@@ -40,13 +40,13 @@ class GoogleAuthClient
     constructor(
         @ApplicationContext private val context: Context,
     ) {
-        private val scopes = listOf(Scope(DriveScopes.DRIVE), Scope(SheetsScopes.SPREADSHEETS))
+        private val scopes = listOf(Scope(DriveScopes.DRIVE_FILE), Scope(SheetsScopes.SPREADSHEETS))
         private val authorizationRequest = AuthorizationRequest.builder().setRequestedScopes(scopes).build()
         private val authorizationClient = Identity.getAuthorizationClient(context)
         private val credential: GoogleAccountCredential =
             GoogleAccountCredential.usingOAuth2(
                 context,
-                listOf(DriveScopes.DRIVE, SheetsScopes.SPREADSHEETS),
+                listOf(DriveScopes.DRIVE_FILE, SheetsScopes.SPREADSHEETS),
             )
         private val auth = Firebase.auth
 

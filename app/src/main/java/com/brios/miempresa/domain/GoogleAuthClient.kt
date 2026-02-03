@@ -46,7 +46,7 @@ class GoogleAuthClient
         private val credential: GoogleAccountCredential =
             GoogleAccountCredential.usingOAuth2(
                 context,
-                listOf(DriveScopes.DRIVE, SheetsScopes.SPREADSHEETS),
+                listOf(DriveScopes.DRIVE_FILE, SheetsScopes.SPREADSHEETS),
             )
         private val auth = Firebase.auth
 

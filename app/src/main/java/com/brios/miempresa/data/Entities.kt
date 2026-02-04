@@ -10,6 +10,7 @@ data class Company(
     val id: String,
     val name: String,
     val selected: Boolean,
+    val lastSyncedAt: Long? = null,
 )
 
 @Entity(

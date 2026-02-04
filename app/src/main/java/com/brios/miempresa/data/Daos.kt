@@ -33,6 +33,12 @@ interface CompanyDao {
 
     @Query("DELETE FROM companies")
     suspend fun clear()
+
+    @Query("UPDATE companies SET lastSyncedAt = :timestamp WHERE id = :companyId")
+    suspend fun updateLastSyncedAt(
+        companyId: String,
+        timestamp: Long,
+    )
 }
 
 @Dao

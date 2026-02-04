@@ -69,7 +69,7 @@
 - ✅ Operaciones Drive funcionan correctamente (crear carpeta, read/write sheets)
 - ✅ Seguridad validada: Solo archivos creados por app son visibles (2 carpetas propias detectadas)
 - ✅ Flujo completo onboarding funciona end-to-end con múltiples cuentas Google
-- ⚠️ **Hallazgo adicional:** `SheetsScopes.SPREADSHEETS` también debería evaluarse para versión reducida (acción futura)
+- ✅ **Sheets scope confirmado:** `SheetsScopes.SPREADSHEETS` es el mínimo necesario para read/write (no existe versión reducida equivalente a `DRIVE_FILE`)
 - ⚠️ **Compatibilidad:** Detectado problema con cuentas con empresas pre-existentes (requiere investigación en implementación de features)
 - 📝 **Testing:** Revocación de permisos OAuth requiere desinstalación/reinstalación para testing limpio
 
@@ -77,7 +77,7 @@
 - ✅ **Adoptar `DriveScopes.DRIVE_FILE` en producción**
 - Mejora seguridad sin romper funcionalidad existente
 - Items N/A del checklist son features futuras, no blockers del spike
-- Considerar Spike adicional para `SheetsScopes` en futuro cercano
+- `SheetsScopes.SPREADSHEETS` confirmado como scope mínimo necesario (no requiere cambios)
 
 **Código generado:**
 - Branch: `spike/oauth-scope-reducido`
@@ -90,7 +90,7 @@
 
 **Próximos pasos:**
 - [x] Mergear cambios a `dev/mvp-febrero` (completado)
-- [ ] Considerar Spike para reducir `SheetsScopes.SPREADSHEETS` (si existe versión reducida)
+- [x] Confirmar que `SheetsScopes.SPREADSHEETS` es el scope mínimo necesario (completado)
 - [ ] Investigar problema con cuentas con empresas pre-existentes en implementación de features
 - [ ] Validar scope en Spike S1 (Drive workspace creation)
 
@@ -535,7 +535,7 @@
 - Tiempo real: ~1h 15min (+15min desviación, +25%)
 - Decisión: Adoptar `DriveScopes.DRIVE_FILE` en producción
 - Merge completo a `dev/mvp-febrero`
-- Hallazgo importante: `SheetsScopes` también debe evaluarse para versión reducida
+- Confirmado: `SheetsScopes.SPREADSHEETS` es el scope mínimo necesario (no existe versión reducida)
 - Problema detectado: Compatibilidad con cuentas con empresas pre-existentes
 - Validación manual completa: 5/5 criterios críticos PASS
 

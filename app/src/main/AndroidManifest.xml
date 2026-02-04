@@ -35,7 +35,7 @@
         </activity>
         <activity
             android:name=".spike.SpikeWhatsAppActivity"
-            android:exported="false"
+            android:exported="true"
             android:theme="@style/Theme.MiEmpresa" />
     </application>
 

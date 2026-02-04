@@ -221,4 +221,30 @@ class SpreadsheetsApi
             val sheet = spreadsheet?.sheets?.find { it.properties?.title == sheetName }
             return sheet?.properties?.sheetId
         }
+
+        suspend fun readRange(
+            spreadsheetId: String,
+            range: String,
+        ): List<List<Any>>? {
+            val service = googleAuthClient.getGoogleSheetsService()
+            if (service == null) {
+                android.util.Log.e("SpreadsheetsApi", "GoogleSheetsService is null - authentication required")
+                return null
+            }
+            val response = service.spreadsheets().values().get(spreadsheetId, range).execute()
+            return response?.getValues()
+        }
+
+        suspend fun appendRows(
+            spreadsheetId: String,
+            range: String,
+            values: List<List<Any>>,
+            valueInputOption: String = "USER_ENTERED",
+        ) {
+            val service = googleAuthClient.getGoogleSheetsService()
+            val body = ValueRange().setValues(values)
+            service?.spreadsheets()?.values()?.append(spreadsheetId, range, body)
+                ?.setValueInputOption(valueInputOption)
+                ?.execute()
+        }
     }

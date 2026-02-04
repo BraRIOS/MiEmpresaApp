@@ -72,10 +72,14 @@ class CartRepository
             // 1. Get last sync timestamp
             val company = companyDao.getCompanyById(companyId) ?: return PriceValidationResult.Blocked
             val lastSynced = company.lastSyncedAt ?: 0L
-            val ageHours = (System.currentTimeMillis() - lastSynced) / (1000 * 60 * 60)
+            val ageHours = (System.currentTimeMillis() - lastSynced) / (1000L * 60L * 60L)
 
             // 2. Case 1: Fresh (<24h)
-            if (ageHours <= 24) {
+            // Handle clock skew or invalid timestamp
+            if (ageHours < 0) {
+                Log.w("CartRepository", "lastSyncedAt is in future, treating as stale")
+                // Treat as stale, proceed to online check
+            } else if (ageHours <= 24) {
                 return PriceValidationResult.AllValid
             }
 
@@ -96,11 +100,17 @@ class CartRepository
                 // Fetch updated products from Sheets (PARTIAL SYNC)
                 val updatedProducts = sheetsApi.getProductsByIds(spreadsheetId, productIds, companyId)
 
+                // Detect partial API response
+                if (updatedProducts.size != productIds.size) {
+                    Log.w("CartRepository", "Partial API response: expected ${productIds.size}, got ${updatedProducts.size}")
+                    // Continue processing - detectPriceChanges will mark missing as unavailable
+                }
+
                 // Update Room (decision: always update for instant UX)
                 productDao.upsertAll(updatedProducts)
 
                 // Detect changes
-                detectPriceChanges(cartItems, updatedProducts)
+                detectPriceChanges(cartItems, updatedProducts, companyId)
             } catch (e: Exception) {
                 Log.e("CartRepository", "Price validation failed", e)
                 PriceValidationResult.Blocked
@@ -116,9 +126,10 @@ class CartRepository
         private suspend fun detectPriceChanges(
             cartItems: List<CartItemEntity>,
             updatedProducts: List<ProductEntity>,
+            companyId: String,
         ): PriceValidationResult {
             val updatedMap = updatedProducts.associateBy { it.id }
-            val localProducts = productDao.getByIds(cartItems.map { it.productId }, cartItems.first().companyId)
+            val localProducts = productDao.getByIds(cartItems.map { it.productId }, companyId)
             val localMap = localProducts.associateBy { it.id }
 
             val priceChanges = mutableListOf<PriceChange>()

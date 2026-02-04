@@ -37,9 +37,9 @@ class SpikeWhatsAppActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background,
                 ) {
                     WhatsAppTestScreen(
-                        onTestArgentina = { testWhatsAppIntent("+5491123456789") },
-                        onTestUSA = { testWhatsAppIntent("+12025551234") },
-                        onTestEspana = { testWhatsAppIntent("+34612345678") },
+                        onTestArgentina = { testWhatsAppIntent("+5491167954129") },
+                        onTestUSA = { testWhatsAppIntent("+12522639025") },
+                        onTestUruguay = { testWhatsAppIntent("+59899046907") },
                     )
                 }
             }
@@ -78,7 +78,7 @@ class SpikeWhatsAppActivity : ComponentActivity() {
 fun WhatsAppTestScreen(
     onTestArgentina: () -> Unit,
     onTestUSA: () -> Unit,
-    onTestEspana: () -> Unit,
+    onTestUruguay: () -> Unit,
 ) {
     Column(
         modifier = Modifier.padding(16.dp),
@@ -102,8 +102,8 @@ fun WhatsAppTestScreen(
             Text("Test USA +1")
         }
 
-        Button(onClick = onTestEspana) {
-            Text("Test España +34")
+        Button(onClick = onTestUruguay) {
+            Text("Test Uruguay +598")
         }
     }
 }

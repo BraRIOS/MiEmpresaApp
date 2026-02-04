@@ -26,9 +26,12 @@ class SpikeSetupActivity : ComponentActivity() {
     @Inject
     lateinit var googleAuthClient: GoogleAuthClient
 
-    private val TAG = "SpikeS2"
     private val FOLDER_NAME = "Spike S2 Test Company"
     private val SHEET_NAME = "Spike S2 - Categories Sync Test"
+
+    companion object {
+        private const val TAG = "SpikeS2"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,8 +42,11 @@ class SpikeSetupActivity : ComponentActivity() {
             } catch (e: Exception) {
                 Log.e(TAG, "Error setting up test sheet", e)
             } finally {
+                // Delay to allow viewing logs before activity closes
                 delay(3000)
-                finish()
+                if (!isFinishing && !isDestroyed) {
+                    finish()
+                }
             }
         }
     }

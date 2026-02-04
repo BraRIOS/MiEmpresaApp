@@ -41,11 +41,11 @@ class SyncCategoriesWorker
             val startTime = System.currentTimeMillis()
 
             return try {
-                // PHASE 1: Download Sheets → Room
-                downloadFromSheets(sheetId, companyId)
-
-                // PHASE 2: Upload dirty Room → Sheets
+                // PHASE 1: Upload dirty Room → Sheets (must run BEFORE download to avoid data loss)
                 uploadDirtyCategories(sheetId, companyId)
+
+                // PHASE 2: Download Sheets → Room
+                downloadFromSheets(sheetId, companyId)
 
                 val duration = System.currentTimeMillis() - startTime
                 Log.i(TAG, "Sync completed successfully in ${duration}ms")
@@ -60,7 +60,7 @@ class SyncCategoriesWorker
             sheetId: String,
             companyId: String,
         ) {
-            Log.d(TAG, "PHASE 1: Downloading categories from Sheets...")
+            Log.d(TAG, "PHASE 2: Downloading categories from Sheets...")
             val phaseStart = System.currentTimeMillis()
 
             val range = "Categories!A2:D"
@@ -73,8 +73,14 @@ class SyncCategoriesWorker
 
             val categories =
                 values.mapIndexed { index, row ->
-                    if (row.size < 3) {
+                    if (row.size < 4) {
                         Log.w(TAG, "Skipping incomplete row at index $index: $row")
+                        return@mapIndexed null
+                    }
+                    // Validate companyId from Sheets matches parameter (multitenancy security)
+                    val sheetCompanyId = row[3].toString()
+                    if (sheetCompanyId != companyId) {
+                        Log.w(TAG, "Skipping row with mismatched companyId: $sheetCompanyId != $companyId")
                         return@mapIndexed null
                     }
                     Category(
@@ -97,7 +103,7 @@ class SyncCategoriesWorker
             sheetId: String,
             companyId: String,
         ) {
-            Log.d(TAG, "PHASE 2: Uploading dirty categories to Sheets...")
+            Log.d(TAG, "PHASE 1: Uploading dirty categories to Sheets...")
             val phaseStart = System.currentTimeMillis()
 
             val dirtyCategories = categoryDao.getDirty(companyId)
@@ -124,7 +130,9 @@ class SyncCategoriesWorker
                     )
                 }
 
-            // Append to Sheets with USER_ENTERED to preserve formulas
+            // KNOWN LIMITATION (Spike): appendRows always appends, causing duplicates on repeated syncs.
+            // Proper solution (check-then-update or batchUpdate upsert logic) deferred to MVP.
+            // For spike: Accept duplicates as documented trade-off for simplicity.
             val range = "Categories!A$startRow:D"
             spreadsheetsApi.appendRows(sheetId, range, rows, "USER_ENTERED")
 

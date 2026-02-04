@@ -39,6 +39,12 @@
             android:name=".spike.SpikeSetupActivity"
             android:exported="true"
             android:theme="@style/Theme.MiEmpresa" />
+
+        <!-- Spike S2: Worker trigger activity -->
+        <activity
+            android:name=".spike.SpikeWorkerTriggerActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MiEmpresa" />
     </application>
 
 </manifest>

@@ -20,6 +20,19 @@ class MainActivity : FragmentActivity() {
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Spike 6: Deeplink handling validation
+        val deeplink = intent?.data
+        if (deeplink?.scheme == "miempresa") {
+            val sheetId = deeplink.getQueryParameter("sheetId")
+
+            // TODO US-026: Implementar árbol de prioridades aquí:
+            // 1. Query companyDao.getByPublicSheetId(sheetId)
+            // 2. Si null + online → syncPublicSheet()
+            // 3. Si isOwned → Route.HomeAdmin
+            // 4. Si !isOwned → Route.CatalogoCliente
+        }
+
         enableEdgeToEdge()
         setContent {
             MiEmpresaTheme {

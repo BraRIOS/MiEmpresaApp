@@ -35,17 +35,22 @@ class QrCodeGenerator {
         content: String,
         sizePx: Int = 512,
     ): QrCodeResult {
+        require(content.isNotBlank()) { "QR content cannot be blank" }
+        require(sizePx in 64..2048) { "QR size must be 64-2048px, got $sizePx" }
+
         return try {
             val writer = QRCodeWriter()
             val bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, sizePx, sizePx)
 
             // Convert BitMatrix to Bitmap
             val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.RGB_565)
-            for (x in 0 until sizePx) {
-                for (y in 0 until sizePx) {
-                    bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
+            val pixels = IntArray(sizePx * sizePx)
+            for (y in 0 until sizePx) {
+                for (x in 0 until sizePx) {
+                    pixels[y * sizePx + x] = if (bitMatrix[x, y]) Color.BLACK else Color.WHITE
                 }
             }
+            bitmap.setPixels(pixels, 0, sizePx, 0, 0, sizePx, sizePx)
 
             QrCodeResult.Success(bitmap)
         } catch (e: Exception) {

@@ -20,6 +20,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -180,6 +181,11 @@ fun QrCodeTestScreen(qrCodeGenerator: QrCodeGenerator) {
                                 contentDescription = "Generated QR Code",
                                 modifier = Modifier.size(300.dp),
                             )
+                            DisposableEffect(qrResult.bitmap) {
+                                onDispose {
+                                    qrResult.bitmap.recycle()
+                                }
+                            }
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "📱 Scan with Google Lens or Camera app",

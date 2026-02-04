@@ -65,7 +65,15 @@ class SyncCategoriesWorker
 
             val range = "Categories!A2:D"
             Log.d(TAG, "Reading range: $range from sheetId: $sheetId")
-            val values = spreadsheetsApi.readRange(sheetId, range)
+
+            val values =
+                try {
+                    spreadsheetsApi.readRange(sheetId, range)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error reading from Sheets API", e)
+                    throw e
+                }
+
             Log.d(TAG, "API returned: values=${values?.size ?: 0} rows, first row: ${values?.firstOrNull()}")
 
             if (values.isNullOrEmpty()) {

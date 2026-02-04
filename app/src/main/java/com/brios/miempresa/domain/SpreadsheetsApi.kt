@@ -227,7 +227,11 @@ class SpreadsheetsApi
             range: String,
         ): List<List<Any>>? {
             val service = googleAuthClient.getGoogleSheetsService()
-            val response = service?.spreadsheets()?.values()?.get(spreadsheetId, range)?.execute()
+            if (service == null) {
+                android.util.Log.e("SpreadsheetsApi", "GoogleSheetsService is null - authentication required")
+                return null
+            }
+            val response = service.spreadsheets().values().get(spreadsheetId, range).execute()
             return response?.getValues()
         }
 

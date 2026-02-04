@@ -52,3 +52,16 @@ data class CartItemEntity(
     val quantity: Int,
     val addedAt: Long = System.currentTimeMillis(),
 )
+
+@Entity(
+    tableName = "products",
+    indices = [Index(value = ["companyId"])],
+)
+data class ProductEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val price: Double,
+    val companyId: String,
+    val isAvailable: Boolean = true,
+    val lastSyncedAt: Long = System.currentTimeMillis(),
+)

@@ -120,3 +120,18 @@ interface CartItemDao {
     @Query("DELETE FROM cart_items WHERE companyId = :companyId")
     suspend fun deleteAll(companyId: String)
 }
+
+@Dao
+interface ProductDao {
+    @Upsert
+    suspend fun upsertAll(products: List<ProductEntity>)
+
+    @Query("SELECT * FROM products WHERE id IN (:productIds) AND companyId = :companyId")
+    suspend fun getByIds(
+        productIds: List<String>,
+        companyId: String,
+    ): List<ProductEntity>
+
+    @Query("SELECT * FROM products WHERE companyId = :companyId")
+    suspend fun getAllByCompany(companyId: String): List<ProductEntity>
+}

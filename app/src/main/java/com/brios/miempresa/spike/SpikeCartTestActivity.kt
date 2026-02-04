@@ -40,12 +40,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.brios.miempresa.cart.domain.CartEvent
 import com.brios.miempresa.cart.domain.CartUiState
 import com.brios.miempresa.cart.presentation.CartViewModel
+import com.brios.miempresa.data.Company
+import com.brios.miempresa.data.CompanyDao
 import com.brios.miempresa.ui.theme.MiEmpresaTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 /**
  * DUMMY ACTIVITY - WILL BE DELETED
@@ -61,13 +68,40 @@ import kotlinx.coroutines.flow.collectLatest
  */
 @AndroidEntryPoint
 class SpikeCartTestActivity : ComponentActivity() {
+    @Inject
+    lateinit var companyDao: CompanyDao
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("SpikeS3", "onCreate: SpikeCartTestActivity started")
 
+        // Seed test data if needed
+        lifecycleScope.launch {
+            seedTestDataIfNeeded()
+        }
+
         setContent {
             MiEmpresaTheme {
                 SpikeCartTestScreen()
+            }
+        }
+    }
+
+    private suspend fun seedTestDataIfNeeded() {
+        withContext(Dispatchers.IO) {
+            val existingCompany = companyDao.getCompanyById("test-company-123")
+            if (existingCompany == null) {
+                Log.d("SpikeS3", "No company found, seeding test data...")
+                val testCompany =
+                    Company(
+                        id = "test-company-123",
+                        name = "Test Company (Spike S3)",
+                        selected = true,
+                    )
+                companyDao.insert(testCompany)
+                Log.d("SpikeS3", "Test company seeded: ${testCompany.name}")
+            } else {
+                Log.d("SpikeS3", "Using existing company: ${existingCompany.name}")
             }
         }
     }

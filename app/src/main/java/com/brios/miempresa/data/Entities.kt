@@ -1,6 +1,7 @@
 package com.brios.miempresa.data
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "companies")
@@ -11,7 +12,10 @@ data class Company(
     val selected: Boolean,
 )
 
-@Entity(tableName = "categories")
+@Entity(
+    tableName = "categories",
+    indices = [Index(value = ["companyId", "dirty"])],
+)
 data class Category(
     @PrimaryKey val id: String,
     val name: String,

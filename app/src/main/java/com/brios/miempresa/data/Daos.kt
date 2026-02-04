@@ -46,10 +46,20 @@ interface CategoryDao {
     @Query("SELECT * FROM categories WHERE dirty = 1 AND companyId = :companyId")
     suspend fun getDirty(companyId: String): List<Category>
 
-    @Query("UPDATE categories SET dirty = 0, lastSyncedAt = :timestamp WHERE id IN (:ids)")
     suspend fun markSynced(
         ids: List<String>,
         timestamp: Long,
+        companyId: String,
+    ) {
+        if (ids.isEmpty()) return
+        markSyncedInternal(ids, timestamp, companyId)
+    }
+
+    @Query("UPDATE categories SET dirty = 0, lastSyncedAt = :timestamp WHERE id IN (:ids) AND companyId = :companyId")
+    suspend fun markSyncedInternal(
+        ids: List<String>,
+        timestamp: Long,
+        companyId: String,
     )
 
     @Query("DELETE FROM categories WHERE companyId = :companyId")

@@ -20,6 +20,30 @@ class MainActivity : FragmentActivity() {
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Spike 6: Deeplink handling validation
+        val deeplink = intent?.data
+        if (deeplink?.scheme == "miempresa") {
+            val sheetId = deeplink.getQueryParameter("sheetId")
+            android.util.Log.d("Spike6", "✅ Deeplink procesado correctamente")
+            android.util.Log.d("Spike6", "  → Scheme: ${deeplink.scheme}")
+            android.util.Log.d("Spike6", "  → Host: ${deeplink.host}")
+            android.util.Log.d("Spike6", "  → SheetId: $sheetId")
+            android.util.Log.d("Spike6", "  → URI completo: $deeplink")
+
+            if (sheetId.isNullOrBlank()) {
+                android.util.Log.w("Spike6", "⚠️ sheetId es null o vacío")
+            }
+
+            // TODO US-026: Implementar árbol de prioridades aquí:
+            // 1. Query companyDao.getByPublicSheetId(sheetId)
+            // 2. Si null + online → syncPublicSheet()
+            // 3. Si isOwned → Route.HomeAdmin
+            // 4. Si !isOwned → Route.CatalogoCliente
+        } else if (deeplink != null) {
+            android.util.Log.w("Spike6", "⚠️ Deeplink con scheme desconocido: ${deeplink.scheme}")
+        }
+
         enableEdgeToEdge()
         setContent {
             MiEmpresaTheme {

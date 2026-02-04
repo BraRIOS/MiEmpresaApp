@@ -103,6 +103,7 @@ fun QrCodeTestScreen(qrCodeGenerator: QrCodeGenerator) {
             deeplink = "miempresa://catalogo?sheetId=test-sheet-123",
             onClick = {
                 selectedTest = "Test 1"
+                (result as? QrCodeResult.Success)?.bitmap?.recycle()
                 result = qrCodeGenerator.generate("miempresa://catalogo?sheetId=test-sheet-123")
             },
         )
@@ -112,6 +113,7 @@ fun QrCodeTestScreen(qrCodeGenerator: QrCodeGenerator) {
             deeplink = "miempresa://catalogo?sheetId=1A2B3C4D5E6F7G8H9I0J_very_long_id_to_test_encoding",
             onClick = {
                 selectedTest = "Test 2"
+                (result as? QrCodeResult.Success)?.bitmap?.recycle()
                 result = qrCodeGenerator.generate("miempresa://catalogo?sheetId=1A2B3C4D5E6F7G8H9I0J_very_long_id_to_test_encoding")
             },
         )
@@ -121,6 +123,7 @@ fun QrCodeTestScreen(qrCodeGenerator: QrCodeGenerator) {
             deeplink = "miempresa://catalogo?sheetId=abc-123_XYZ&param=value",
             onClick = {
                 selectedTest = "Test 3"
+                (result as? QrCodeResult.Success)?.bitmap?.recycle()
                 result = qrCodeGenerator.generate("miempresa://catalogo?sheetId=abc-123_XYZ&param=value")
             },
         )
@@ -130,6 +133,7 @@ fun QrCodeTestScreen(qrCodeGenerator: QrCodeGenerator) {
             deeplink = "miempresa://catalogo?sheetId=small-qr",
             onClick = {
                 selectedTest = "Test 4"
+                (result as? QrCodeResult.Success)?.bitmap?.recycle()
                 result = qrCodeGenerator.generate("miempresa://catalogo?sheetId=small-qr", sizePx = 256)
             },
         )
@@ -139,6 +143,7 @@ fun QrCodeTestScreen(qrCodeGenerator: QrCodeGenerator) {
             deeplink = "miempresa://catalogo?sheetId=large-qr",
             onClick = {
                 selectedTest = "Test 5"
+                (result as? QrCodeResult.Success)?.bitmap?.recycle()
                 result = qrCodeGenerator.generate("miempresa://catalogo?sheetId=large-qr", sizePx = 1024)
             },
         )

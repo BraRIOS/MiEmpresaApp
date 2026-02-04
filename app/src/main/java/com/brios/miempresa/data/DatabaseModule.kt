@@ -39,4 +39,9 @@ object DatabaseModule {
     fun provideCartItemDao(database: MiEmpresaDatabase): CartItemDao {
         return database.cartItemDao()
     }
+
+    @Provides
+    fun provideProductDao(database: MiEmpresaDatabase): ProductDao {
+        return database.productDao()
+    }
 }

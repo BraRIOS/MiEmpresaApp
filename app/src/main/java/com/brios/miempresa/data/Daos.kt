@@ -65,3 +65,52 @@ interface CategoryDao {
     @Query("DELETE FROM categories WHERE companyId = :companyId")
     suspend fun deleteAll(companyId: String)
 }
+
+data class CartItemWithProduct(
+    val id: Long,
+    val productId: String,
+    val quantity: Int,
+    val addedAt: Long,
+    val productName: String?,
+    val productPrice: Double?,
+)
+
+@Dao
+interface CartItemDao {
+    @Insert
+    suspend fun insert(item: CartItemEntity): Long
+
+    @Update
+    suspend fun update(item: CartItemEntity)
+
+    @Delete
+    suspend fun delete(item: CartItemEntity)
+
+    @Query("SELECT * FROM cart_items WHERE companyId = :companyId")
+    suspend fun getAll(companyId: String): List<CartItemEntity>
+
+    @Query(
+        """
+        SELECT 
+            c.id,
+            c.productId,
+            c.quantity,
+            c.addedAt,
+            NULL as productName,
+            NULL as productPrice
+        FROM cart_items c
+        WHERE c.companyId = :companyId
+        ORDER BY c.addedAt DESC
+        """,
+    )
+    suspend fun getAllWithProducts(companyId: String): List<CartItemWithProduct>
+
+    @Query("SELECT * FROM cart_items WHERE id = :id AND companyId = :companyId")
+    suspend fun getById(
+        id: Long,
+        companyId: String,
+    ): CartItemEntity?
+
+    @Query("DELETE FROM cart_items WHERE companyId = :companyId")
+    suspend fun deleteAll(companyId: String)
+}

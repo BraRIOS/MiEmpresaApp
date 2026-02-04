@@ -26,3 +26,28 @@ data class Category(
     // Timestamp of last successful sync
     val lastSyncedAt: Long? = null,
 )
+
+@Entity(
+    tableName = "cart_items",
+    foreignKeys = [
+        androidx.room.ForeignKey(
+            entity = Company::class,
+            parentColumns = ["id"],
+            childColumns = ["companyId"],
+            onDelete = androidx.room.ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [
+        Index(value = ["companyId"]),
+        Index(value = ["productId"]), // Performance for JOIN queries
+    ],
+)
+data class CartItemEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val companyId: String,
+    // TODO: Add FK to Product when Product entity is migrated to Room (post-spike)
+    val productId: String,
+    val quantity: Int,
+    val addedAt: Long = System.currentTimeMillis(),
+)

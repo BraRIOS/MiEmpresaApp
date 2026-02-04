@@ -33,6 +33,12 @@
                     android:host="catalogo" />
             </intent-filter>
         </activity>
+
+        <!-- Spike S2: Setup activity -->
+        <activity
+            android:name=".spike.SpikeSetupActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MiEmpresa" />
     </application>
 
 </manifest>

@@ -47,6 +47,12 @@
         </activity>
 
         <!-- Spike S2 activities removed after spike completion -->
+
+        <!-- Spike S3: Cart test activity -->
+        <activity
+            android:name=".spike.SpikeCartTestActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MiEmpresa" />
     </application>
 
 </manifest>

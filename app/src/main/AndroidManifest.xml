@@ -46,23 +46,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Spike S2: Setup activity -->
-        <activity
-            android:name=".spike.SpikeSetupActivity"
-            android:exported="true"
-            android:theme="@style/Theme.MiEmpresa" />
-
-        <!-- Spike S2: Worker trigger activity -->
-        <activity
-            android:name=".spike.SpikeWorkerTriggerActivity"
-            android:exported="true"
-            android:theme="@style/Theme.MiEmpresa" />
-
-        <!-- Spike S2: Insert dirty category for upload test -->
-        <activity
-            android:name=".spike.SpikeInsertDirtyCategoryActivity"
-            android:exported="true"
-            android:theme="@style/Theme.MiEmpresa" />
+        <!-- Spike S2 activities removed after spike completion -->
     </application>
 
 </manifest>

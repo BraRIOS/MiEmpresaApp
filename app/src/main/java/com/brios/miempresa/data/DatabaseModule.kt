@@ -1,6 +1,7 @@
 package com.brios.miempresa.data
 
 import android.content.Context
+import android.net.ConnectivityManager
 import androidx.room.Room
 import dagger.Module
 import dagger.Provides
@@ -43,5 +44,13 @@ object DatabaseModule {
     @Provides
     fun provideProductDao(database: MiEmpresaDatabase): ProductDao {
         return database.productDao()
+    }
+
+    @Provides
+    @Singleton
+    fun providesConnectivityManager(
+        @ApplicationContext context: Context,
+    ): ConnectivityManager {
+        return context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     }
 }

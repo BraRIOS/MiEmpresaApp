@@ -48,6 +48,17 @@
 
         <!-- Spike S2 activities removed after spike completion -->
         <!-- Spike S3 activities removed after spike completion -->
+
+        <!-- Spike S4: Price Validation Test Activity -->
+        <activity
+            android:name=".spike.SpikePriceValidationActivity"
+            android:exported="true"
+            android:label="Spike S4: Price Validation">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

@@ -39,3 +39,9 @@ client_secret.json
 # Worktrees (isolated workspaces)
 .worktrees/
 
+# Internal development documentation (not for public repo)
+docs/context/
+docs/plans/
+docs/spikes/
+.github/copilot-instructions.md
+

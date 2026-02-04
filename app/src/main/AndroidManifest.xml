@@ -33,6 +33,10 @@
                     android:host="catalogo" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".spike.SpikeWhatsAppActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MiEmpresa" />
     </application>
 
 </manifest>

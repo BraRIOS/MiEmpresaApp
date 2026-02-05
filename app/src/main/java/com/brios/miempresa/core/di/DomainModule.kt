@@ -1,4 +1,4 @@
-package com.brios.miempresa.domain
+package com.brios.miempresa.core.di
 
 import com.brios.miempresa.core.util.QrCodeGenerator
 import dagger.Module

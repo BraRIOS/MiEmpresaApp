@@ -1,4 +1,4 @@
-package com.brios.miempresa.data
+package com.brios.miempresa.core.di
 
 import android.content.Context
 import android.net.ConnectivityManager

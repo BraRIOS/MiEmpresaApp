@@ -1,4 +1,4 @@
-package com.brios.miempresa.cart.presentation
+package com.brios.miempresa.cart.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow

@@ -18,14 +18,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import com.brios.miempresa.R
-import com.brios.miempresa.categories.CategoriesComposable
-import com.brios.miempresa.product.ProductDetails
-import com.brios.miempresa.product.ProductsComposable
 import com.brios.miempresa.signin.AuthState
 import com.brios.miempresa.signin.SignInScreen
 import com.brios.miempresa.signin.SignInViewModel
@@ -33,6 +28,11 @@ import com.brios.miempresa.signin.SignInViewModel
 // TODO: Restore onboarding navigation after refactor
 // import com.brios.miempresa.initializer.InitializerScreen
 // import com.brios.miempresa.initializer.InitializerUiState
+
+// TODO: Restore after refactor
+// import com.brios.miempresa.categories.CategoriesComposable
+// import com.brios.miempresa.product.ProductDetails
+// import com.brios.miempresa.product.ProductsComposable
 
 @RequiresApi(Build.VERSION_CODES.R)
 @Composable
@@ -127,25 +127,26 @@ fun NavHostComposable(
         //         startUIState = startUIState,
         //     )
         // }
-        composable(route = MiEmpresaScreen.Products.name) {
-            ProductsComposable(
-                navController = navController,
-            )
-        }
-        composable(
-            route = MiEmpresaScreen.Product.name + "/{rowIndex}",
-            arguments = listOf(navArgument("rowIndex") { type = NavType.IntType }),
-        ) { backStackEntry ->
-            val rowIndex = backStackEntry.arguments?.getInt("rowIndex")
-            ProductDetails(
-                navController = navController,
-                rowIndex = rowIndex,
-            )
-        }
-        composable(route = MiEmpresaScreen.Categories.name) {
-            CategoriesComposable(
-                navController = navController,
-            )
-        }
+        // TODO: Restore after refactor
+        // composable(route = MiEmpresaScreen.Products.name) {
+        //     ProductsComposable(
+        //         navController = navController,
+        //     )
+        // }
+        // composable(
+        //     route = MiEmpresaScreen.Product.name + "/{rowIndex}",
+        //     arguments = listOf(navArgument("rowIndex") { type = NavType.IntType }),
+        // ) { backStackEntry ->
+        //     val rowIndex = backStackEntry.arguments?.getInt("rowIndex")
+        //     ProductDetails(
+        //         navController = navController,
+        //         rowIndex = rowIndex,
+        //     )
+        // }
+        // composable(route = MiEmpresaScreen.Categories.name) {
+        //     CategoriesComposable(
+        //         navController = navController,
+        //     )
+        // }
     }
 }

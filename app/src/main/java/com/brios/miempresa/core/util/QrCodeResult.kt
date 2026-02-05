@@ -1,4 +1,4 @@
-package com.brios.miempresa.domain
+package com.brios.miempresa.core.util
 
 import android.graphics.Bitmap
 

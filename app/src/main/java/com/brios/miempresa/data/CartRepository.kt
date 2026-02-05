@@ -5,7 +5,7 @@ import android.util.Log
 import com.brios.miempresa.cart.domain.PriceChange
 import com.brios.miempresa.cart.domain.PriceValidationResult
 import com.brios.miempresa.cart.domain.UnavailableProduct
-import com.brios.miempresa.domain.SpreadsheetsApi
+import com.brios.miempresa.core.api.sheets.SpreadsheetsApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject

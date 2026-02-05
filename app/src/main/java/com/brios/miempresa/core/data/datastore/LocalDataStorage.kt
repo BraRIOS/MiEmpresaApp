@@ -1,4 +1,4 @@
-package com.brios.miempresa.data
+package com.brios.miempresa.core.data.datastore
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences

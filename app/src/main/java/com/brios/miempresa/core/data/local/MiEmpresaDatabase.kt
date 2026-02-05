@@ -1,9 +1,17 @@
-package com.brios.miempresa.data
+package com.brios.miempresa.core.data.local
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.brios.miempresa.core.data.local.daos.CartItemDao
+import com.brios.miempresa.core.data.local.daos.CategoryDao
+import com.brios.miempresa.core.data.local.daos.CompanyDao
+import com.brios.miempresa.core.data.local.daos.ProductDao
+import com.brios.miempresa.core.data.local.entities.CartItemEntity
+import com.brios.miempresa.core.data.local.entities.Category
+import com.brios.miempresa.core.data.local.entities.Company
+import com.brios.miempresa.core.data.local.entities.ProductEntity
 
 @Database(
     entities = [

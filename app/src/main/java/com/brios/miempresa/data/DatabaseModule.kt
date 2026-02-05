@@ -3,6 +3,11 @@ package com.brios.miempresa.data
 import android.content.Context
 import android.net.ConnectivityManager
 import androidx.room.Room
+import com.brios.miempresa.core.data.local.MiEmpresaDatabase
+import com.brios.miempresa.core.data.local.daos.CartItemDao
+import com.brios.miempresa.core.data.local.daos.CategoryDao
+import com.brios.miempresa.core.data.local.daos.CompanyDao
+import com.brios.miempresa.core.data.local.daos.ProductDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

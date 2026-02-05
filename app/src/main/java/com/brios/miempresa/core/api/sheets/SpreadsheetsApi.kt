@@ -3,7 +3,7 @@ package com.brios.miempresa.core.api.sheets
 import android.content.Context
 import android.util.Log
 import com.brios.miempresa.core.auth.GoogleAuthClient
-import com.brios.miempresa.data.ProductEntity
+import com.brios.miempresa.core.data.local.entities.ProductEntity
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest
 import com.google.api.services.sheets.v4.model.DeleteDimensionRequest
 import com.google.api.services.sheets.v4.model.DimensionRange

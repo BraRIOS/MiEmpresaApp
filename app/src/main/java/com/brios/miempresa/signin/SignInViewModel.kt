@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
 import com.brios.miempresa.core.auth.GoogleAuthClient
 import com.brios.miempresa.core.auth.SignInResult
-import com.brios.miempresa.data.MiEmpresaDatabase
+import com.brios.miempresa.core.data.local.MiEmpresaDatabase
 import com.brios.miempresa.data.PreferencesKeys
 import com.brios.miempresa.data.removeValueFromDataStore
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -35,7 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.brios.miempresa.R
-import com.brios.miempresa.data.Company
+import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.ui.dimens.AppDimensions
 import com.brios.miempresa.ui.theme.MiEmpresaTheme
 

@@ -5,8 +5,8 @@ import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.cart.domain.CartEvent
 import com.brios.miempresa.cart.domain.CartUiState
+import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.data.CartRepository
-import com.brios.miempresa.data.CompanyDao
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow

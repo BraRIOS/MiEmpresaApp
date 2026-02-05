@@ -25,7 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.brios.miempresa.R
-import com.brios.miempresa.data.Company
+import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.ui.dimens.AppDimensions
 
 @Composable

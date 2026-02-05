@@ -45,11 +45,6 @@
                     android:host="catalogo" />
             </intent-filter>
         </activity>
-
-        <!-- Spike S2 activities removed after spike completion -->
-        <!-- Spike S3 activities removed after spike completion -->
-        <!-- Spike S4 activities removed after spike completion -->
-        <!-- Spike S8 activities removed after spike completion -->
     </application>
 
 </manifest>

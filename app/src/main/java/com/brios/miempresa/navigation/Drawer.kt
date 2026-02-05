@@ -51,7 +51,7 @@ import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.brios.miempresa.R
 import com.brios.miempresa.core.auth.UserData
-import com.brios.miempresa.data.Company
+import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.signin.SignInViewModel
 import com.brios.miempresa.ui.dimens.AppDimensions
 import kotlinx.coroutines.launch
@@ -66,7 +66,7 @@ fun DrawerComposable(
     val viewModel = signInViewModel ?: if (!LocalInspectionMode.current) hiltViewModel() else null
     val user = viewModel?.getSignedInUser()
     val selectedCompanyState = viewModel?.getSelectedCompany()?.observeAsState()
-    val selectedCompany by selectedCompanyState ?: remember { mutableStateOf(null) }
+    val selectedCompany: Company? by selectedCompanyState ?: remember { mutableStateOf(null) }
     val context = LocalContext.current as? Activity
     DrawerContent(drawerState, user, selectedCompany, context, viewModel, navController, content)
 }

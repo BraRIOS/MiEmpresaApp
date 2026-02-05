@@ -1,4 +1,4 @@
-package com.brios.miempresa.data
+package com.brios.miempresa.core.data.local.daos
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
@@ -7,6 +7,10 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
+import com.brios.miempresa.core.data.local.entities.CartItemEntity
+import com.brios.miempresa.core.data.local.entities.Category
+import com.brios.miempresa.core.data.local.entities.Company
+import com.brios.miempresa.core.data.local.entities.ProductEntity
 
 @Dao
 interface CompanyDao {

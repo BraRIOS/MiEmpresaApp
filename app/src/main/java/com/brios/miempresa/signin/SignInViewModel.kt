@@ -6,11 +6,11 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
+import com.brios.miempresa.core.auth.GoogleAuthClient
+import com.brios.miempresa.core.auth.SignInResult
 import com.brios.miempresa.data.MiEmpresaDatabase
 import com.brios.miempresa.data.PreferencesKeys
 import com.brios.miempresa.data.removeValueFromDataStore
-import com.brios.miempresa.domain.GoogleAuthClient
-import com.brios.miempresa.domain.SignInResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers

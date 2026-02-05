@@ -50,8 +50,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.brios.miempresa.R
+import com.brios.miempresa.core.auth.UserData
 import com.brios.miempresa.data.Company
-import com.brios.miempresa.domain.UserData
 import com.brios.miempresa.signin.SignInViewModel
 import com.brios.miempresa.ui.dimens.AppDimensions
 import kotlinx.coroutines.launch

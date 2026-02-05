@@ -1,4 +1,4 @@
-package com.brios.miempresa.domain
+package com.brios.miempresa.core.auth
 
 import android.app.Activity
 import android.content.Context

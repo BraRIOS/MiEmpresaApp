@@ -82,7 +82,6 @@
     <string name="products_label_count">Productos: %1$s</string>
     <string name="error_authentication">Hubo un error en la autenticación</string>
     <string name="try_again">Vuelva a intentar</string>
-    <string name="biometric_auth_subtitle">Queremos comprobar que seguís siendo vos.</string>
     <string name="placeholder">Placeholder</string>
     <string name="sin_imagen">Sin imagen</string>
     <string name="do_not_delete_advice">[NO BORRAR]</string>

@@ -1,4 +1,4 @@
-package com.brios.miempresa.ui.dimens
+package com.brios.miempresa.core.ui.theme
 
 import androidx.compose.ui.unit.dp
 

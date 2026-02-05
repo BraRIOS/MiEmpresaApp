@@ -52,8 +52,8 @@ import coil.compose.rememberAsyncImagePainter
 import com.brios.miempresa.R
 import com.brios.miempresa.core.auth.UserData
 import com.brios.miempresa.core.data.local.entities.Company
+import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.signin.SignInViewModel
-import com.brios.miempresa.ui.dimens.AppDimensions
 import kotlinx.coroutines.launch
 
 @Composable

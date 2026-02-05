@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import com.brios.miempresa.R
-import com.brios.miempresa.ui.dimens.AppDimensions
+import com.brios.miempresa.core.ui.theme.AppDimensions
 
 @Composable
 fun BottomBar(

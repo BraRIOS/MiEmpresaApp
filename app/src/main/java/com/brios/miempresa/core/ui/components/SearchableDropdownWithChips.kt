@@ -1,4 +1,4 @@
-package com.brios.miempresa.components
+package com.brios.miempresa.core.ui.components
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,7 +35,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.brios.miempresa.R
-import com.brios.miempresa.ui.dimens.AppDimensions
+import com.brios.miempresa.core.ui.theme.AppDimensions
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

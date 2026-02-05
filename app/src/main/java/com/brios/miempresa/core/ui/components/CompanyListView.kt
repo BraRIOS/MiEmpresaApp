@@ -1,4 +1,4 @@
-package com.brios.miempresa.components
+package com.brios.miempresa.core.ui.components
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,8 +36,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.brios.miempresa.R
 import com.brios.miempresa.core.data.local.entities.Company
-import com.brios.miempresa.ui.dimens.AppDimensions
-import com.brios.miempresa.ui.theme.MiEmpresaTheme
+import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 
 @Composable
 fun CompanyListView(

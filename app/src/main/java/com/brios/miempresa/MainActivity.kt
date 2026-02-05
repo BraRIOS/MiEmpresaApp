@@ -11,8 +11,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.compose.rememberNavController
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.navigation.NavHostComposable
-import com.brios.miempresa.ui.theme.MiEmpresaTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

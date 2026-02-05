@@ -1,4 +1,4 @@
-package com.brios.miempresa.components
+package com.brios.miempresa.core.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,8 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.brios.miempresa.R
-import com.brios.miempresa.ui.dimens.AppDimensions
-import com.brios.miempresa.ui.theme.MiEmpresaTheme
+import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 
 @Composable
 fun WelcomeView(

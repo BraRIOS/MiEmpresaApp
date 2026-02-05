@@ -1,4 +1,4 @@
-package com.brios.miempresa.components
+package com.brios.miempresa.core.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,7 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
-import com.brios.miempresa.ui.dimens.AppDimensions
+import com.brios.miempresa.core.ui.theme.AppDimensions
 
 @Composable
 fun SearchBar(

@@ -1,4 +1,4 @@
-package com.brios.miempresa.ui.theme
+package com.brios.miempresa.core.ui.theme
 import androidx.compose.ui.graphics.Color
 
 val PlaceholderBG = Color(0xFF919191)

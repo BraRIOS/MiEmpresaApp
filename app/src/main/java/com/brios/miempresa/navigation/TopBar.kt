@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.brios.miempresa.R
-import com.brios.miempresa.ui.dimens.AppDimensions
+import com.brios.miempresa.core.ui.theme.AppDimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

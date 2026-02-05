@@ -1,4 +1,4 @@
-package com.brios.miempresa.components
+package com.brios.miempresa.core.ui.components
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -15,7 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.brios.miempresa.R
-import com.brios.miempresa.ui.dimens.AppDimensions
+import com.brios.miempresa.core.ui.theme.AppDimensions
 
 @Composable
 fun DeleteDialog(

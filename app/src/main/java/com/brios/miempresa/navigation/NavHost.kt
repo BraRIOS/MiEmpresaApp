@@ -24,13 +24,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.brios.miempresa.R
 import com.brios.miempresa.categories.CategoriesComposable
-import com.brios.miempresa.initializer.InitializerScreen
-import com.brios.miempresa.initializer.InitializerUiState
 import com.brios.miempresa.product.ProductDetails
 import com.brios.miempresa.product.ProductsComposable
 import com.brios.miempresa.signin.AuthState
 import com.brios.miempresa.signin.SignInScreen
 import com.brios.miempresa.signin.SignInViewModel
+
+// TODO: Restore onboarding navigation after refactor
+// import com.brios.miempresa.initializer.InitializerScreen
+// import com.brios.miempresa.initializer.InitializerUiState
 
 @RequiresApi(Build.VERSION_CODES.R)
 @Composable
@@ -41,12 +43,14 @@ fun NavHostComposable(
     val signInViewModel = hiltViewModel<SignInViewModel>()
     NavHost(
         navController = navController,
-        startDestination =
-            if (signInViewModel.getSignedInUser() != null) {
-                MiEmpresaScreen.Initializer.name
-            } else {
-                MiEmpresaScreen.SignIn.name
-            },
+        // TODO: Restore onboarding navigation after refactor
+        // startDestination =
+        //     if (signInViewModel.getSignedInUser() != null) {
+        //         MiEmpresaScreen.Initializer.name
+        //     } else {
+        //         MiEmpresaScreen.SignIn.name
+        //     },
+        startDestination = MiEmpresaScreen.SignIn.name,
         modifier = Modifier.fillMaxSize(),
     ) {
         composable(route = MiEmpresaScreen.SignIn.name) {
@@ -85,12 +89,13 @@ fun NavHostComposable(
                     authorizationLauncher.launch(
                         IntentSenderRequest.Builder((authState as AuthState.PendingAuth).intentSender).build(),
                     )
-                } else if (authState is AuthState.Authorized && signInViewModel.getSignedInUser() != null) {
-                    navController.navigate(MiEmpresaScreen.Initializer.name) {
-                        popUpTo(0)
-                        launchSingleTop = true
-                    }
-                }
+                } // TODO: Restore onboarding navigation after refactor
+                // else if (authState is AuthState.Authorized && signInViewModel.getSignedInUser() != null) {
+                //     navController.navigate(MiEmpresaScreen.Initializer.name) {
+                //         popUpTo(0)
+                //         launchSingleTop = true
+                //     }
+                // }
             }
 
             SignInScreen(
@@ -100,27 +105,28 @@ fun NavHostComposable(
                 },
             )
         }
-        composable(route = MiEmpresaScreen.Initializer.name) {
-            InitializerScreen(
-                navController = navController,
-            )
-        }
-        composable(
-            route = MiEmpresaScreen.Initializer.name + "/{uiState}",
-            arguments = listOf(navArgument("uiState") { type = NavType.StringType }),
-        ) { backStackEntry ->
-            val uiStateString = backStackEntry.arguments?.getString("uiState")
-            val startUIState =
-                if (uiStateString == "ShowCompanyList") {
-                    InitializerUiState.ShowCompanyList
-                } else {
-                    InitializerUiState.Loading
-                }
-            InitializerScreen(
-                navController = navController,
-                startUIState = startUIState,
-            )
-        }
+        // TODO: Restore onboarding navigation after refactor
+        // composable(route = MiEmpresaScreen.Initializer.name) {
+        //     InitializerScreen(
+        //         navController = navController,
+        //     )
+        // }
+        // composable(
+        //     route = MiEmpresaScreen.Initializer.name + "/{uiState}",
+        //     arguments = listOf(navArgument("uiState") { type = NavType.StringType }),
+        // ) { backStackEntry ->
+        //     val uiStateString = backStackEntry.arguments?.getString("uiState")
+        //     val startUIState =
+        //         if (uiStateString == "ShowCompanyList") {
+        //             InitializerUiState.ShowCompanyList
+        //         } else {
+        //             InitializerUiState.Loading
+        //         }
+        //     InitializerScreen(
+        //         navController = navController,
+        //         startUIState = startUIState,
+        //     )
+        // }
         composable(route = MiEmpresaScreen.Products.name) {
             ProductsComposable(
                 navController = navController,

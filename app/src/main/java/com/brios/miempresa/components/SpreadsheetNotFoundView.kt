@@ -1,4 +1,4 @@
-package com.brios.miempresa.initializer
+package com.brios.miempresa.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

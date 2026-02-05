@@ -1,4 +1,4 @@
-package com.brios.miempresa.initializer
+package com.brios.miempresa.components
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,8 +35,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.brios.miempresa.R
-import com.brios.miempresa.components.LoadingView
-import com.brios.miempresa.components.MessageWithIcon
 import com.brios.miempresa.data.Company
 import com.brios.miempresa.ui.dimens.AppDimensions
 import com.brios.miempresa.ui.theme.MiEmpresaTheme

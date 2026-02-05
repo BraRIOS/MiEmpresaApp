@@ -1,4 +1,4 @@
-package com.brios.miempresa.signin
+package com.brios.miempresa.auth.ui
 
 import android.app.Activity
 import android.content.Context
@@ -6,8 +6,8 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
-import com.brios.miempresa.core.auth.GoogleAuthClient
-import com.brios.miempresa.core.auth.SignInResult
+import com.brios.miempresa.auth.domain.AuthRepository
+import com.brios.miempresa.auth.domain.AuthState
 import com.brios.miempresa.core.data.datastore.PreferencesKeys
 import com.brios.miempresa.core.data.datastore.removeValueFromDataStore
 import com.brios.miempresa.core.data.local.MiEmpresaDatabase
@@ -25,9 +25,9 @@ import javax.inject.Inject
 class SignInViewModel
     @Inject
     constructor(
-        @ApplicationContext context: Context,
+        @ApplicationContext private val context: Context,
+        private val authRepository: AuthRepository,
     ) : ViewModel() {
-        private val googleAuthClient = GoogleAuthClient(context)
         private val _signInState = MutableStateFlow(SignInState())
         val signInStateFlow = _signInState.asStateFlow()
         private val _authState = MutableStateFlow<AuthState?>(null)
@@ -37,7 +37,7 @@ class SignInViewModel
 
         fun signIn(activity: Activity) =
             viewModelScope.launch {
-                val signInResult: SignInResult = googleAuthClient.signIn(activity)
+                val signInResult = authRepository.signIn(activity)
                 val signInSucceed = signInResult.data != null
                 if (!signInSucceed) {
                     println("\u001B${signInResult.errorMessage}\u001B")
@@ -50,7 +50,7 @@ class SignInViewModel
                 }
             }
 
-        fun getSignedInUser() = googleAuthClient.getSignedInUser()
+        fun getSignedInUser() = authRepository.getSignedInUser()?.data
 
         fun signOut(activity: Activity) =
             viewModelScope.launch {
@@ -59,7 +59,7 @@ class SignInViewModel
                     database.companyDao().clear()
                     removeValueFromDataStore(activity, PreferencesKeys.SPREADSHEET_ID_KEY)
                     _authState.update { AuthState.Unauthorized }
-                    googleAuthClient.signOut(activity)
+                    authRepository.signOut(activity)
                 }
             }
 
@@ -69,23 +69,27 @@ class SignInViewModel
 
         fun authorizeDriveAndSheets(activity: Activity) =
             viewModelScope.launch {
-                val authorizationResult = googleAuthClient.authorizeDriveAndSheets()
-                if (authorizationResult.hasResolution()) {
-                    authorizationResult.pendingIntent?.let { intent ->
-                        _authState.update { AuthState.PendingAuth(intent.intentSender) }
-                    } ?: run {
-                        Toast.makeText(activity, activity.getString(R.string.authorization_failed), Toast.LENGTH_SHORT).show()
-                        _authState.update {
-                            AuthState.Unauthorized
+                val authState = authRepository.authorizeDriveAndSheets()
+                when (authState) {
+                    is AuthState.PendingAuth -> {
+                        authState.intentSender?.let { intentSender ->
+                            _authState.update { AuthState.PendingAuth(intentSender) }
+                        } ?: run {
+                            Toast.makeText(activity, activity.getString(R.string.authorization_failed), Toast.LENGTH_SHORT).show()
+                            _authState.update { AuthState.Unauthorized }
                         }
                     }
-                } else {
-                    Toast.makeText(
-                        activity,
-                        activity.getString(R.string.authorization_success),
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                    _authState.update { AuthState.Authorized }
+                    is AuthState.Authorized -> {
+                        Toast.makeText(
+                            activity,
+                            activity.getString(R.string.authorization_success),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        _authState.update { AuthState.Authorized }
+                    }
+                    else -> {
+                        _authState.update { AuthState.Unauthorized }
+                    }
                 }
             }
 

@@ -21,9 +21,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.brios.miempresa.R
-import com.brios.miempresa.signin.AuthState
-import com.brios.miempresa.signin.SignInScreen
-import com.brios.miempresa.signin.SignInViewModel
+import com.brios.miempresa.auth.domain.AuthState
+import com.brios.miempresa.auth.ui.SignInScreen
+import com.brios.miempresa.auth.ui.SignInViewModel
 
 // TODO: Restore onboarding navigation after refactor
 // import com.brios.miempresa.initializer.InitializerScreen
@@ -86,9 +86,11 @@ fun NavHostComposable(
                 }
             LaunchedEffect(key1 = authState, key2 = signInViewModel.getSignedInUser()) {
                 if (authState is AuthState.PendingAuth) {
-                    authorizationLauncher.launch(
-                        IntentSenderRequest.Builder((authState as AuthState.PendingAuth).intentSender).build(),
-                    )
+                    (authState as AuthState.PendingAuth).intentSender?.let { intentSender ->
+                        authorizationLauncher.launch(
+                            IntentSenderRequest.Builder(intentSender).build(),
+                        )
+                    }
                 } // TODO: Restore onboarding navigation after refactor
                 // else if (authState is AuthState.Authorized && signInViewModel.getSignedInUser() != null) {
                 //     navController.navigate(MiEmpresaScreen.Initializer.name) {

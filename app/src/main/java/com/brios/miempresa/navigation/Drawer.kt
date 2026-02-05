@@ -50,10 +50,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.brios.miempresa.R
+import com.brios.miempresa.auth.ui.SignInViewModel
 import com.brios.miempresa.core.auth.UserData
 import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.core.ui.theme.AppDimensions
-import com.brios.miempresa.signin.SignInViewModel
 import kotlinx.coroutines.launch
 
 @Composable

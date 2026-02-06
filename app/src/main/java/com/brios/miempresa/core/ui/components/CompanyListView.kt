@@ -159,7 +159,7 @@ private fun CompanyListScreenPreview() {
                 Company("3", "Company 3", false),
             ),
         )
-    MiEmpresaTheme(darkTheme = false) {
+    MiEmpresaTheme {
         Surface {
             CompanyListView(
                 username = "John Doe",

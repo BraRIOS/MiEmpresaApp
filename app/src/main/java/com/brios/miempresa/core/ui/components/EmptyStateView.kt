@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Inventory2
-import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,9 +28,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 
@@ -44,7 +44,10 @@ fun EmptyStateView(
     onAction: (() -> Unit)? = null,
 ) {
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .semantics(mergeDescendants = true) {},
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -75,7 +78,6 @@ fun EmptyStateView(
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
         )
 
@@ -89,9 +91,9 @@ fun EmptyStateView(
         )
 
         if (actionLabel != null && onAction != null) {
-            Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
+            Spacer(modifier = Modifier.height(AppDimensions.largePadding))
 
-            Button(onClick = onAction) {
+            FilledTonalButton(onClick = onAction) {
                 Text(text = actionLabel)
             }
         }
@@ -132,7 +134,7 @@ private fun PulsingDot(
     Box(
         modifier =
             Modifier
-                .size(6.dp)
+                .size(AppDimensions.emptyStateDotSize)
                 .alpha(alpha)
                 .background(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

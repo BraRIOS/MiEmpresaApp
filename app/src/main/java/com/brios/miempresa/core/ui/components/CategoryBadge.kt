@@ -1,22 +1,19 @@
 package com.brios.miempresa.core.ui.components
 
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 
@@ -27,30 +24,33 @@ fun CategoryBadge(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
 ) {
-    val shape = RoundedCornerShape(AppDimensions.smallCornerRadius)
+    val shape = remember { RoundedCornerShape(AppDimensions.smallCornerRadius) }
+
     Surface(
-        modifier =
-            modifier
-                .border(
-                    width = AppDimensions.smallBorderWidth,
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    shape = shape,
-                )
-                .then(
-                    if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
-                ),
+        onClick = onClick ?: {},
+        enabled = onClick != null,
+        modifier = modifier,
         shape = shape,
         color = Color.Transparent,
+        border =
+            BorderStroke(
+                width = AppDimensions.smallBorderWidth,
+                color = MaterialTheme.colorScheme.outlineVariant,
+            ),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            modifier =
+                Modifier.padding(
+                    horizontal = AppDimensions.smallPadding,
+                    vertical = AppDimensions.extraSmallPadding,
+                ),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
         ) {
             Text(
                 text = emoji,
-                fontSize = 14.sp,
+                style = MaterialTheme.typography.labelLarge,
             )
-            Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = name,
                 style = MaterialTheme.typography.bodySmall,
@@ -60,14 +60,25 @@ fun CategoryBadge(
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun CategoryBadgePreview() {
     MiEmpresaTheme {
         CategoryBadge(
-            emoji = "🍕",
+            emoji = "\uD83C\uDF55",
             name = "Pizzas",
             onClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun CategoryBadgeNoClickPreview() {
+    MiEmpresaTheme {
+        CategoryBadge(
+            emoji = "\uD83C\uDF55",
+            name = "Pizzas",
         )
     }
 }

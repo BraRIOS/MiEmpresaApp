@@ -32,6 +32,12 @@ object AppDimensions {
     // Bottom sheet
     val bottomSheetPeekHeight = 400.dp
 
+    // Component-specific
+    val itemCardImageSize = 80.dp
+    val quantitySelectorMinWidth = 40.dp
+    val emptyStateDotSize = 6.dp
+    val smallIconSize = 20.dp
+
     // Screen-specific
     object SignInScreen {
         val topPadding = 80.dp

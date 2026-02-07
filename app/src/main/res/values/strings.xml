@@ -111,6 +111,9 @@
     <string name="welcome_admin_button">Gestionar mi empresa</string>
     <string name="welcome_client_button">Explorar catálogos</string>
 
+    <!-- Company avatar -->
+    <string name="company_logo">Logo de %1$s</string>
+
     <!-- Offline banner -->
     <string name="offline_banner_message">Sin conexión. Viendo catálogo guardado.</string>
 
@@ -123,4 +126,37 @@
     <string name="delete_item">Eliminar</string>
     <string name="toggle_visibility">Cambiar visibilidad</string>
     <string name="dismiss">Cerrar</string>
+
+    <!-- Onboarding wizard -->
+    <string name="onboarding_hero">Empecemos con lo básico</string>
+    <string name="onboarding_company_name_hint">Nombre de tu empresa</string>
+    <string name="onboarding_whatsapp_hint">Número de WhatsApp</string>
+    <string name="onboarding_whatsapp_helper">Se usará para que tus clientes te contacten</string>
+    <string name="onboarding_specialization_hint">Especialización (opcional)</string>
+    <string name="onboarding_specialization_helper">Ayuda a clientes a identificarte</string>
+    <string name="onboarding_logo_title">Logo de empresa</string>
+    <string name="onboarding_logo_recommended">RECOMENDADO</string>
+    <string name="onboarding_logo_open_gallery">Abrir Galería</string>
+    <string name="onboarding_details_title">Detalles adicionales</string>
+    <string name="onboarding_address_hint">Dirección (opcional)</string>
+    <string name="onboarding_hours_hint">Horarios (opcional)</string>
+    <string name="onboarding_continue">Continuar</string>
+    <string name="onboarding_name_required">El nombre es obligatorio</string>
+    <string name="onboarding_whatsapp_invalid">Número de WhatsApp inválido</string>
+    <string name="workspace_title">Preparando tu Espacio de Trabajo</string>
+    <string name="workspace_in_progress">EN PROGRESO</string>
+    <string name="workspace_step_folder">Creando carpeta en Drive</string>
+    <string name="workspace_step_logo">Subiendo logo</string>
+    <string name="workspace_step_private_sheet">Creando hoja privada</string>
+    <string name="workspace_step_public_sheet">Creando hoja pública</string>
+    <string name="workspace_step_images_folder">Creando carpeta de imágenes</string>
+    <string name="workspace_step_save_config">Guardando configuración</string>
+    <string name="workspace_step_processing">Procesando…</string>
+    <string name="workspace_step_completed">Completado</string>
+    <string name="workspace_step_pending">Pendiente</string>
+    <string name="workspace_error_title">Error al crear workspace</string>
+    <string name="workspace_error_retry">Reintentar</string>
+    <string name="onboarding_success_title">¡Tu espacio está listo!</string>
+    <string name="onboarding_success_subtitle">%1$s ya está configurado</string>
+    <string name="onboarding_success_cta">Empezar a gestionar</string>
 </resources>

@@ -36,6 +36,7 @@ import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Sms
 import androidx.compose.material.icons.outlined.Store
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -44,6 +45,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -93,6 +95,7 @@ fun CompanyFormStep(
     modifier: Modifier = Modifier,
 ) {
     var detailsExpanded by rememberSaveable { mutableStateOf(false) }
+    var showCancelDialog by rememberSaveable { mutableStateOf(false) }
 
     val logoInteractionSource = remember { MutableInteractionSource() }
     val isLogoPressed by logoInteractionSource.collectIsPressedAsState()
@@ -125,7 +128,7 @@ fun CompanyFormStep(
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = SlateGray500,
-                modifier = Modifier.clickable(onClick = onCancel),
+                modifier = Modifier.clickable { showCancelDialog = true },
             )
         }
 
@@ -449,6 +452,27 @@ fun CompanyFormStep(
         }
 
         Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
+
+        if (showCancelDialog) {
+            AlertDialog(
+                onDismissRequest = { showCancelDialog = false },
+                title = { Text(stringResource(R.string.onboarding_cancel_dialog_title)) },
+                text = { Text(stringResource(R.string.onboarding_cancel_dialog_message)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showCancelDialog = false
+                        onCancel()
+                    }) {
+                        Text(stringResource(R.string.onboarding_cancel_dialog_confirm))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showCancelDialog = false }) {
+                        Text(stringResource(R.string.onboarding_cancel_dialog_dismiss))
+                    }
+                },
+            )
+        }
     }
 }
 

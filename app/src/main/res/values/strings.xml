@@ -142,6 +142,10 @@
     <!-- Onboarding wizard -->
     <string name="onboarding_hero">Empecemos con lo básico</string>
     <string name="onboarding_cancel">Cancelar</string>
+    <string name="onboarding_cancel_dialog_title">¿Salir del registro?</string>
+    <string name="onboarding_cancel_dialog_message">Los datos ingresados no se guardarán.</string>
+    <string name="onboarding_cancel_dialog_confirm">Salir</string>
+    <string name="onboarding_cancel_dialog_dismiss">Continuar editando</string>
     <string name="onboarding_step_indicator">Paso %1$d de %2$d</string>
     <string name="onboarding_step1_title_line1">Empecemos con</string>
     <string name="onboarding_step1_title_line2">lo básico</string>

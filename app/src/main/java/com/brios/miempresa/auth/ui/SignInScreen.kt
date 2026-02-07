@@ -124,7 +124,8 @@ fun SignInScreen(
             Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
             Text(
                 text = stringResource(id = R.string.sign_in_with_google),
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }

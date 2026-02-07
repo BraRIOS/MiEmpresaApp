@@ -94,7 +94,7 @@ fun WelcomeScreen(
             onClick = onNavigateToSignIn,
         )
 
-        Spacer(modifier = Modifier.height(AppDimensions.mediumSmallPadding))
+        Spacer(modifier = Modifier.height(AppDimensions.mediumLargePadding))
 
         WelcomeActionCard(
             icon = Icons.Outlined.Search,

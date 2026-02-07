@@ -37,7 +37,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -56,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import coil.compose.AsyncImage
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.SuccessGreen
 import com.brios.miempresa.onboarding.ui.OnboardingFormState
 
 @Composable
@@ -151,96 +151,106 @@ fun CompanyFormStep(
                 shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
             ) {
                 Column(
-                    modifier = Modifier.padding(AppDimensions.mediumPadding),
-                    verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
+                    modifier = Modifier.padding(AppDimensions.mediumLargePadding),
+                    verticalArrangement = Arrangement.spacedBy(AppDimensions.largePadding),
                 ) {
-                    // Company name label
-                    Text(
-                        text = stringResource(R.string.label_company_name),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    OutlinedTextField(
-                        value = form.companyName,
-                        onValueChange = onUpdateName,
-                        placeholder = {
-                            Text(stringResource(R.string.placeholder_company_name))
-                        },
-                        leadingIcon = {
-                            Icon(Icons.Outlined.Store, contentDescription = null)
-                        },
-                        isError = form.companyNameError != null,
-                        supportingText =
-                            form.companyNameError?.let {
-                                { Text(stringResource(R.string.onboarding_name_required)) }
-                            },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-
-                    Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
-
-                    // WhatsApp label
-                    Text(
-                        text = stringResource(R.string.label_whatsapp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    // WhatsApp: country code + number
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
-                        verticalAlignment = Alignment.Top,
-                    ) {
-                        CountryCodeDropdown(
-                            selectedCode = form.whatsappCountryCode,
-                            onCodeSelected = onUpdateCountryCode,
+                    // Company name field group
+                    Column {
+                        Text(
+                            text = stringResource(R.string.label_company_name),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = AppDimensions.extraSmallPadding, bottom = AppDimensions.smallPadding),
                         )
-
                         OutlinedTextField(
-                            value = form.whatsappNumber,
-                            onValueChange = onUpdateWhatsapp,
+                            value = form.companyName,
+                            onValueChange = onUpdateName,
                             placeholder = {
-                                Text(stringResource(R.string.placeholder_whatsapp))
+                                Text(stringResource(R.string.placeholder_company_name))
                             },
                             leadingIcon = {
-                                Icon(Icons.Outlined.Sms, contentDescription = null)
+                                Icon(Icons.Outlined.Store, contentDescription = null)
                             },
-                            isError = form.whatsappError != null,
+                            isError = form.companyNameError != null,
                             supportingText =
-                                if (form.whatsappError != null) {
-                                    { Text(stringResource(R.string.onboarding_whatsapp_invalid)) }
-                                } else {
-                                    { Text(stringResource(R.string.onboarding_whatsapp_helper)) }
+                                form.companyNameError?.let {
+                                    { Text(stringResource(R.string.onboarding_name_required)) }
                                 },
                             singleLine = true,
-                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
+                    // WhatsApp field group
+                    Column {
+                        Text(
+                            text = stringResource(R.string.label_whatsapp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = AppDimensions.extraSmallPadding, bottom = AppDimensions.smallPadding),
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumSmallPadding),
+                            verticalAlignment = Alignment.Top,
+                        ) {
+                            CountryCodeDropdown(
+                                selectedCode = form.whatsappCountryCode,
+                                onCodeSelected = onUpdateCountryCode,
+                            )
 
-                    // Specialization label
-                    Text(
-                        text = stringResource(R.string.label_specialization),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    OutlinedTextField(
-                        value = form.specialization,
-                        onValueChange = onUpdateSpecialization,
-                        placeholder = {
-                            Text(stringResource(R.string.placeholder_specialization))
-                        },
-                        leadingIcon = {
-                            Icon(Icons.Outlined.Category, contentDescription = null)
-                        },
-                        supportingText = {
-                            Text(stringResource(R.string.onboarding_specialization_helper))
-                        },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                            OutlinedTextField(
+                                value = form.whatsappNumber,
+                                onValueChange = onUpdateWhatsapp,
+                                placeholder = {
+                                    Text(stringResource(R.string.placeholder_whatsapp))
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Outlined.Sms, contentDescription = null)
+                                },
+                                isError = form.whatsappError != null,
+                                supportingText =
+                                    if (form.whatsappError != null) {
+                                        { Text(stringResource(R.string.onboarding_whatsapp_invalid)) }
+                                    } else {
+                                        { Text(stringResource(R.string.onboarding_whatsapp_helper)) }
+                                    },
+                                singleLine = true,
+                                shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+
+                    // Specialization field group
+                    Column {
+                        Text(
+                            text = stringResource(R.string.label_specialization),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = AppDimensions.extraSmallPadding, bottom = AppDimensions.smallPadding),
+                        )
+                        OutlinedTextField(
+                            value = form.specialization,
+                            onValueChange = onUpdateSpecialization,
+                            placeholder = {
+                                Text(stringResource(R.string.placeholder_specialization))
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Outlined.Category, contentDescription = null)
+                            },
+                            supportingText = {
+                                Text(stringResource(R.string.onboarding_specialization_helper))
+                            },
+                            singleLine = true,
+                            shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
             }
 
@@ -256,29 +266,44 @@ fun CompanyFormStep(
                 shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
             ) {
                 Column(
-                    modifier = Modifier.padding(AppDimensions.mediumPadding),
-                    verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumSmallPadding),
+                    modifier = Modifier.padding(AppDimensions.mediumLargePadding),
                 ) {
                     Row(
+                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(
                             text = stringResource(R.string.label_logo),
                             style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = AppDimensions.extraSmallPadding),
                         )
                         Text(
                             text = stringResource(R.string.onboarding_logo_recommended),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
+                            color = SuccessGreen,
+                            modifier =
+                                Modifier
+                                    .background(
+                                        color = SuccessGreen.copy(alpha = 0.1f),
+                                        shape = RoundedCornerShape(AppDimensions.extraSmallPadding),
+                                    )
+                                    .padding(
+                                        horizontal = AppDimensions.smallPadding,
+                                        vertical = AppDimensions.extraSmallPadding,
+                                    ),
                         )
                     }
 
-                    Row(
+                    Spacer(modifier = Modifier.height(AppDimensions.largePadding))
+
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
                     ) {
                         // Logo preview
                         Box(
@@ -287,8 +312,8 @@ fun CompanyFormStep(
                                     .size(AppDimensions.itemCardImageSize)
                                     .clip(CircleShape)
                                     .border(
-                                        AppDimensions.smallBorderWidth,
-                                        MaterialTheme.colorScheme.outlineVariant,
+                                        AppDimensions.mediumBorderWidth,
+                                        MaterialTheme.colorScheme.surface,
                                         CircleShape,
                                     )
                                     .background(MaterialTheme.colorScheme.surfaceVariant),
@@ -303,19 +328,35 @@ fun CompanyFormStep(
                                     contentScale = ContentScale.Crop,
                                 )
                             } else {
-                                Icon(
-                                    imageVector = Icons.Outlined.Image,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(AppDimensions.mediumIconSize),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                val initials =
+                                    form.companyName
+                                        .split(" ")
+                                        .take(2)
+                                        .joinToString("") { it.firstOrNull()?.uppercase() ?: "" }
+                                        .ifEmpty { "?" }
+                                Text(
+                                    text = initials,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
 
                         OutlinedButton(
                             onClick = { imagePickerLauncher.launch("image/*") },
+                            shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
                         ) {
-                            Text(stringResource(R.string.onboarding_logo_open_gallery))
+                            Icon(
+                                imageVector = Icons.Outlined.Image,
+                                contentDescription = null,
+                                modifier = Modifier.size(AppDimensions.smallIconSize),
+                            )
+                            Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+                            Text(
+                                text = stringResource(R.string.onboarding_logo_open_gallery),
+                                fontWeight = FontWeight.Bold,
+                            )
                         }
                     }
                 }
@@ -332,48 +373,43 @@ fun CompanyFormStep(
                     ),
                 shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
             ) {
-                Column(
-                    modifier = Modifier.padding(AppDimensions.mediumPadding),
-                ) {
+                Column {
                     // Header row with "Opcional" badge
                     Row(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .clickable { detailsExpanded = !detailsExpanded },
+                                .clickable { detailsExpanded = !detailsExpanded }
+                                .padding(AppDimensions.mediumLargePadding),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
+                        Text(
+                            text = stringResource(R.string.additional_details),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement =
-                                Arrangement.spacedBy(AppDimensions.smallPadding),
+                            horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
                         ) {
-                            Text(
-                                text = stringResource(R.string.additional_details),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
                             Text(
                                 text = stringResource(R.string.optional_badge),
                                 style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier =
                                     Modifier
-                                        .border(
-                                            AppDimensions.smallBorderWidth,
-                                            MaterialTheme.colorScheme.outlineVariant,
-                                            RoundedCornerShape(AppDimensions.smallCornerRadius),
+                                        .background(
+                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                            shape = RoundedCornerShape(AppDimensions.extraSmallPadding),
                                         )
                                         .padding(
                                             horizontal = AppDimensions.smallPadding,
                                             vertical = AppDimensions.extraSmallPadding,
                                         ),
                             )
-                        }
-                        IconButton(
-                            onClick = { detailsExpanded = !detailsExpanded },
-                        ) {
                             Icon(
                                 imageVector =
                                     if (detailsExpanded) {
@@ -389,55 +425,65 @@ fun CompanyFormStep(
 
                     AnimatedVisibility(visible = detailsExpanded) {
                         Column(
-                            verticalArrangement =
-                                Arrangement.spacedBy(AppDimensions.extraSmallPadding),
-                            modifier = Modifier.padding(top = AppDimensions.smallPadding),
+                            verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumLargePadding),
+                            modifier =
+                                Modifier
+                                    .padding(horizontal = AppDimensions.mediumLargePadding)
+                                    .padding(bottom = AppDimensions.mediumLargePadding),
                         ) {
                             // Address
-                            Text(
-                                text = stringResource(R.string.label_address),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            OutlinedTextField(
-                                value = form.address,
-                                onValueChange = onUpdateAddress,
-                                placeholder = {
-                                    Text(stringResource(R.string.placeholder_address))
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Outlined.LocationOn,
-                                        contentDescription = null,
-                                    )
-                                },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-
-                            Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.label_address),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(start = AppDimensions.extraSmallPadding, bottom = AppDimensions.smallPadding),
+                                )
+                                OutlinedTextField(
+                                    value = form.address,
+                                    onValueChange = onUpdateAddress,
+                                    placeholder = {
+                                        Text(stringResource(R.string.placeholder_address))
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Outlined.LocationOn,
+                                            contentDescription = null,
+                                        )
+                                    },
+                                    singleLine = true,
+                                    shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            }
 
                             // Business hours
-                            Text(
-                                text = stringResource(R.string.label_hours),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            OutlinedTextField(
-                                value = form.businessHours,
-                                onValueChange = onUpdateBusinessHours,
-                                placeholder = {
-                                    Text(stringResource(R.string.placeholder_hours))
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Outlined.Schedule,
-                                        contentDescription = null,
-                                    )
-                                },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.label_hours),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(start = AppDimensions.extraSmallPadding, bottom = AppDimensions.smallPadding),
+                                )
+                                OutlinedTextField(
+                                    value = form.businessHours,
+                                    onValueChange = onUpdateBusinessHours,
+                                    placeholder = {
+                                        Text(stringResource(R.string.placeholder_hours))
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Outlined.Schedule,
+                                            contentDescription = null,
+                                        )
+                                    },
+                                    singleLine = true,
+                                    shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            }
                         }
                     }
                 }

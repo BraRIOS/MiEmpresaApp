@@ -22,6 +22,14 @@ class OnboardingViewModel
     constructor(
         private val repository: OnboardingRepositoryImpl,
     ) : ViewModel() {
+        companion object {
+            const val MAX_COMPANY_NAME = 50
+            const val MAX_WHATSAPP_NUMBER = 15
+            const val MAX_SPECIALIZATION = 30
+            const val MAX_ADDRESS = 100
+            const val MAX_BUSINESS_HOURS = 50
+        }
+
         private val _uiState = MutableStateFlow<OnboardingUiState>(OnboardingUiState.Loading)
         val uiState: StateFlow<OnboardingUiState> = _uiState.asStateFlow()
 
@@ -55,7 +63,7 @@ class OnboardingViewModel
         fun updateCompanyName(name: String) {
             formState =
                 formState.copy(
-                    companyName = name,
+                    companyName = name.take(MAX_COMPANY_NAME),
                     companyNameError = null,
                 )
             _uiState.value = OnboardingUiState.WizardStep1(formState)
@@ -69,14 +77,14 @@ class OnboardingViewModel
         fun updateWhatsappNumber(number: String) {
             formState =
                 formState.copy(
-                    whatsappNumber = number,
+                    whatsappNumber = number.take(MAX_WHATSAPP_NUMBER),
                     whatsappError = null,
                 )
             _uiState.value = OnboardingUiState.WizardStep1(formState)
         }
 
         fun updateSpecialization(specialization: String) {
-            formState = formState.copy(specialization = specialization)
+            formState = formState.copy(specialization = specialization.take(MAX_SPECIALIZATION))
             _uiState.value = OnboardingUiState.WizardStep1(formState)
         }
 
@@ -86,12 +94,12 @@ class OnboardingViewModel
         }
 
         fun updateAddress(address: String) {
-            formState = formState.copy(address = address)
+            formState = formState.copy(address = address.take(MAX_ADDRESS))
             _uiState.value = OnboardingUiState.WizardStep1(formState)
         }
 
         fun updateBusinessHours(hours: String) {
-            formState = formState.copy(businessHours = hours)
+            formState = formState.copy(businessHours = hours.take(MAX_BUSINESS_HOURS))
             _uiState.value = OnboardingUiState.WizardStep1(formState)
         }
 
@@ -179,12 +187,12 @@ class OnboardingViewModel
             var hasErrors = false
 
             if (formState.companyName.isBlank()) {
-                formState = formState.copy(companyNameError = "Company name is required")
+                formState = formState.copy(companyNameError = "required")
                 hasErrors = true
             }
 
-            if (!formState.whatsappNumber.replace("-", "").matches(Regex("^\\d{6,15}$"))) {
-                formState = formState.copy(whatsappError = "Enter a valid phone number (6-15 digits)")
+            if (!formState.whatsappNumber.matches(Regex("^\\d{6,15}$"))) {
+                formState = formState.copy(whatsappError = "invalid")
                 hasErrors = true
             }
 

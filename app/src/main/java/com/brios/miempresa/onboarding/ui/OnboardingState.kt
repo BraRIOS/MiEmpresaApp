@@ -12,7 +12,7 @@ data class OnboardingFormState(
     val whatsappError: String? = null,
 ) {
     val isFormValid: Boolean
-        get() = companyName.isNotBlank() && whatsappNumber.replace("-", "").matches(Regex("^\\d{6,15}$"))
+        get() = companyName.isNotBlank() && whatsappNumber.matches(Regex("^\\d{6,15}$"))
 }
 
 sealed class OnboardingUiState {

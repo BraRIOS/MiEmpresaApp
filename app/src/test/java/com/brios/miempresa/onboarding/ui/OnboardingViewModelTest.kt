@@ -132,6 +132,35 @@ class OnboardingFormStateTest {
     }
 
     @Test
+    fun `form truncates company name at 50 chars`() {
+        val longName = "A".repeat(60)
+        val form = OnboardingFormState(companyName = longName.take(50), whatsappNumber = "123456")
+        assertEquals(50, form.companyName.length)
+        assertTrue(form.isFormValid)
+    }
+
+    @Test
+    fun `form truncates whatsapp at 15 chars`() {
+        val longNumber = "1".repeat(20)
+        val form = OnboardingFormState(companyName = "Test", whatsappNumber = longNumber.take(15))
+        assertEquals(15, form.whatsappNumber.length)
+        assertTrue(form.isFormValid)
+    }
+
+    @Test
+    fun `form truncates specialization at 30 chars`() {
+        val longSpec = "A".repeat(40)
+        val form = OnboardingFormState(companyName = "Test", whatsappNumber = "123456", specialization = longSpec.take(30))
+        assertEquals(30, form.specialization.length)
+    }
+
+    @Test
+    fun `form is valid without dashes in whatsapp`() {
+        val form = OnboardingFormState(companyName = "Test", whatsappNumber = "1234567890")
+        assertTrue(form.isFormValid)
+    }
+
+    @Test
     fun `form validity ignores optional fields`() {
         val formWithout =
             OnboardingFormState(

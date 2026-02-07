@@ -114,6 +114,7 @@ fun NavHostComposable(
             )
         }
         composable(route = MiEmpresaScreen.Onboarding.name) {
+            val activity = LocalContext.current as Activity
             OnboardingScreen(
                 onNavigateToHome = {
                     navController.navigate(MiEmpresaScreen.Products.name) {
@@ -121,6 +122,7 @@ fun NavHostComposable(
                     }
                 },
                 onNavigateBack = {
+                    signInViewModel.signOut(activity)
                     navController.navigate(MiEmpresaScreen.Welcome.name) {
                         popUpTo(0) { inclusive = true }
                     }

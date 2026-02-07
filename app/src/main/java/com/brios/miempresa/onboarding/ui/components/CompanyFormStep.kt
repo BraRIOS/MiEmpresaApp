@@ -41,12 +41,16 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RippleConfiguration
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,6 +84,7 @@ import com.brios.miempresa.onboarding.ui.OnboardingFormState
 private val cardShape = RoundedCornerShape(AppDimensions.mediumCornerRadius)
 private val cardBorder = BorderStroke(1.dp, SlateGray100)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CompanyFormStep(
     form: OnboardingFormState,
@@ -104,7 +109,7 @@ fun CompanyFormStep(
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.GetContent(),
         ) { uri: Uri? ->
-            onUpdateLogoUri(uri?.toString())
+            uri?.toString()?.let { onUpdateLogoUri(it) }
         }
 
     Column(
@@ -311,28 +316,36 @@ fun CompanyFormStep(
                             size = AppDimensions.itemCardImageSize,
                         )
 
-                        OutlinedButton(
-                            onClick = { imagePickerLauncher.launch("image/*") },
-                            shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
-                            border = BorderStroke(1.dp, SlateGray200),
-                            interactionSource = logoInteractionSource,
-                            colors =
-                                ButtonDefaults.outlinedButtonColors(
-                                    containerColor = if (isLogoPressed) MaterialTheme.colorScheme.background else Color.Transparent,
-                                ),
+                        val backgroundRipple =
+                            RippleConfiguration(
+                                color = MaterialTheme.colorScheme.background,
+                            )
+                        CompositionLocalProvider(
+                            LocalRippleConfiguration provides backgroundRipple,
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.CameraAlt,
-                                contentDescription = null,
-                                modifier = Modifier.size(AppDimensions.smallIconSize),
-                                tint = if (isLogoPressed) MaterialTheme.colorScheme.primary else SlateGray500,
-                            )
-                            Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
-                            Text(
-                                text = stringResource(R.string.onboarding_logo_open_gallery),
-                                fontWeight = FontWeight.Bold,
-                                color = SlateGray700,
-                            )
+                            OutlinedButton(
+                                onClick = { imagePickerLauncher.launch("image/*") },
+                                shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                                border = BorderStroke(1.dp, SlateGray200),
+                                interactionSource = logoInteractionSource,
+                                colors =
+                                    ButtonDefaults.outlinedButtonColors(
+                                        containerColor = if (isLogoPressed) MaterialTheme.colorScheme.background else Color.Transparent,
+                                    ),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.CameraAlt,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(AppDimensions.smallIconSize),
+                                    tint = if (isLogoPressed) MaterialTheme.colorScheme.primary else SlateGray500,
+                                )
+                                Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+                                Text(
+                                    text = stringResource(R.string.onboarding_logo_open_gallery),
+                                    fontWeight = FontWeight.Bold,
+                                    color = SlateGray700,
+                                )
+                            }
                         }
                     }
                 }
@@ -458,6 +471,8 @@ fun CompanyFormStep(
                 onDismissRequest = { showCancelDialog = false },
                 title = { Text(stringResource(R.string.onboarding_cancel_dialog_title)) },
                 text = { Text(stringResource(R.string.onboarding_cancel_dialog_message)) },
+                titleContentColor = MaterialTheme.colorScheme.onBackground,
+                containerColor = MaterialTheme.colorScheme.background,
                 confirmButton = {
                     TextButton(onClick = {
                         showCancelDialog = false
@@ -476,6 +491,7 @@ fun CompanyFormStep(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, device = Devices.PIXEL_7_PRO)
 @Composable
 fun CompanyFormStepPreview() {

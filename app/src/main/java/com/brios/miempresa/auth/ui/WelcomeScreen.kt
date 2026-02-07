@@ -2,20 +2,18 @@ package com.brios.miempresa.auth.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -42,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
@@ -57,7 +56,6 @@ fun WelcomeScreen(
             modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .windowInsetsPadding(WindowInsets.safeContent)
                 .padding(horizontal = AppDimensions.largePadding),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -76,7 +74,7 @@ fun WelcomeScreen(
 
         Text(
             text = stringResource(R.string.welcome_tagline),
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -84,32 +82,35 @@ fun WelcomeScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
+        // Admin card — primary bg
         WelcomeActionCard(
             icon = Icons.Outlined.Storefront,
             title = stringResource(R.string.welcome_admin_button),
             subtitle = stringResource(R.string.welcome_admin_subtitle),
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
-            iconCircleColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
+            iconCircleColor = Color.White.copy(alpha = 0.2f),
             onClick = onNavigateToSignIn,
         )
 
         Spacer(modifier = Modifier.height(AppDimensions.mediumLargePadding))
 
+        // Explore card — white bg, outlined border
         WelcomeActionCard(
             icon = Icons.Outlined.Search,
             title = stringResource(R.string.welcome_client_button),
             subtitle = stringResource(R.string.welcome_client_subtitle),
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
-            iconCircleColor = MaterialTheme.colorScheme.primary,
-            iconTint = MaterialTheme.colorScheme.onPrimary,
-            arrowTint = MaterialTheme.colorScheme.onSurfaceVariant,
+            iconCircleColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            iconTint = MaterialTheme.colorScheme.primary,
+            arrowTint = MaterialTheme.colorScheme.outlineVariant,
             subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            hasBorder = true,
             onClick = onNavigateToMyStores,
         )
 
-        Spacer(modifier = Modifier.height(AppDimensions.largePadding))
+        Spacer(modifier = Modifier.height(AppDimensions.extraLargePadding))
 
         Text(
             text =
@@ -124,7 +125,7 @@ fun WelcomeScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
         )
 
-        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
+        Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
     }
 }
 
@@ -141,15 +142,35 @@ private fun WelcomeActionCard(
     iconTint: Color = contentColor,
     arrowTint: Color = contentColor.copy(alpha = 0.7f),
     subtitleColor: Color = contentColor.copy(alpha = 0.8f),
+    hasBorder: Boolean = false,
 ) {
+    val cardModifier =
+        if (hasBorder) {
+            modifier
+                .fillMaxWidth()
+                .border(
+                    width = AppDimensions.smallBorderWidth,
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                    shape = RoundedCornerShape(AppDimensions.WelcomeScreen.actionCardCornerRadius),
+                )
+        } else {
+            modifier.fillMaxWidth()
+        }
+
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = cardModifier,
         shape = RoundedCornerShape(AppDimensions.WelcomeScreen.actionCardCornerRadius),
         colors =
             CardDefaults.cardColors(
                 containerColor = containerColor,
                 contentColor = contentColor,
             ),
+        elevation =
+            if (hasBorder) {
+                CardDefaults.cardElevation(defaultElevation = 0.dp)
+            } else {
+                CardDefaults.cardElevation()
+            },
     ) {
         Row(
             modifier =
@@ -160,35 +181,41 @@ private fun WelcomeActionCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
         ) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(AppDimensions.WelcomeScreen.actionCardIconContainerSize)
-                        .clip(RoundedCornerShape(AppDimensions.WelcomeScreen.actionCardIconCornerRadius))
-                        .background(iconCircleColor),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconTint,
-                    modifier = Modifier.size(AppDimensions.defaultIconSize),
-                )
-            }
+            Column {
+                Box(
+                    modifier =
+                        Modifier
+                            .size(AppDimensions.WelcomeScreen.actionCardIconContainerSize)
+                            .clip(RoundedCornerShape(AppDimensions.WelcomeScreen.actionCardIconCornerRadius))
+                            .background(iconCircleColor),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = iconTint,
+                        modifier = Modifier.size(AppDimensions.defaultIconSize),
+                    )
+                }
 
-            Column(modifier = Modifier.weight(1f)) {
+                Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
+
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = contentColor,
                 )
+                Spacer(modifier = Modifier.height(AppDimensions.extraSmallPadding))
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
                     color = subtitleColor,
                 )
             }
+
+            Spacer(modifier = Modifier.weight(1f))
 
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.ArrowForward,

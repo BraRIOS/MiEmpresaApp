@@ -22,6 +22,7 @@ object AppDimensions {
 
     // Corners
     val smallCornerRadius = 8.dp
+    val inputCornerRadius = 12.dp
     val mediumCornerRadius = 16.dp
     val largeCornerRadius = 24.dp
 
@@ -40,11 +41,8 @@ object AppDimensions {
 
     // Screen-specific
     object SignInScreen {
-        val topPadding = 80.dp
-        val logoSize = 120.dp
-        val logoCornerRadius = 24.dp
+        val logoSize = 140.dp
         val googleButtonHeight = 56.dp
-        val spaceBetweenLogoAndSignInButton = 80.dp
     }
 
     object Drawer {

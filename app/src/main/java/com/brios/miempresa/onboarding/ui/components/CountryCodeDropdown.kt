@@ -9,6 +9,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,8 +17,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
+import com.brios.miempresa.core.ui.theme.SlateGray200
 
 data class CountryCode(val emoji: String, val code: String, val name: String)
 
@@ -50,7 +54,7 @@ fun CountryCodeDropdown(
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = it },
-        modifier = modifier.width(100.dp),
+        modifier = modifier.width(115.dp),
     ) {
         OutlinedTextField(
             value = "${selected.emoji} ${selected.code}",
@@ -58,7 +62,11 @@ fun CountryCodeDropdown(
             readOnly = true,
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyMedium,
-            shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
+            shape = RoundedCornerShape(AppDimensions.inputCornerRadius),
+            colors =
+                OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = SlateGray200,
+                ),
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
         )
@@ -82,5 +90,16 @@ fun CountryCodeDropdown(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun OnboardingScreenPreview() {
+    MiEmpresaTheme {
+        CountryCodeDropdown(
+            selectedCode = "+54",
+            onCodeSelected = {},
+        )
     }
 }

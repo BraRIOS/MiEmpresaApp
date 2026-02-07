@@ -111,8 +111,6 @@
     <string name="privacy_emphasis">no a tus otros documentos.</string>
     <string name="sign_in_terms_prefix">Al continuar, aceptas nuestros </string>
     <string name="sign_in_terms">Términos y Condiciones</string>
-    <string name="sign_in_privacy_policy">Política de Privacidad</string>
-    <string name="sign_in_and"> y la </string>
     <string name="google_icon">Google</string>
 
     <!-- Welcome screen -->
@@ -156,6 +154,7 @@
     <string name="onboarding_logo_title">Logo de empresa</string>
     <string name="onboarding_logo_recommended">RECOMENDADO</string>
     <string name="onboarding_logo_open_gallery">Subir logo</string>
+    <string name="onboarding_logo_hint">JPG o PNG, máximo 5MB</string>
     <string name="onboarding_details_title">Detalles adicionales</string>
     <string name="onboarding_address_hint">Dirección (opcional)</string>
     <string name="onboarding_hours_hint">Horarios (opcional)</string>

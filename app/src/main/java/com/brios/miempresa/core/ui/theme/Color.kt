@@ -24,7 +24,7 @@ val onBackgroundLight = Color(0xFF221A14)
 val surfaceLight = Color(0xFFFFF8F5)
 val onSurfaceLight = Color(0xFF221A14)
 val surfaceVariantLight = Color(0xFFF3DFD2)
-val onSurfaceVariantLight = Color(0xFF51443B)
+val onSurfaceVariantLight = Color(0xFF726054)
 val outlineLight = Color(0xFF84746A)
 val outlineVariantLight = Color(0xFFD6C3B7)
 val scrimLight = Color(0xFF000000)
@@ -47,3 +47,13 @@ val OfflineBannerYellow = Color(0xFFFFF3CD)
 val OnOfflineBannerYellow = Color(0xFF856404)
 val PlaceholderBG = Color(0xFF919191)
 val OnPlaceholderBG = Color(0xFF575757)
+
+// Neutral grays (Stitch slate equivalents — avoids M3 orange-tinted surfaceVariant)
+val SlateGray50 = Color(0xFFF8FAFC) // bg-slate-50: subtle field backgrounds
+val SlateGray100 = Color(0xFFF1F5F9) // bg-slate-100: icon container backgrounds
+val SlateGray200 = Color(0xFFE2E8F0) // border-slate-200: card/field borders
+val SlateGray300 = Color(0xFFCBD5E1) // text-slate-300: muted arrows
+val SlateGray400 = Color(0xFF94A3B8) // text-slate-400: helper text, placeholders
+val SlateGray500 = Color(0xFF64748B) // text-slate-500: labels, secondary text
+val SlateGray700 = Color(0xFF334155) // text-slate-700: card titles, button text
+val RequiredRed = Color(0xFFEF4444) // text-red-500: required asterisks

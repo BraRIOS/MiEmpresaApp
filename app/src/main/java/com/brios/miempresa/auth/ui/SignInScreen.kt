@@ -22,7 +22,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,10 +36,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 
 @Composable
 fun SignInScreen(
@@ -67,20 +67,14 @@ fun SignInScreen(
     ) {
         Spacer(modifier = Modifier.weight(0.3f))
 
-        Surface(
-            shape = RoundedCornerShape(AppDimensions.SignInScreen.logoCornerRadius),
-            color = MaterialTheme.colorScheme.surfaceContainerLowest,
-            tonalElevation = 2.dp,
-        ) {
-            Image(
-                modifier =
-                    Modifier
-                        .size(AppDimensions.SignInScreen.logoSize)
-                        .padding(AppDimensions.mediumPadding),
-                painter = painterResource(id = R.drawable.miempresa_logo_round),
-                contentDescription = stringResource(id = R.string.app_logo),
-            )
-        }
+        Image(
+            modifier =
+                Modifier
+                    .size(AppDimensions.SignInScreen.logoSize)
+                    .padding(AppDimensions.mediumPadding),
+            painter = painterResource(id = R.drawable.miempresa_logo_round),
+            contentDescription = stringResource(id = R.string.app_logo),
+        )
 
         Spacer(modifier = Modifier.height(AppDimensions.largePadding))
 
@@ -167,12 +161,12 @@ fun SignInScreen(
                                     fontWeight = FontWeight.Bold,
                                 ),
                             ) {
-                                append(stringResource(id = R.string.privacy_first))
+                                append("${stringResource(id = R.string.privacy_first)} ")
                             }
                             withStyle(
                                 SpanStyle(color = MaterialTheme.colorScheme.onSurface),
                             ) {
-                                append(stringResource(id = R.string.privacy_body))
+                                append("${stringResource(id = R.string.privacy_body)} ")
                             }
                             withStyle(
                                 SpanStyle(
@@ -201,17 +195,7 @@ fun SignInScreen(
                     withStyle(
                         SpanStyle(color = MaterialTheme.colorScheme.primary),
                     ) {
-                        append(stringResource(id = R.string.sign_in_terms))
-                    }
-                    withStyle(
-                        SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant),
-                    ) {
-                        append(stringResource(id = R.string.sign_in_and))
-                    }
-                    withStyle(
-                        SpanStyle(color = MaterialTheme.colorScheme.primary),
-                    ) {
-                        append(stringResource(id = R.string.sign_in_privacy_policy))
+                        append(" ${stringResource(id = R.string.sign_in_terms)}")
                     }
                     withStyle(
                         SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant),
@@ -227,11 +211,13 @@ fun SignInScreen(
     }
 }
 
-@Preview
+@Preview(showBackground = true, device = Devices.PIXEL_7_PRO)
 @Composable
 fun SignInScreenPreview() {
-    SignInScreen(
-        state = SignInState(),
-        onSignInClick = {},
-    )
+    MiEmpresaTheme {
+        SignInScreen(
+            state = SignInState(),
+            onSignInClick = {},
+        )
+    }
 }

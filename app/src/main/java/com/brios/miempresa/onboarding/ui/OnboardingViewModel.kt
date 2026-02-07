@@ -183,7 +183,7 @@ class OnboardingViewModel
                 hasErrors = true
             }
 
-            if (!formState.whatsappNumber.matches(Regex("^\\d{6,15}$"))) {
+            if (!formState.whatsappNumber.replace("-", "").matches(Regex("^\\d{6,15}$"))) {
                 formState = formState.copy(whatsappError = "Enter a valid phone number (6-15 digits)")
                 hasErrors = true
             }

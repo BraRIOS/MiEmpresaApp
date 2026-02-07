@@ -74,8 +74,8 @@ fun WelcomeScreen(
 
         Text(
             text = stringResource(R.string.welcome_tagline),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
@@ -110,7 +110,7 @@ fun WelcomeScreen(
             onClick = onNavigateToMyStores,
         )
 
-        Spacer(modifier = Modifier.height(AppDimensions.extraLargePadding))
+        Spacer(modifier = Modifier.weight(1f))
 
         Text(
             text =

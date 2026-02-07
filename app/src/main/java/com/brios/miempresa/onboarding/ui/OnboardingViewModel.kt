@@ -118,17 +118,18 @@ class OnboardingViewModel
                 )
 
             viewModelScope.launch {
-                launch {
-                    repository.stepProgress.collect { step ->
-                        _uiState.value =
-                            OnboardingUiState.WizardStep2(
-                                completedSteps = step.displayOrder - 1,
-                                currentStep = step.name,
-                                totalSteps = totalSteps,
-                                hasLogo = hasLogo,
-                            )
+                val progressJob =
+                    launch {
+                        repository.stepProgress.collect { step ->
+                            _uiState.value =
+                                OnboardingUiState.WizardStep2(
+                                    completedSteps = step.displayOrder - 1,
+                                    currentStep = step.name,
+                                    totalSteps = totalSteps,
+                                    hasLogo = hasLogo,
+                                )
+                        }
                     }
-                }
 
                 val request =
                     WorkspaceSetupRequest(
@@ -143,13 +144,7 @@ class OnboardingViewModel
 
                 when (val result = repository.createWorkspace(request)) {
                     is WorkspaceCreationResult.Success -> {
-                        _uiState.value =
-                            OnboardingUiState.WizardStep2(
-                                completedSteps = totalSteps,
-                                currentStep = WorkspaceStep.SAVE_CONFIG.name,
-                                totalSteps = totalSteps,
-                                hasLogo = hasLogo,
-                            )
+                        progressJob.cancel()
                         _uiState.value =
                             OnboardingUiState.WizardStep3(
                                 companyName = formState.companyName.trim(),
@@ -159,6 +154,7 @@ class OnboardingViewModel
                             )
                     }
                     is WorkspaceCreationResult.Error -> {
+                        progressJob.cancel()
                         _uiState.value =
                             OnboardingUiState.WizardStep2(
                                 completedSteps = result.step.displayOrder - 1,

@@ -19,6 +19,19 @@ class OnboardingRepositoryImpl
         private val driveApi: DriveApi,
         private val companyDao: CompanyDao,
     ) : OnboardingRepository {
+        // TODO Sprint 3: Implement workspace validation for returning users (initializer-logic-extraction §2.1)
+        // - findMainFolder() → listFoldersInFolder() → findSpreadsheetInFolder()
+        // - Handle SpreadsheetNotFound with 4 recovery options (Retry/Create/Delete/SelectAnother)
+
+        // TODO Sprint 3: Implement Drive ↔ Room company sync for multi-device (initializer-logic-extraction §2.2)
+        // - Compare Drive folders with Room companies, insert new (selected=false), update name for selected only
+
+        // TODO Sprint 3: Distinguish Drive API error types (initializer-logic-extraction §4.1)
+        // - NotFound vs AuthError (UserRecoverableAuthIOException) vs NetworkError (currently all generic)
+
+        // TODO Sprint 3: Validate sheet structure after finding (initializer-logic-extraction §7.2)
+        // - Check Productos + Categorías sheets exist with correct headers
+
         private val _stepProgress = MutableSharedFlow<WorkspaceStep>(replay = 1)
         override val stepProgress: Flow<WorkspaceStep> = _stepProgress.asSharedFlow()
 

@@ -71,4 +71,8 @@ object AppDimensions {
     object QrCode {
         val size = 200.dp
     }
+
+    object WelcomeScreen {
+        val logoSize = 200.dp
+    }
 }

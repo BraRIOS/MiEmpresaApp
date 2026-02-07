@@ -10,7 +10,7 @@ import com.brios.miempresa.auth.domain.AuthRepository
 import com.brios.miempresa.auth.domain.AuthState
 import com.brios.miempresa.core.data.datastore.PreferencesKeys
 import com.brios.miempresa.core.data.datastore.removeValueFromDataStore
-import com.brios.miempresa.core.data.local.MiEmpresaDatabase
+import com.brios.miempresa.core.data.local.daos.CompanyDao
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -21,19 +21,28 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+sealed class PostAuthDestination {
+    data object Onboarding : PostAuthDestination()
+
+    data object Home : PostAuthDestination()
+
+    data object CompanySelector : PostAuthDestination()
+}
+
 @HiltViewModel
 class SignInViewModel
     @Inject
     constructor(
         @ApplicationContext private val context: Context,
         private val authRepository: AuthRepository,
+        private val companyDao: CompanyDao,
     ) : ViewModel() {
         private val _signInState = MutableStateFlow(SignInState())
         val signInStateFlow = _signInState.asStateFlow()
         private val _authState = MutableStateFlow<AuthState?>(null)
         val authStateFlow = _authState.asStateFlow()
-        private val miEmpresaDatabase = MiEmpresaDatabase.getDatabase(context)
-        private val companyDao = miEmpresaDatabase.companyDao()
+        private val _postAuthDestination = MutableStateFlow<PostAuthDestination?>(null)
+        val postAuthDestination = _postAuthDestination.asStateFlow()
 
         fun signIn(activity: Activity) =
             viewModelScope.launch {
@@ -55,8 +64,7 @@ class SignInViewModel
         fun signOut(activity: Activity) =
             viewModelScope.launch {
                 withContext(Dispatchers.IO) {
-                    val database = MiEmpresaDatabase.getDatabase(activity)
-                    database.companyDao().clear()
+                    companyDao.clear()
                     removeValueFromDataStore(activity, PreferencesKeys.SPREADSHEET_ID_KEY)
                     _authState.update { AuthState.Unauthorized }
                     authRepository.signOut(activity)
@@ -65,6 +73,18 @@ class SignInViewModel
 
         fun resetSignInState() {
             _signInState.update { SignInState() }
+        }
+
+        fun determinePostAuthDestination() {
+            viewModelScope.launch {
+                val count = companyDao.getOwnedCompanyCount()
+                _postAuthDestination.value =
+                    when {
+                        count == 0 -> PostAuthDestination.Onboarding
+                        count == 1 -> PostAuthDestination.Home
+                        else -> PostAuthDestination.Home
+                    }
+            }
         }
 
         fun authorizeDriveAndSheets(activity: Activity) =

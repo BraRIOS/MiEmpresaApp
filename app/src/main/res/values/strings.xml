@@ -101,6 +101,16 @@
     <string name="empty_state_cart">Tu carrito está vacío</string>
     <string name="empty_state_cart_subtitle">Agregá productos desde el catálogo</string>
 
+    <!-- Sign in screen -->
+    <string name="privacy_info">MiEmpresa solo accede a archivos que crea en tu Drive.\nTus otros documentos permanecen privados.</string>
+    <string name="sign_in_with_google">Iniciar sesión con Google</string>
+
+    <!-- Welcome screen -->
+    <string name="welcome_title">MiEmpresa</string>
+    <string name="welcome_tagline">Tu catálogo digital, simple y privado</string>
+    <string name="welcome_admin_button">Gestionar mi empresa</string>
+    <string name="welcome_client_button">Explorar catálogos</string>
+
     <!-- Offline banner -->
     <string name="offline_banner_message">Sin conexión. Viendo catálogo guardado.</string>
 

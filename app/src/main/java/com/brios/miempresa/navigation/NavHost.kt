@@ -120,6 +120,9 @@ fun NavHostComposable(
                         popUpTo(0) { inclusive = true }
                     }
                 },
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
             )
         }
         composable(route = MiEmpresaScreen.Products.name) {

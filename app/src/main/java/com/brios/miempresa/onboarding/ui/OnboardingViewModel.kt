@@ -145,6 +145,9 @@ class OnboardingViewModel
                         _uiState.value =
                             OnboardingUiState.WizardStep3(
                                 companyName = formState.companyName.trim(),
+                                whatsappCountryCode = formState.whatsappCountryCode,
+                                whatsappNumber = formState.whatsappNumber.trim(),
+                                logoUri = formState.logoUri,
                             )
                     }
                     is WorkspaceCreationResult.Error -> {

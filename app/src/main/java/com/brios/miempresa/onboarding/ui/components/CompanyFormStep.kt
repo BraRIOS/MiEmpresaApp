@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,27 +17,31 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Business
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Sms
+import androidx.compose.material.icons.outlined.Store
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +52,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import coil.compose.AsyncImage
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
@@ -63,6 +69,7 @@ fun CompanyFormStep(
     onUpdateAddress: (String) -> Unit,
     onUpdateBusinessHours: (String) -> Unit,
     onContinue: () -> Unit,
+    onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var detailsExpanded by rememberSaveable { mutableStateOf(false) }
@@ -78,245 +85,390 @@ fun CompanyFormStep(
         modifier =
             modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(AppDimensions.mediumPadding),
-        verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
+                .padding(horizontal = AppDimensions.mediumPadding),
     ) {
-        // Hero text
-        Text(
-            text = stringResource(R.string.onboarding_hero),
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.primary,
-        )
-
-        // Card 1 — Company info
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
+        // Top bar: Cancel + Step indicator
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = AppDimensions.mediumPadding),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(
-                modifier = Modifier.padding(AppDimensions.mediumPadding),
-                verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumSmallPadding),
-            ) {
-                // Company name
-                OutlinedTextField(
-                    value = form.companyName,
-                    onValueChange = onUpdateName,
-                    label = { Text(stringResource(R.string.onboarding_company_name_hint)) },
-                    leadingIcon = {
-                        Icon(Icons.Outlined.Business, contentDescription = null)
-                    },
-                    isError = form.companyNameError != null,
-                    supportingText =
-                        form.companyNameError?.let {
-                            { Text(stringResource(R.string.onboarding_name_required)) }
-                        },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-
-                // WhatsApp: country code + number
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    CountryCodeDropdown(
-                        selectedCode = form.whatsappCountryCode,
-                        onCodeSelected = onUpdateCountryCode,
-                    )
-
-                    OutlinedTextField(
-                        value = form.whatsappNumber,
-                        onValueChange = onUpdateWhatsapp,
-                        label = { Text(stringResource(R.string.onboarding_whatsapp_hint)) },
-                        leadingIcon = {
-                            Icon(Icons.Outlined.Phone, contentDescription = null)
-                        },
-                        isError = form.whatsappError != null,
-                        supportingText =
-                            if (form.whatsappError != null) {
-                                { Text(stringResource(R.string.onboarding_whatsapp_invalid)) }
-                            } else {
-                                { Text(stringResource(R.string.onboarding_whatsapp_helper)) }
-                            },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-
-                // Specialization
-                OutlinedTextField(
-                    value = form.specialization,
-                    onValueChange = onUpdateSpecialization,
-                    label = { Text(stringResource(R.string.onboarding_specialization_hint)) },
-                    leadingIcon = {
-                        Icon(Icons.Outlined.Category, contentDescription = null)
-                    },
-                    supportingText = {
-                        Text(stringResource(R.string.onboarding_specialization_helper))
-                    },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
+            Text(
+                text = stringResource(R.string.onboarding_cancel),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.clickable(onClick = onCancel),
+            )
+            Text(
+                text = stringResource(R.string.onboarding_step_indicator, 1, 3),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
 
-        // Card 2 — Logo
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
+        // Scrollable content
+        Column(
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
         ) {
-            Column(
-                modifier = Modifier.padding(AppDimensions.mediumPadding),
-                verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumSmallPadding),
+            Spacer(modifier = Modifier.height(AppDimensions.largePadding))
+
+            // Hero text — split color
+            Text(
+                text = stringResource(R.string.onboarding_step1_title_line1),
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = stringResource(R.string.onboarding_step1_title_line2),
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
+            Text(
+                text = stringResource(R.string.onboarding_step1_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            Spacer(modifier = Modifier.height(AppDimensions.largePadding))
+
+            // Card 1 — Company info
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors =
+                    CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                    ),
+                shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+                Column(
+                    modifier = Modifier.padding(AppDimensions.mediumPadding),
+                    verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
                 ) {
+                    // Company name label
                     Text(
-                        text = stringResource(R.string.onboarding_logo_title),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Text(
-                        text = stringResource(R.string.onboarding_logo_recommended),
+                        text = stringResource(R.string.label_company_name),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    OutlinedTextField(
+                        value = form.companyName,
+                        onValueChange = onUpdateName,
+                        placeholder = {
+                            Text(stringResource(R.string.placeholder_company_name))
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Outlined.Store, contentDescription = null)
+                        },
+                        isError = form.companyNameError != null,
+                        supportingText =
+                            form.companyNameError?.let {
+                                { Text(stringResource(R.string.onboarding_name_required)) }
+                            },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
+
+                    // WhatsApp label
+                    Text(
+                        text = stringResource(R.string.label_whatsapp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    // WhatsApp: country code + number
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+                        verticalAlignment = Alignment.Top,
+                    ) {
+                        CountryCodeDropdown(
+                            selectedCode = form.whatsappCountryCode,
+                            onCodeSelected = onUpdateCountryCode,
+                        )
+
+                        OutlinedTextField(
+                            value = form.whatsappNumber,
+                            onValueChange = onUpdateWhatsapp,
+                            placeholder = {
+                                Text(stringResource(R.string.placeholder_whatsapp))
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Outlined.Sms, contentDescription = null)
+                            },
+                            isError = form.whatsappError != null,
+                            supportingText =
+                                if (form.whatsappError != null) {
+                                    { Text(stringResource(R.string.onboarding_whatsapp_invalid)) }
+                                } else {
+                                    { Text(stringResource(R.string.onboarding_whatsapp_helper)) }
+                                },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
+
+                    // Specialization label
+                    Text(
+                        text = stringResource(R.string.label_specialization),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    OutlinedTextField(
+                        value = form.specialization,
+                        onValueChange = onUpdateSpecialization,
+                        placeholder = {
+                            Text(stringResource(R.string.placeholder_specialization))
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Outlined.Category, contentDescription = null)
+                        },
+                        supportingText = {
+                            Text(stringResource(R.string.onboarding_specialization_helper))
+                        },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
+            }
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
+            Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
+
+            // Card 2 — Logo
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors =
+                    CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                    ),
+                shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+            ) {
+                Column(
+                    modifier = Modifier.padding(AppDimensions.mediumPadding),
+                    verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumSmallPadding),
                 ) {
-                    // Logo preview
-                    Box(
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.label_logo),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = stringResource(R.string.onboarding_logo_recommended),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
+                    ) {
+                        // Logo preview
+                        Box(
+                            modifier =
+                                Modifier
+                                    .size(AppDimensions.itemCardImageSize)
+                                    .clip(CircleShape)
+                                    .border(
+                                        AppDimensions.smallBorderWidth,
+                                        MaterialTheme.colorScheme.outlineVariant,
+                                        CircleShape,
+                                    )
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (form.logoUri != null) {
+                                AsyncImage(
+                                    model = form.logoUri,
+                                    contentDescription =
+                                        stringResource(R.string.label_logo),
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop,
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Outlined.Image,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(AppDimensions.mediumIconSize),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+
+                        OutlinedButton(
+                            onClick = { imagePickerLauncher.launch("image/*") },
+                        ) {
+                            Text(stringResource(R.string.onboarding_logo_open_gallery))
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
+
+            // Card 3 — Additional details (collapsible)
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors =
+                    CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                    ),
+                shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+            ) {
+                Column(
+                    modifier = Modifier.padding(AppDimensions.mediumPadding),
+                ) {
+                    // Header row with "Opcional" badge
+                    Row(
                         modifier =
                             Modifier
-                                .size(AppDimensions.itemCardImageSize)
-                                .clip(CircleShape)
-                                .border(
-                                    AppDimensions.smallBorderWidth,
-                                    MaterialTheme.colorScheme.outlineVariant,
-                                    CircleShape,
-                                )
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                        contentAlignment = Alignment.Center,
+                                .fillMaxWidth()
+                                .clickable { detailsExpanded = !detailsExpanded },
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        if (form.logoUri != null) {
-                            AsyncImage(
-                                model = form.logoUri,
-                                contentDescription = stringResource(R.string.onboarding_logo_title),
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop,
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement =
+                                Arrangement.spacedBy(AppDimensions.smallPadding),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.additional_details),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
-                        } else {
+                            Text(
+                                text = stringResource(R.string.optional_badge),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier =
+                                    Modifier
+                                        .border(
+                                            AppDimensions.smallBorderWidth,
+                                            MaterialTheme.colorScheme.outlineVariant,
+                                            RoundedCornerShape(AppDimensions.smallCornerRadius),
+                                        )
+                                        .padding(
+                                            horizontal = AppDimensions.smallPadding,
+                                            vertical = AppDimensions.extraSmallPadding,
+                                        ),
+                            )
+                        }
+                        IconButton(
+                            onClick = { detailsExpanded = !detailsExpanded },
+                        ) {
                             Icon(
-                                imageVector = Icons.Outlined.Image,
+                                imageVector =
+                                    if (detailsExpanded) {
+                                        Icons.Outlined.ExpandLess
+                                    } else {
+                                        Icons.Outlined.ExpandMore
+                                    },
                                 contentDescription = null,
-                                modifier = Modifier.size(AppDimensions.mediumIconSize),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
 
-                    OutlinedButton(
-                        onClick = { imagePickerLauncher.launch("image/*") },
-                    ) {
-                        Text(stringResource(R.string.onboarding_logo_open_gallery))
-                    }
-                }
-            }
-        }
-
-        // Card 3 — Additional details (collapsible)
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
-        ) {
-            Column(
-                modifier = Modifier.padding(AppDimensions.mediumPadding),
-            ) {
-                TextButton(
-                    onClick = { detailsExpanded = !detailsExpanded },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.onboarding_details_title),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        Icon(
-                            imageVector =
-                                if (detailsExpanded) {
-                                    Icons.Outlined.ExpandLess
-                                } else {
-                                    Icons.Outlined.ExpandMore
+                    AnimatedVisibility(visible = detailsExpanded) {
+                        Column(
+                            verticalArrangement =
+                                Arrangement.spacedBy(AppDimensions.extraSmallPadding),
+                            modifier = Modifier.padding(top = AppDimensions.smallPadding),
+                        ) {
+                            // Address
+                            Text(
+                                text = stringResource(R.string.label_address),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            OutlinedTextField(
+                                value = form.address,
+                                onValueChange = onUpdateAddress,
+                                placeholder = {
+                                    Text(stringResource(R.string.placeholder_address))
                                 },
-                            contentDescription = null,
-                        )
-                    }
-                }
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Outlined.LocationOn,
+                                        contentDescription = null,
+                                    )
+                                },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
 
-                AnimatedVisibility(visible = detailsExpanded) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumSmallPadding),
-                        modifier = Modifier.padding(top = AppDimensions.smallPadding),
-                    ) {
-                        OutlinedTextField(
-                            value = form.address,
-                            onValueChange = onUpdateAddress,
-                            label = { Text(stringResource(R.string.onboarding_address_hint)) },
-                            leadingIcon = {
-                                Icon(Icons.Outlined.LocationOn, contentDescription = null)
-                            },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                            Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
 
-                        OutlinedTextField(
-                            value = form.businessHours,
-                            onValueChange = onUpdateBusinessHours,
-                            label = { Text(stringResource(R.string.onboarding_hours_hint)) },
-                            leadingIcon = {
-                                Icon(Icons.Outlined.Schedule, contentDescription = null)
-                            },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                            // Business hours
+                            Text(
+                                text = stringResource(R.string.label_hours),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            OutlinedTextField(
+                                value = form.businessHours,
+                                onValueChange = onUpdateBusinessHours,
+                                placeholder = {
+                                    Text(stringResource(R.string.placeholder_hours))
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Outlined.Schedule,
+                                        contentDescription = null,
+                                    )
+                                },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
                     }
                 }
             }
+
+            // Bottom padding so content doesn't hide behind the sticky button
+            Spacer(modifier = Modifier.height(AppDimensions.largePadding))
         }
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Sticky continue button
+        // STICKY BOTTOM BUTTON (outside scroll)
         Button(
             onClick = onContinue,
             enabled = form.isFormValid,
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .height(AppDimensions.largeIconSize),
+                    .height(AppDimensions.OnboardingSuccess.ctaButtonHeight),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                ),
+            shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
         ) {
             Text(
                 text = stringResource(R.string.onboarding_continue),
                 style = MaterialTheme.typography.labelLarge,
+            )
+            Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
             )
         }
 

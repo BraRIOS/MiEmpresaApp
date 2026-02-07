@@ -17,6 +17,7 @@ import com.brios.miempresa.onboarding.ui.components.WorkspaceProgressView
 fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel(),
     onNavigateToHome: () -> Unit,
+    onNavigateBack: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -42,6 +43,7 @@ fun OnboardingScreen(
                 onUpdateAddress = viewModel::updateAddress,
                 onUpdateBusinessHours = viewModel::updateBusinessHours,
                 onContinue = viewModel::startWorkspaceCreation,
+                onCancel = onNavigateBack,
             )
         is OnboardingUiState.WizardStep2 ->
             WorkspaceProgressView(
@@ -51,6 +53,9 @@ fun OnboardingScreen(
         is OnboardingUiState.WizardStep3 ->
             OnboardingSuccessView(
                 companyName = state.companyName,
+                whatsappCountryCode = state.whatsappCountryCode,
+                whatsappNumber = state.whatsappNumber,
+                logoUri = state.logoUri,
                 onNavigateToHome = viewModel::navigateToHome,
             )
         is OnboardingUiState.Error -> {

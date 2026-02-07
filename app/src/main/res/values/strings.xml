@@ -102,14 +102,28 @@
     <string name="empty_state_cart_subtitle">Agregá productos desde el catálogo</string>
 
     <!-- Sign in screen -->
+    <string name="sign_in_title">Iniciar sesión\ncon Google</string>
+    <string name="sign_in_subtitle">Gestiona tu catálogo y pedidos</string>
+    <string name="sign_in_with_google">Continuar con Google</string>
     <string name="privacy_info">MiEmpresa solo accede a archivos que crea en tu Drive.\nTus otros documentos permanecen privados.</string>
-    <string name="sign_in_with_google">Iniciar sesión con Google</string>
+    <string name="privacy_first">Privacidad primero: </string>
+    <string name="privacy_body">MiEmpresa solo accede a archivos que crea en tu Drive, </string>
+    <string name="privacy_emphasis">no a tus otros documentos.</string>
+    <string name="sign_in_terms_prefix">Al continuar, aceptas nuestros </string>
+    <string name="sign_in_terms">Términos y Condiciones</string>
+    <string name="sign_in_privacy_policy">Política de Privacidad</string>
+    <string name="sign_in_and"> y la </string>
+    <string name="google_icon">Google</string>
 
     <!-- Welcome screen -->
     <string name="welcome_title">MiEmpresa</string>
-    <string name="welcome_tagline">Tu catálogo digital, simple y privado</string>
+    <string name="welcome_tagline">Tu empresa, en tu bolsillo.\nGestiona pedidos y catálogos fácilmente.</string>
     <string name="welcome_admin_button">Gestionar mi empresa</string>
     <string name="welcome_client_button">Explorar catálogos</string>
+    <string name="welcome_admin_subtitle">Acceso para dueños</string>
+    <string name="welcome_client_subtitle">Ver tiendas disponibles</string>
+    <string name="welcome_footer">Version 1.0.0</string>
+    <string name="welcome_terms">Términos y Condiciones</string>
 
     <!-- Company avatar -->
     <string name="company_logo">Logo de %1$s</string>
@@ -129,18 +143,36 @@
 
     <!-- Onboarding wizard -->
     <string name="onboarding_hero">Empecemos con lo básico</string>
+    <string name="onboarding_cancel">Cancelar</string>
+    <string name="onboarding_step_indicator">Paso %1$d de %2$d</string>
+    <string name="onboarding_step1_title_line1">Empecemos con</string>
+    <string name="onboarding_step1_title_line2">lo básico</string>
+    <string name="onboarding_step1_subtitle">Crea el perfil de tu empresa para empezar a gestionar tu catálogo</string>
     <string name="onboarding_company_name_hint">Nombre de tu empresa</string>
     <string name="onboarding_whatsapp_hint">Número de WhatsApp</string>
-    <string name="onboarding_whatsapp_helper">Se usará para que tus clientes te contacten</string>
+    <string name="onboarding_whatsapp_helper">Se usará para enviar confirmaciones de pedidos</string>
     <string name="onboarding_specialization_hint">Especialización (opcional)</string>
-    <string name="onboarding_specialization_helper">Ayuda a clientes a identificarte</string>
+    <string name="onboarding_specialization_helper">Ayuda a los clientes a identificar tu empresa</string>
     <string name="onboarding_logo_title">Logo de empresa</string>
     <string name="onboarding_logo_recommended">RECOMENDADO</string>
-    <string name="onboarding_logo_open_gallery">Abrir Galería</string>
+    <string name="onboarding_logo_open_gallery">Subir logo</string>
     <string name="onboarding_details_title">Detalles adicionales</string>
     <string name="onboarding_address_hint">Dirección (opcional)</string>
     <string name="onboarding_hours_hint">Horarios (opcional)</string>
     <string name="onboarding_continue">Continuar</string>
+    <string name="label_company_name">NOMBRE DE LA EMPRESA *</string>
+    <string name="label_whatsapp">NÚMERO DE WHATSAPP *</string>
+    <string name="label_logo">LOGO DE LA EMPRESA</string>
+    <string name="label_specialization">ESPECIALIZACIÓN (OPCIONAL)</string>
+    <string name="label_address">DIRECCIÓN</string>
+    <string name="label_hours">HORARIOS DE ATENCIÓN</string>
+    <string name="placeholder_company_name">Ej. Tacos El Rey</string>
+    <string name="placeholder_whatsapp">55 1234 5678</string>
+    <string name="placeholder_specialization">Ej. Restaurante Mexicano</string>
+    <string name="placeholder_address">Calle, Número, Ciudad…</string>
+    <string name="placeholder_hours">Ej. Lun-Vie 9am - 6pm</string>
+    <string name="optional_badge">Opcional</string>
+    <string name="additional_details">Detalles adicionales</string>
     <string name="onboarding_name_required">El nombre es obligatorio</string>
     <string name="onboarding_whatsapp_invalid">Número de WhatsApp inválido</string>
     <string name="workspace_title">Preparando tu Espacio de Trabajo</string>
@@ -154,9 +186,14 @@
     <string name="workspace_step_processing">Procesando…</string>
     <string name="workspace_step_completed">Completado</string>
     <string name="workspace_step_pending">Pendiente</string>
+    <string name="onboarding_step2_title_line1">Preparando tu</string>
+    <string name="onboarding_step2_title_line2">Espacio de Trabajo</string>
+    <string name="onboarding_step2_subtitle">Estamos configurando tu entorno automatizado en Google Drive</string>
+    <string name="progress_remaining">~%1$ds restantes</string>
+    <string name="step_label">Paso %1$d/%2$d: %3$s…</string>
     <string name="workspace_error_title">Error al crear workspace</string>
     <string name="workspace_error_retry">Reintentar</string>
-    <string name="onboarding_success_title">¡Tu espacio está listo!</string>
-    <string name="onboarding_success_subtitle">%1$s ya está configurado</string>
+    <string name="onboarding_success_title">¡Tu espacio\nestá listo!</string>
+    <string name="onboarding_success_subtitle">Ya configuramos tu catálogo.\nComienza a recibir pedidos ahora.</string>
     <string name="onboarding_success_cta">Empezar a gestionar</string>
 </resources>

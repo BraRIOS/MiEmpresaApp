@@ -41,7 +41,9 @@ object AppDimensions {
     // Screen-specific
     object SignInScreen {
         val topPadding = 80.dp
-        val logoSize = 200.dp
+        val logoSize = 120.dp
+        val logoCornerRadius = 24.dp
+        val googleButtonHeight = 56.dp
         val spaceBetweenLogoAndSignInButton = 80.dp
     }
 
@@ -73,6 +75,34 @@ object AppDimensions {
     }
 
     object WelcomeScreen {
-        val logoSize = 200.dp
+        val logoSize = 160.dp
+        val actionCardIconContainerSize = 40.dp
+        val actionCardIconCornerRadius = 8.dp
+        val actionCardPadding = 24.dp
+        val actionCardCornerRadius = 16.dp
+    }
+
+    object OnboardingProgress {
+        val progressCardCornerRadius = 16.dp
+        val progressCardPadding = 24.dp
+        val progressBarHeight = 12.dp
+        val stepCircleSize = 48.dp
+        val stepCheckIconSize = 20.dp
+        val stepSpinnerIconSize = 24.dp
+        val stepPendingDotSize = 10.dp
+        val stepVerticalSpacing = 32.dp
+        val stepCircleToTextGap = 20.dp
+        val connectorLineWidth = 2.dp
+        val connectorLineStartPx = 24 // center of 48dp circle
+    }
+
+    object OnboardingSuccess {
+        val checkCircleSize = 128.dp
+        val checkIconSize = 60.dp
+        val avatarSize = 64.dp
+        val ctaButtonHeight = 56.dp
+        val ctaCornerRadius = 16.dp
+        val summaryCardPadding = 20.dp
+        val summaryCardCornerRadius = 16.dp
     }
 }

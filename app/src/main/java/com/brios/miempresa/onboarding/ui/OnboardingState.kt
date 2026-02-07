@@ -38,6 +38,9 @@ sealed class OnboardingUiState {
 
     data class WizardStep3(
         val companyName: String,
+        val whatsappCountryCode: String = "",
+        val whatsappNumber: String = "",
+        val logoUri: String? = null,
     ) : OnboardingUiState()
 
     data class Error(

@@ -2,7 +2,11 @@ package com.brios.miempresa.auth.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,17 +17,30 @@ import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Storefront
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
@@ -58,39 +75,128 @@ fun WelcomeScreen(
         Spacer(modifier = Modifier.height(AppDimensions.largePadding))
 
         Text(
-            text = stringResource(R.string.welcome_title),
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
-
-        Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
-
-        Text(
             text = stringResource(R.string.welcome_tagline),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
 
         Spacer(modifier = Modifier.weight(1f))
 
-        Button(
+        WelcomeActionCard(
+            icon = Icons.Outlined.Storefront,
+            title = stringResource(R.string.welcome_admin_button),
+            subtitle = stringResource(R.string.welcome_admin_subtitle),
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            iconCircleColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
             onClick = onNavigateToSignIn,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(text = stringResource(R.string.welcome_admin_button))
-        }
+        )
 
-        Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
+        Spacer(modifier = Modifier.height(AppDimensions.mediumSmallPadding))
 
-        OutlinedButton(
+        WelcomeActionCard(
+            icon = Icons.Outlined.Search,
+            title = stringResource(R.string.welcome_client_button),
+            subtitle = stringResource(R.string.welcome_client_subtitle),
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            iconCircleColor = MaterialTheme.colorScheme.primary,
+            iconTint = MaterialTheme.colorScheme.onPrimary,
+            arrowTint = MaterialTheme.colorScheme.onSurfaceVariant,
+            subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
             onClick = onNavigateToMyStores,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(text = stringResource(R.string.welcome_client_button))
-        }
+        )
 
-        Spacer(modifier = Modifier.height(AppDimensions.extraLargePadding))
+        Spacer(modifier = Modifier.height(AppDimensions.largePadding))
+
+        Text(
+            text =
+                buildAnnotatedString {
+                    append(stringResource(R.string.welcome_footer))
+                    append(" • ")
+                    withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
+                        append(stringResource(R.string.welcome_terms))
+                    }
+                },
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+        )
+
+        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
+    }
+}
+
+@Composable
+private fun WelcomeActionCard(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    containerColor: Color,
+    contentColor: Color,
+    iconCircleColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    iconTint: Color = contentColor,
+    arrowTint: Color = contentColor.copy(alpha = 0.7f),
+    subtitleColor: Color = contentColor.copy(alpha = 0.8f),
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(AppDimensions.WelcomeScreen.actionCardCornerRadius),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = containerColor,
+                contentColor = contentColor,
+            ),
+    ) {
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onClick)
+                    .padding(AppDimensions.WelcomeScreen.actionCardPadding),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
+        ) {
+            Box(
+                modifier =
+                    Modifier
+                        .size(AppDimensions.WelcomeScreen.actionCardIconContainerSize)
+                        .clip(RoundedCornerShape(AppDimensions.WelcomeScreen.actionCardIconCornerRadius))
+                        .background(iconCircleColor),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(AppDimensions.defaultIconSize),
+                )
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor,
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = subtitleColor,
+                )
+            }
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
+                contentDescription = null,
+                tint = arrowTint,
+                modifier = Modifier.size(AppDimensions.defaultIconSize),
+            )
+        }
     }
 }
 

@@ -41,7 +41,7 @@ object AppDimensions {
 
     // Screen-specific
     object SignInScreen {
-        val logoSize = 140.dp
+        val logoSize = 120.dp
         val googleButtonHeight = 56.dp
     }
 

@@ -41,7 +41,8 @@ fun CompanyAvatar(
             modifier =
                 modifier
                     .size(size)
-                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
             Text(

@@ -6,7 +6,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -15,12 +14,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,10 +30,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
-import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Schedule
@@ -73,6 +75,7 @@ import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.RequiredRed
+import com.brios.miempresa.core.ui.theme.SlateGray100
 import com.brios.miempresa.core.ui.theme.SlateGray200
 import com.brios.miempresa.core.ui.theme.SlateGray400
 import com.brios.miempresa.core.ui.theme.SlateGray500
@@ -80,9 +83,9 @@ import com.brios.miempresa.core.ui.theme.SlateGray700
 import com.brios.miempresa.core.ui.theme.SuccessGreen
 import com.brios.miempresa.onboarding.ui.OnboardingFormState
 
-private val inputShape = RoundedCornerShape(AppDimensions.inputCornerRadius)
+private val inputShape = RoundedCornerShape(AppDimensions.mediumCornerRadius)
 private val cardShape = RoundedCornerShape(AppDimensions.mediumCornerRadius)
-private val cardBorder = BorderStroke(1.dp, SlateGray200)
+private val cardBorder = BorderStroke(1.dp, SlateGray100)
 
 @Composable
 fun CompanyFormStep(
@@ -111,7 +114,8 @@ fun CompanyFormStep(
         modifier =
             modifier
                 .fillMaxSize()
-                .padding(horizontal = AppDimensions.mediumPadding),
+                .padding(horizontal = AppDimensions.mediumPadding)
+                .windowInsetsPadding(WindowInsets.safeDrawing),
     ) {
         // Top bar: Cancel
         Row(
@@ -155,7 +159,7 @@ fun CompanyFormStep(
             Text(
                 text = stringResource(R.string.onboarding_step1_subtitle),
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
+                fontWeight = FontWeight.Normal,
                 color = SlateGray500,
             )
 
@@ -194,7 +198,7 @@ fun CompanyFormStep(
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumSmallPadding),
+                            horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
                             verticalAlignment = Alignment.Top,
                         ) {
                             CountryCodeDropdown(
@@ -206,7 +210,7 @@ fun CompanyFormStep(
                                 value = form.whatsappNumber,
                                 onValueChange = { input ->
                                     // Filter to digits and dashes only
-                                    val filtered = input.filter { it.isDigit() || it == '-' }
+                                    val filtered = input.filter { it.isDigit() }
                                     onUpdateWhatsapp(filtered)
                                 },
                                 placeholder = stringResource(R.string.placeholder_whatsapp),
@@ -214,7 +218,6 @@ fun CompanyFormStep(
                                 isError = form.whatsappError != null,
                                 supportingText = form.whatsappError?.let { stringResource(R.string.onboarding_whatsapp_invalid) },
                                 keyboardType = KeyboardType.Phone,
-                                modifier = Modifier.weight(1f),
                             )
                         }
                         // Section helper text with info icon (outside the field)
@@ -338,11 +341,11 @@ fun CompanyFormStep(
 
                         OutlinedButton(
                             onClick = { imagePickerLauncher.launch("image/*") },
-                            shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
+                            shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                             border = BorderStroke(1.dp, SlateGray200),
                         ) {
                             Icon(
-                                imageVector = Icons.Outlined.Image,
+                                imageVector = Icons.Outlined.CameraAlt,
                                 contentDescription = null,
                                 modifier = Modifier.size(AppDimensions.smallIconSize),
                                 tint = SlateGray500,
@@ -354,13 +357,6 @@ fun CompanyFormStep(
                                 color = SlateGray700,
                             )
                         }
-
-                        Text(
-                            text = stringResource(R.string.onboarding_logo_hint),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Medium,
-                            color = SlateGray400,
-                        )
                     }
                 }
             }
@@ -538,7 +534,7 @@ private fun FormOutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         placeholder = {
-            Text(placeholder, color = SlateGray400)
+            Text(placeholder, color = SlateGray400, style = MaterialTheme.typography.bodyLarge)
         },
         leadingIcon = {
             Icon(leadingIcon, contentDescription = null, tint = iconTint)
@@ -557,6 +553,8 @@ private fun FormOutlinedTextField(
                 unfocusedBorderColor = SlateGray200,
                 unfocusedLeadingIconColor = SlateGray400,
                 focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                focusedContainerColor = MaterialTheme.colorScheme.background,
             ),
         modifier = modifier.fillMaxWidth(),
     )

@@ -1,5 +1,6 @@
 package com.brios.miempresa.onboarding.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenuItem
@@ -66,6 +67,8 @@ fun CountryCodeDropdown(
             colors =
                 OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = SlateGray200,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                    focusedContainerColor = MaterialTheme.colorScheme.background,
                 ),
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
@@ -74,6 +77,7 @@ fun CountryCodeDropdown(
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
+            modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerLowest),
         ) {
             defaultCountryCodes.forEach { country ->
                 DropdownMenuItem(

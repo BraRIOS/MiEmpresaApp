@@ -65,13 +65,12 @@ fun SignInScreen(
                 .padding(horizontal = AppDimensions.largePadding),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(modifier = Modifier.weight(0.3f))
+        Spacer(modifier = Modifier.weight(1f))
 
         Image(
             modifier =
                 Modifier
-                    .size(AppDimensions.SignInScreen.logoSize)
-                    .padding(AppDimensions.mediumPadding),
+                    .size(AppDimensions.SignInScreen.logoSize),
             painter = painterResource(id = R.drawable.miempresa_logo_round),
             contentDescription = stringResource(id = R.string.app_logo),
         )
@@ -86,16 +85,16 @@ fun SignInScreen(
             textAlign = TextAlign.Center,
         )
 
-        Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
+        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
 
         Text(
             text = stringResource(id = R.string.sign_in_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
 
-        Spacer(modifier = Modifier.height(AppDimensions.extraLargePadding))
+        Spacer(modifier = Modifier.weight(0.5f))
 
         OutlinedButton(
             onClick = onSignInClick,

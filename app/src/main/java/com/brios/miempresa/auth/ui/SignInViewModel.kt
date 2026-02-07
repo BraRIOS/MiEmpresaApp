@@ -83,7 +83,7 @@ class SignInViewModel
                     when {
                         count == 0 -> PostAuthDestination.Onboarding
                         count == 1 -> PostAuthDestination.Home
-                        else -> PostAuthDestination.Home
+                        else -> PostAuthDestination.CompanySelector
                     }
             }
         }

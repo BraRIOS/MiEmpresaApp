@@ -33,6 +33,38 @@ fun NavHostComposable(
     navController: NavHostController,
 ) {
     val signInViewModel = hiltViewModel<SignInViewModel>()
+
+    // Session persistence: check if user is already authenticated on app start
+    LaunchedEffect(Unit) {
+        val user = signInViewModel.getSignedInUser()
+        if (user != null) {
+            signInViewModel.determinePostAuthDestination()
+        }
+    }
+
+    val postAuthDest by signInViewModel.postAuthDestination.collectAsStateWithLifecycle()
+
+    LaunchedEffect(postAuthDest) {
+        when (postAuthDest) {
+            is PostAuthDestination.Onboarding -> {
+                navController.navigate(MiEmpresaScreen.Onboarding.name) {
+                    popUpTo(MiEmpresaScreen.Welcome.name) { inclusive = true }
+                }
+            }
+            is PostAuthDestination.CompanySelector -> {
+                navController.navigate(MiEmpresaScreen.Onboarding.name) {
+                    popUpTo(MiEmpresaScreen.Welcome.name) { inclusive = true }
+                }
+            }
+            is PostAuthDestination.Home -> {
+                navController.navigate(MiEmpresaScreen.Products.name) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+            null -> {}
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = MiEmpresaScreen.Welcome.name,
@@ -49,7 +81,6 @@ fun NavHostComposable(
         composable(route = MiEmpresaScreen.SignIn.name) {
             val signInState by signInViewModel.signInStateFlow.collectAsStateWithLifecycle()
             val authState by signInViewModel.authStateFlow.collectAsStateWithLifecycle()
-            val postAuthDest by signInViewModel.postAuthDestination.collectAsStateWithLifecycle()
             val activity = LocalContext.current as Activity
 
             val signInSuccess = stringResource(R.string.sign_in_success)
@@ -87,27 +118,6 @@ fun NavHostComposable(
                     }
                 } else if (authState is AuthState.Authorized && signInViewModel.getSignedInUser() != null) {
                     signInViewModel.determinePostAuthDestination()
-                }
-            }
-
-            LaunchedEffect(key1 = postAuthDest) {
-                when (postAuthDest) {
-                    is PostAuthDestination.Onboarding -> {
-                        navController.navigate(MiEmpresaScreen.Onboarding.name) {
-                            popUpTo(MiEmpresaScreen.Welcome.name) { inclusive = false }
-                        }
-                    }
-                    is PostAuthDestination.CompanySelector -> {
-                        navController.navigate(MiEmpresaScreen.Onboarding.name) {
-                            popUpTo(MiEmpresaScreen.Welcome.name) { inclusive = false }
-                        }
-                    }
-                    is PostAuthDestination.Home -> {
-                        navController.navigate(MiEmpresaScreen.Products.name) {
-                            popUpTo(0) { inclusive = true }
-                        }
-                    }
-                    null -> {}
                 }
             }
 

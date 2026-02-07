@@ -39,7 +39,7 @@ class OnboardingRepositoryImpl
                         ?: return WorkspaceCreationResult.Error(currentStep, "Failed to create company folder")
 
                 // Step 2: Upload logo (conditional — skip if no file provided)
-                var logoUrl: String? = request.logoUri
+                var logoUrl: String? = null
                 if (request.logoFile != null) {
                     currentStep = WorkspaceStep.UPLOAD_LOGO
                     _stepProgress.emit(currentStep)
@@ -176,6 +176,14 @@ class OnboardingRepositoryImpl
                 val publicSheet = driveApi.findSpreadsheetInFolder(folderId, "Público")
 
                 return if (privateSheet != null && publicSheet != null) {
+                    if (company.privateSheetId == null || company.publicSheetId == null) {
+                        companyDao.update(
+                            company.copy(
+                                privateSheetId = privateSheet.id,
+                                publicSheetId = publicSheet.id,
+                            ),
+                        )
+                    }
                     WorkspaceValidationResult.Valid(company.id)
                 } else {
                     WorkspaceValidationResult.MissingSheets(company)
@@ -192,10 +200,9 @@ class OnboardingRepositoryImpl
             val driveFolders = driveApi.listFoldersInFolder(mainFolder.id) ?: return emptyList()
 
             val existingCompanies = companyDao.getOwnedCompaniesList()
-            val existingIds = existingCompanies.map { it.id }.toSet()
 
             driveFolders.forEach { folder ->
-                val existing = existingCompanies.find { it.id == folder.id }
+                val existing = existingCompanies.find { it.driveFolderId == folder.id }
                 if (existing != null) {
                     // Update name only if selected (avoid multi-device conflicts)
                     if (existing.selected && existing.name != folder.name) {

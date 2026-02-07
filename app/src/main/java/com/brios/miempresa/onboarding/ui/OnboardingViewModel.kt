@@ -1,5 +1,7 @@
 package com.brios.miempresa.onboarding.ui
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.core.auth.GoogleAuthClient
@@ -11,6 +13,7 @@ import com.brios.miempresa.onboarding.domain.WorkspaceSetupRequest
 import com.brios.miempresa.onboarding.domain.WorkspaceStep
 import com.brios.miempresa.onboarding.domain.WorkspaceValidationResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -18,12 +21,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 class OnboardingViewModel
     @Inject
     constructor(
+        @ApplicationContext private val appContext: Context,
         private val repository: OnboardingRepository,
         private val googleAuthClient: GoogleAuthClient,
     ) : ViewModel() {
@@ -140,8 +145,34 @@ class OnboardingViewModel
         }
 
         fun updateLogoUri(uri: String?) {
-            formState = formState.copy(logoUri = uri)
+            if (uri != null) {
+                val file = resolveUriToFile(Uri.parse(uri))
+                formState = formState.copy(logoUri = uri, logoFile = file)
+            } else {
+                formState = formState.copy(logoUri = null, logoFile = null)
+            }
             _uiState.value = OnboardingUiState.WizardStep1(formState)
+        }
+
+        private fun resolveUriToFile(uri: Uri): File? {
+            return try {
+                val extension =
+                    appContext.contentResolver.getType(uri)?.let { mimeType ->
+                        when {
+                            mimeType.contains("png") -> "png"
+                            else -> "jpg"
+                        }
+                    } ?: "jpg"
+                val tempFile = File(appContext.cacheDir, "logo_upload.$extension")
+                appContext.contentResolver.openInputStream(uri)?.use { input ->
+                    tempFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                tempFile
+            } catch (e: Exception) {
+                null
+            }
         }
 
         fun updateAddress(address: String) {

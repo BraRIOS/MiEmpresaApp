@@ -66,6 +66,7 @@ class SignInViewModel
                 withContext(Dispatchers.IO) {
                     companyDao.clear()
                     removeValueFromDataStore(activity, PreferencesKeys.SPREADSHEET_ID_KEY)
+                    _postAuthDestination.value = null
                     _authState.update { AuthState.Unauthorized }
                     authRepository.signOut(activity)
                 }

@@ -323,6 +323,48 @@ class OnboardingViewModel
             }
         }
 
+        fun createSpreadsheetsForExisting(company: Company) {
+            val totalSteps = WorkspaceStep.entries.size
+            _uiState.value =
+                OnboardingUiState.WizardStep2(
+                    completedSteps = 0,
+                    currentStep = WorkspaceStep.CREATE_PRIVATE_SHEET.name,
+                    totalSteps = totalSteps,
+                    hasLogo = false,
+                )
+
+            viewModelScope.launch {
+                val progressJob =
+                    launch {
+                        repository.stepProgress.collect { step ->
+                            _uiState.value =
+                                OnboardingUiState.WizardStep2(
+                                    completedSteps = step.displayOrder - 1,
+                                    currentStep = step.name,
+                                    totalSteps = totalSteps,
+                                    hasLogo = false,
+                                )
+                        }
+                    }
+
+                when (val result = repository.createSpreadsheetsForCompany(company)) {
+                    is WorkspaceCreationResult.Success -> {
+                        progressJob.cancel()
+                        _events.emit(OnboardingEvent.NavigateToHome)
+                    }
+                    is WorkspaceCreationResult.Error -> {
+                        progressJob.cancel()
+                        _uiState.value =
+                            OnboardingUiState.WorkspaceIssue(
+                                company = company,
+                                issueType = WorkspaceIssueType.SPREADSHEET_NOT_FOUND,
+                            )
+                        _events.emit(OnboardingEvent.ShowError(result.message))
+                    }
+                }
+            }
+        }
+
         fun showSelector() {
             viewModelScope.launch {
                 val companies = repository.getOwnedCompanies()

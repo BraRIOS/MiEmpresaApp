@@ -21,4 +21,6 @@ interface OnboardingRepository {
     suspend fun saveCompanyToRoom(company: Company)
 
     suspend fun getOwnedCompanyCount(): Int
+
+    suspend fun createSpreadsheetsForCompany(company: Company): WorkspaceCreationResult
 }

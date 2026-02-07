@@ -38,7 +38,23 @@ fun NavHostComposable(
     LaunchedEffect(Unit) {
         val user = signInViewModel.getSignedInUser()
         if (user != null) {
-            signInViewModel.determinePostAuthDestination()
+            val authState = signInViewModel.checkDriveAuthorization()
+            when (authState) {
+                is AuthState.Authorized -> {
+                    signInViewModel.determinePostAuthDestination()
+                }
+                is AuthState.PendingAuth -> {
+                    signInViewModel.updateAuthState(authState)
+                    navController.navigate(MiEmpresaScreen.SignIn.name) {
+                        popUpTo(MiEmpresaScreen.Welcome.name) { inclusive = true }
+                    }
+                }
+                else -> {
+                    navController.navigate(MiEmpresaScreen.SignIn.name) {
+                        popUpTo(MiEmpresaScreen.Welcome.name) { inclusive = true }
+                    }
+                }
+            }
         }
     }
 
@@ -46,19 +62,12 @@ fun NavHostComposable(
 
     LaunchedEffect(postAuthDest) {
         when (postAuthDest) {
-            is PostAuthDestination.Onboarding -> {
+            is PostAuthDestination.Onboarding,
+            is PostAuthDestination.CompanySelector,
+            is PostAuthDestination.Home,
+            -> {
                 navController.navigate(MiEmpresaScreen.Onboarding.name) {
                     popUpTo(MiEmpresaScreen.Welcome.name) { inclusive = true }
-                }
-            }
-            is PostAuthDestination.CompanySelector -> {
-                navController.navigate(MiEmpresaScreen.Onboarding.name) {
-                    popUpTo(MiEmpresaScreen.Welcome.name) { inclusive = true }
-                }
-            }
-            is PostAuthDestination.Home -> {
-                navController.navigate(MiEmpresaScreen.Products.name) {
-                    popUpTo(0) { inclusive = true }
                 }
             }
             null -> {}

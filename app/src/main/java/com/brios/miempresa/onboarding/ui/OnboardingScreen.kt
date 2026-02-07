@@ -47,7 +47,7 @@ fun OnboardingScreen(
             SpreadsheetNotFoundView(
                 company = state.company,
                 onRetry = { viewModel.retryValidation() },
-                onCreateSpreadsheet = { viewModel.createNewCompany() },
+                onCreateSpreadsheet = { viewModel.createSpreadsheetsForExisting(state.company) },
                 onDeleteCompany = viewModel::deleteLocalCompany,
                 onSelectAnotherCompany = viewModel::showSelector,
             )

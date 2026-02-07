@@ -82,9 +82,16 @@ class SignInViewModel
                 _postAuthDestination.value =
                     when {
                         count == 0 -> PostAuthDestination.Onboarding
-                        count == 1 -> PostAuthDestination.Home
-                        else -> PostAuthDestination.CompanySelector
+                        else -> PostAuthDestination.Onboarding
                     }
+            }
+        }
+
+        suspend fun checkDriveAuthorization(): AuthState {
+            return try {
+                authRepository.authorizeDriveAndSheets()
+            } catch (e: Exception) {
+                AuthState.Unauthorized
             }
         }
 

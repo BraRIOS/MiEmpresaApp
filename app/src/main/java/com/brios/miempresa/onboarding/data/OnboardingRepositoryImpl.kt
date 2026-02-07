@@ -233,4 +233,85 @@ class OnboardingRepositoryImpl
         override suspend fun deleteLocalCompany(company: Company) {
             companyDao.delete(company)
         }
+
+        override suspend fun createSpreadsheetsForCompany(company: Company): WorkspaceCreationResult {
+            val folderId =
+                company.driveFolderId
+                    ?: return WorkspaceCreationResult.Error(WorkspaceStep.CREATE_FOLDER, "Company has no Drive folder")
+            var currentStep = WorkspaceStep.CREATE_PRIVATE_SHEET
+
+            try {
+                // Step 1: Create private spreadsheet
+                currentStep = WorkspaceStep.CREATE_PRIVATE_SHEET
+                _stepProgress.emit(currentStep)
+                val privateSheet =
+                    driveApi.createPrivateSpreadsheet(folderId, company.name)
+                        ?: return WorkspaceCreationResult.Error(currentStep, "Failed to create private spreadsheet")
+                driveApi.initializeSheetHeaders(
+                    privateSheet.spreadsheetId,
+                    "Products",
+                    listOf("Name", "Description", "Price", "Category", "ImageId"),
+                )
+                driveApi.initializeSheetHeaders(
+                    privateSheet.spreadsheetId,
+                    "Categories",
+                    listOf("Name", "Icon", "ProductCount"),
+                )
+
+                // Step 2: Create public spreadsheet
+                currentStep = WorkspaceStep.CREATE_PUBLIC_SHEET
+                _stepProgress.emit(currentStep)
+                val publicSheet =
+                    driveApi.createPublicSpreadsheet(folderId, company.name)
+                        ?: return WorkspaceCreationResult.Error(currentStep, "Failed to create public spreadsheet")
+                driveApi.initializeSheetHeaders(
+                    publicSheet.spreadsheetId,
+                    "Products",
+                    listOf("Name", "Description", "Price", "Category", "ImageId"),
+                )
+
+                // Step 3: Populate Info tabs with company data
+                currentStep = WorkspaceStep.POPULATE_INFO
+                _stepProgress.emit(currentStep)
+                val whatsapp = "${company.whatsappCountryCode}${company.whatsappNumber ?: ""}"
+                val privateInfoData =
+                    listOf(
+                        listOf("company_id", company.id),
+                        listOf("name", company.name),
+                        listOf("specialization", company.specialization ?: ""),
+                        listOf("whatsapp_number", whatsapp),
+                        listOf("logo_url", company.logoUrl ?: ""),
+                        listOf("address", company.address ?: ""),
+                        listOf("business_hours", company.businessHours ?: ""),
+                    )
+                driveApi.writeInfoTab(privateSheet.spreadsheetId, privateInfoData)
+                val publicInfoData =
+                    listOf(
+                        listOf("name", company.name),
+                        listOf("specialization", company.specialization ?: ""),
+                        listOf("whatsapp_number", whatsapp),
+                        listOf("logo_url", company.logoUrl ?: ""),
+                        listOf("address", company.address ?: ""),
+                        listOf("business_hours", company.businessHours ?: ""),
+                    )
+                driveApi.writeInfoTab(publicSheet.spreadsheetId, publicInfoData)
+
+                // Step 4: Update company in Room with sheet IDs
+                currentStep = WorkspaceStep.SAVE_CONFIG
+                _stepProgress.emit(currentStep)
+                companyDao.update(
+                    company.copy(
+                        privateSheetId = privateSheet.spreadsheetId,
+                        publicSheetId = publicSheet.spreadsheetId,
+                    ),
+                )
+
+                return WorkspaceCreationResult.Success(company.id)
+            } catch (e: Exception) {
+                return WorkspaceCreationResult.Error(
+                    currentStep,
+                    e.message ?: "Unknown error during ${currentStep.name}",
+                )
+            }
+        }
     }

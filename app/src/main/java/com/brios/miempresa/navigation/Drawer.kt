@@ -238,7 +238,7 @@ fun DrawerContentPreview() {
     DrawerContent(
         drawerState = drawerState,
         UserData("Test", "Test username", "test@test.com", "url"),
-        Company("Test", "Test Company", true),
+        Company("Test", "Test Company", selected = true),
         null,
         null,
         NavHostController(LocalContext.current),

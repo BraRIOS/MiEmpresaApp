@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
@@ -11,6 +12,7 @@ import com.brios.miempresa.core.data.local.entities.CartItemEntity
 import com.brios.miempresa.core.data.local.entities.Category
 import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.core.data.local.entities.ProductEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CompanyDao {
@@ -43,6 +45,15 @@ interface CompanyDao {
         companyId: String,
         timestamp: Long,
     )
+
+    @Query("SELECT * FROM companies WHERE isOwned = 1 ORDER BY selected DESC, name")
+    fun getOwnedCompanies(): Flow<List<Company>>
+
+    @Query("SELECT COUNT(*) FROM companies WHERE isOwned = 1")
+    suspend fun getOwnedCompanyCount(): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCompany(company: Company)
 }
 
 @Dao

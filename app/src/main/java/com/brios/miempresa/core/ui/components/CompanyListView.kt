@@ -154,9 +154,9 @@ private fun CompanyListScreenPreview() {
     val companies =
         MutableLiveData(
             listOf(
-                Company("1", "Company 1", false),
-                Company("2", "Company 2", false),
-                Company("3", "Company 3", false),
+                Company("1", "Company 1"),
+                Company("2", "Company 2"),
+                Company("3", "Company 3"),
             ),
         )
     MiEmpresaTheme {

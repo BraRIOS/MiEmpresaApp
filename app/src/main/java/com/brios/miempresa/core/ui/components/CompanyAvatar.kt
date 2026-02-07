@@ -46,7 +46,13 @@ fun CompanyAvatar(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = companyName.take(2).uppercase(),
+                text =
+                    companyName
+                        .split(" ")
+                        .filter { it.isNotBlank() }
+                        .take(2)
+                        .joinToString("") { it.first().uppercase() }
+                        .ifEmpty { "?" },
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )

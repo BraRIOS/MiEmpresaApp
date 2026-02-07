@@ -31,16 +31,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.brios.miempresa.R
+import com.brios.miempresa.core.ui.components.CompanyAvatar
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import kotlinx.coroutines.delay
 
@@ -166,35 +164,11 @@ fun OnboardingSuccessView(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // Company avatar (initials or logo)
-                Box(
-                    modifier =
-                        Modifier
-                            .size(AppDimensions.OnboardingSuccess.avatarSize)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (logoUri != null) {
-                        AsyncImage(
-                            model = logoUri,
-                            contentDescription = stringResource(R.string.company_logo, companyName),
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop,
-                        )
-                    } else {
-                        val initials =
-                            companyName
-                                .split(" ")
-                                .take(2)
-                                .joinToString("") { it.firstOrNull()?.uppercase() ?: "" }
-                        Text(
-                            text = initials,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+                CompanyAvatar(
+                    companyName = companyName,
+                    logoUrl = logoUri,
+                    size = AppDimensions.OnboardingSuccess.avatarSize,
+                )
 
                 Spacer(modifier = Modifier.width(AppDimensions.mediumPadding))
 

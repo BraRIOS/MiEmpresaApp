@@ -2,7 +2,7 @@ package com.brios.miempresa.onboarding.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.brios.miempresa.onboarding.data.OnboardingRepositoryImpl
+import com.brios.miempresa.onboarding.domain.OnboardingRepository
 import com.brios.miempresa.onboarding.domain.WorkspaceCreationResult
 import com.brios.miempresa.onboarding.domain.WorkspaceSetupRequest
 import com.brios.miempresa.onboarding.domain.WorkspaceStep
@@ -20,7 +20,7 @@ import javax.inject.Inject
 class OnboardingViewModel
     @Inject
     constructor(
-        private val repository: OnboardingRepositoryImpl,
+        private val repository: OnboardingRepository,
     ) : ViewModel() {
         companion object {
             const val MAX_COMPANY_NAME = 50

@@ -20,7 +20,7 @@ class OnboardingRepositoryImpl
         private val companyDao: CompanyDao,
     ) : OnboardingRepository {
         private val _stepProgress = MutableSharedFlow<WorkspaceStep>(replay = 1)
-        val stepProgress: Flow<WorkspaceStep> = _stepProgress.asSharedFlow()
+        override val stepProgress: Flow<WorkspaceStep> = _stepProgress.asSharedFlow()
 
         override suspend fun createWorkspace(request: WorkspaceSetupRequest): WorkspaceCreationResult {
             val companyId = UUID.randomUUID().toString()

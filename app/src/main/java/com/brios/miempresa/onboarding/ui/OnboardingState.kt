@@ -19,6 +19,10 @@ data class OnboardingFormState(
 sealed class OnboardingUiState {
     data object Loading : OnboardingUiState()
 
+    data class DiscoveringWorkspace(
+        val message: String = "",
+    ) : OnboardingUiState()
+
     data object ValidatingWorkspace : OnboardingUiState()
 
     data class CompanySelector(

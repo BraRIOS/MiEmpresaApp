@@ -77,14 +77,9 @@ class SignInViewModel
         }
 
         fun determinePostAuthDestination() {
-            viewModelScope.launch {
-                val count = companyDao.getOwnedCompanyCount()
-                _postAuthDestination.value =
-                    when {
-                        count == 0 -> PostAuthDestination.Onboarding
-                        else -> PostAuthDestination.Onboarding
-                    }
-            }
+            // Always route through Onboarding — it handles Drive discovery,
+            // company selection, and workspace validation
+            _postAuthDestination.value = PostAuthDestination.Onboarding
         }
 
         suspend fun checkDriveAuthorization(): AuthState {

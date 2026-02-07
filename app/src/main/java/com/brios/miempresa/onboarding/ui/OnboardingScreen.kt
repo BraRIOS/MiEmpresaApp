@@ -35,6 +35,7 @@ fun OnboardingScreen(
 
     when (val state = uiState) {
         is OnboardingUiState.Loading -> LoadingView()
+        is OnboardingUiState.DiscoveringWorkspace -> LoadingView(message = state.message)
         is OnboardingUiState.ValidatingWorkspace -> LoadingView(message = "Validando workspace...")
         is OnboardingUiState.CompanySelector ->
             CompanyListView(

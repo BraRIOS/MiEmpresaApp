@@ -55,21 +55,23 @@ class OnboardingViewModel
         private fun initializeOnboarding() {
             viewModelScope.launch {
                 try {
-                    val ownedCount = repository.getOwnedCompanyCount()
-                    if (ownedCount == 0) {
-                        _uiState.value = OnboardingUiState.WizardStep1(formState)
-                        return@launch
-                    }
-
-                    // Returning user — sync from Drive then validate
-                    _uiState.value = OnboardingUiState.ValidatingWorkspace
-                    val companies = repository.syncCompaniesFromDrive()
+                    // Step 1: Always check Drive first (discover workspace even with empty Room)
+                    _uiState.value = OnboardingUiState.DiscoveringWorkspace("Buscando tu espacio de trabajo...")
+                    val companies =
+                        try {
+                            repository.syncCompaniesFromDrive()
+                        } catch (_: Exception) {
+                            // Drive unavailable — fall back to local Room data
+                            repository.getOwnedCompanies()
+                        }
 
                     if (companies.isEmpty()) {
+                        // No companies in Drive nor Room — truly new user
                         _uiState.value = OnboardingUiState.WizardStep1(formState)
                         return@launch
                     }
 
+                    // Step 2: Route based on company count and selection
                     val selectedExists = companies.any { it.selected }
                     if (!selectedExists && companies.size > 1) {
                         showCompanySelector(companies)
@@ -80,6 +82,8 @@ class OnboardingViewModel
                         repository.selectCompany(companies.first())
                     }
 
+                    // Step 3: Validate workspace for selected company
+                    _uiState.value = OnboardingUiState.DiscoveringWorkspace("Verificando base de datos...")
                     when (val result = repository.validateExistingWorkspace()) {
                         is WorkspaceValidationResult.Valid ->
                             _events.emit(OnboardingEvent.NavigateToHome)
@@ -267,7 +271,7 @@ class OnboardingViewModel
 
         fun selectCompany(company: Company) {
             viewModelScope.launch {
-                _uiState.value = OnboardingUiState.ValidatingWorkspace
+                _uiState.value = OnboardingUiState.DiscoveringWorkspace("Verificando base de datos...")
                 repository.selectCompany(company)
                 when (val result = repository.validateExistingWorkspace()) {
                     is WorkspaceValidationResult.Valid ->
@@ -288,7 +292,7 @@ class OnboardingViewModel
 
         fun retryValidation() {
             viewModelScope.launch {
-                _uiState.value = OnboardingUiState.ValidatingWorkspace
+                _uiState.value = OnboardingUiState.DiscoveringWorkspace("Reintentando búsqueda...")
                 when (val result = repository.validateExistingWorkspace()) {
                     is WorkspaceValidationResult.Valid ->
                         _events.emit(OnboardingEvent.NavigateToHome)

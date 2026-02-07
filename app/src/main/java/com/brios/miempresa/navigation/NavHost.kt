@@ -97,7 +97,12 @@ fun NavHostComposable(
                             popUpTo(MiEmpresaScreen.Welcome.name) { inclusive = false }
                         }
                     }
-                    is PostAuthDestination.Home, is PostAuthDestination.CompanySelector -> {
+                    is PostAuthDestination.CompanySelector -> {
+                        navController.navigate(MiEmpresaScreen.Onboarding.name) {
+                            popUpTo(MiEmpresaScreen.Welcome.name) { inclusive = false }
+                        }
+                    }
+                    is PostAuthDestination.Home -> {
                         navController.navigate(MiEmpresaScreen.Products.name) {
                             popUpTo(0) { inclusive = true }
                         }

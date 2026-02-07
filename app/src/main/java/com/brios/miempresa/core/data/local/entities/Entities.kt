@@ -20,6 +20,7 @@ data class Company(
     val businessHours: String? = null,
     val publicSheetId: String? = null,
     val privateSheetId: String? = null,
+    val driveFolderId: String? = null,
     val specialization: String? = null,
 )
 

@@ -24,7 +24,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,8 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.brios.miempresa.R
 import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.core.ui.theme.AppDimensions
@@ -42,11 +39,10 @@ import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 @Composable
 fun CompanyListView(
     username: String,
-    companies: LiveData<List<Company>>,
+    companies: List<Company>,
     onSelectCompany: (Company) -> Unit,
     onCreateNewCompany: () -> Unit,
 ) {
-    val companyList by companies.observeAsState(emptyList())
     var searchText by remember { mutableStateOf("") }
 
     Column(
@@ -73,18 +69,21 @@ fun CompanyListView(
         TextField(
             value = searchText,
             onValueChange = { searchText = it },
-            label = { Text("Search") },
+            label = { Text(stringResource(R.string.search)) },
             modifier = Modifier.fillMaxWidth(),
         )
 
         val filteredCompanies =
-            companyList.filter {
+            companies.filter {
                 it.name.contains(searchText, ignoreCase = true)
             }
 
         when {
-            companyList.isEmpty() && companies.value == null -> { // Show loading when LiveData is still loading
-                LoadingView(message = stringResource(R.string.loading_companies))
+            companies.isEmpty() -> {
+                MessageWithIcon(
+                    message = stringResource(id = R.string.no_companies_found),
+                    icon = Icons.Filled.Warning,
+                )
             }
 
             filteredCompanies.isNotEmpty() -> {
@@ -152,12 +151,10 @@ fun CompanyListView(
 @Composable
 private fun CompanyListScreenPreview() {
     val companies =
-        MutableLiveData(
-            listOf(
-                Company("1", "Company 1"),
-                Company("2", "Company 2"),
-                Company("3", "Company 3"),
-            ),
+        listOf(
+            Company("1", "Company 1"),
+            Company("2", "Company 2"),
+            Company("3", "Company 3"),
         )
     MiEmpresaTheme {
         Surface {

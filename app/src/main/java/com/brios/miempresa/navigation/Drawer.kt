@@ -139,7 +139,7 @@ private fun DrawerContent(
                                                     drawerState.close()
                                                 }
                                                 navController.navigate(
-                                                    MiEmpresaScreen.Initializer.name + "/ShowCompanyList",
+                                                    MiEmpresaScreen.Onboarding.name,
                                                 )
                                             },
                                     imageVector = Icons.AutoMirrored.Filled.CompareArrows,

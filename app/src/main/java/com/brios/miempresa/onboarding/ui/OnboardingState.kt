@@ -6,6 +6,7 @@ data class OnboardingFormState(
     val whatsappNumber: String = "",
     val specialization: String = "",
     val logoUri: String? = null,
+    val logoFile: java.io.File? = null,
     val address: String = "",
     val businessHours: String = "",
     val companyNameError: String? = null,
@@ -17,6 +18,18 @@ data class OnboardingFormState(
 
 sealed class OnboardingUiState {
     data object Loading : OnboardingUiState()
+
+    data object ValidatingWorkspace : OnboardingUiState()
+
+    data class CompanySelector(
+        val companies: List<com.brios.miempresa.core.data.local.entities.Company>,
+        val username: String,
+    ) : OnboardingUiState()
+
+    data class WorkspaceIssue(
+        val company: com.brios.miempresa.core.data.local.entities.Company,
+        val issueType: com.brios.miempresa.onboarding.domain.WorkspaceIssueType,
+    ) : OnboardingUiState()
 
     data class WizardStep1(
         val form: OnboardingFormState,
@@ -52,4 +65,6 @@ sealed class OnboardingEvent {
     data class ShowError(val message: String) : OnboardingEvent()
 
     data object NavigateToHome : OnboardingEvent()
+
+    data object NavigateToCompanySelector : OnboardingEvent()
 }

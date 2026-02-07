@@ -4,7 +4,6 @@ enum class MiEmpresaScreen {
     Welcome,
     SignIn,
     Onboarding,
-    Initializer,
     Products,
     Product,
     Categories,

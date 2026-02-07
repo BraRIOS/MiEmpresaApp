@@ -34,6 +34,12 @@ interface CompanyDao {
     @Query("SELECT * FROM companies WHERE selected = 1 LIMIT 1")
     fun getSelectedCompany(): LiveData<Company?>
 
+    @Query("SELECT * FROM companies WHERE selected = 1 AND isOwned = 1 LIMIT 1")
+    suspend fun getSelectedOwnedCompany(): Company?
+
+    @Query("SELECT * FROM companies WHERE isOwned = 1 ORDER BY selected DESC, name")
+    suspend fun getOwnedCompaniesList(): List<Company>
+
     @Query("SELECT * FROM companies")
     fun getCompanies(): LiveData<List<Company>>
 

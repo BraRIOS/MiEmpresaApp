@@ -8,6 +8,16 @@ interface OnboardingRepository {
 
     suspend fun createWorkspace(request: WorkspaceSetupRequest): WorkspaceCreationResult
 
+    suspend fun validateExistingWorkspace(): WorkspaceValidationResult
+
+    suspend fun syncCompaniesFromDrive(): List<Company>
+
+    suspend fun getOwnedCompanies(): List<Company>
+
+    suspend fun selectCompany(company: Company)
+
+    suspend fun deleteLocalCompany(company: Company)
+
     suspend fun saveCompanyToRoom(company: Company)
 
     suspend fun getOwnedCompanyCount(): Int

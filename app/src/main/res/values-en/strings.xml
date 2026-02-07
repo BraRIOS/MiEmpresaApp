@@ -86,4 +86,6 @@
     <string name="switch_company">Switch company</string>
     <string name="current_company">Current company</string>
     <string name="loading_companies">Loading companies</string>
+    <string name="search">Search</string>
+    <string name="validating_workspace">Validating workspace…</string>
 </resources>

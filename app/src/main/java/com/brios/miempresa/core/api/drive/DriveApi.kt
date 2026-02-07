@@ -3,7 +3,9 @@ package com.brios.miempresa.core.api.drive
 import android.content.Context
 import com.brios.miempresa.R
 import com.brios.miempresa.core.auth.GoogleAuthClient
+import com.google.api.client.http.FileContent
 import com.google.api.services.drive.model.File
+import com.google.api.services.drive.model.Permission
 import com.google.api.services.sheets.v4.model.Sheet
 import com.google.api.services.sheets.v4.model.SheetProperties
 import com.google.api.services.sheets.v4.model.Spreadsheet
@@ -221,7 +223,7 @@ class DriveApi
                             .execute()
 
                         val permission =
-                            com.google.api.services.drive.model.Permission().apply {
+                            Permission().apply {
                                 type = "anyone"
                                 role = "reader"
                             }
@@ -282,6 +284,48 @@ class DriveApi
                         .update(spreadsheetId, range, valueRange)
                         .setValueInputOption("RAW")
                         .execute()
+
+                    return@withContext true
+                } catch (e: Exception) {
+                    return@withContext false
+                }
+            }
+
+        suspend fun uploadFile(
+            file: java.io.File,
+            mimeType: String,
+            parentFolderId: String,
+            fileName: String,
+        ): String? =
+            withContext(Dispatchers.IO) {
+                val driveService = googleAuthClient.getGoogleDriveService() ?: return@withContext null
+
+                val fileMetadata =
+                    File().apply {
+                        name = fileName
+                        parents = listOf(parentFolderId)
+                    }
+                val mediaContent = FileContent(mimeType, file)
+
+                val uploadedFile =
+                    driveService.files().create(fileMetadata, mediaContent)
+                        .setFields("id")
+                        .execute()
+
+                return@withContext uploadedFile.id
+            }
+
+        suspend fun makeFilePublic(fileId: String): Boolean =
+            withContext(Dispatchers.IO) {
+                try {
+                    val driveService = googleAuthClient.getGoogleDriveService() ?: return@withContext false
+
+                    val permission =
+                        Permission().apply {
+                            type = "anyone"
+                            role = "reader"
+                        }
+                    driveService.permissions().create(fileId, permission).execute()
 
                     return@withContext true
                 } catch (e: Exception) {

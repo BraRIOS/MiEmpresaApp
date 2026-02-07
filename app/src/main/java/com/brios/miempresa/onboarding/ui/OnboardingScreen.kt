@@ -7,8 +7,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.brios.miempresa.core.ui.components.CompanyListView
 import com.brios.miempresa.core.ui.components.LoadingView
 import com.brios.miempresa.core.ui.components.MessageWithIcon
+import com.brios.miempresa.core.ui.components.SpreadsheetNotFoundView
 import com.brios.miempresa.onboarding.ui.components.CompanyFormStep
 import com.brios.miempresa.onboarding.ui.components.OnboardingSuccessView
 import com.brios.miempresa.onboarding.ui.components.WorkspaceProgressView
@@ -26,12 +28,29 @@ fun OnboardingScreen(
             when (event) {
                 is OnboardingEvent.NavigateToHome -> onNavigateToHome()
                 is OnboardingEvent.ShowError -> { /* Snackbar if needed */ }
+                is OnboardingEvent.NavigateToCompanySelector -> { /* Handled via uiState */ }
             }
         }
     }
 
     when (val state = uiState) {
         is OnboardingUiState.Loading -> LoadingView()
+        is OnboardingUiState.ValidatingWorkspace -> LoadingView(message = "Validando workspace...")
+        is OnboardingUiState.CompanySelector ->
+            CompanyListView(
+                username = state.username,
+                companies = state.companies,
+                onSelectCompany = viewModel::selectCompany,
+                onCreateNewCompany = viewModel::createNewCompany,
+            )
+        is OnboardingUiState.WorkspaceIssue ->
+            SpreadsheetNotFoundView(
+                company = state.company,
+                onRetry = { viewModel.retryValidation() },
+                onCreateSpreadsheet = { viewModel.createNewCompany() },
+                onDeleteCompany = viewModel::deleteLocalCompany,
+                onSelectAnotherCompany = viewModel::showSelector,
+            )
         is OnboardingUiState.WizardStep1 ->
             CompanyFormStep(
                 form = state.form,

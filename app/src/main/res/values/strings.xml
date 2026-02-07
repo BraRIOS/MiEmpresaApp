@@ -207,4 +207,6 @@
     <string name="onboarding_success_title">¡Tu espacio\nestá listo!</string>
     <string name="onboarding_success_subtitle">Ya configuramos tu catálogo.\nComienza a recibir pedidos ahora.</string>
     <string name="onboarding_success_cta">Empezar a gestionar</string>
+    <string name="search">Buscar</string>
+    <string name="validating_workspace">Validando workspace…</string>
 </resources>

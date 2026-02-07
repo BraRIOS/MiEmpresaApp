@@ -2,10 +2,14 @@ package com.brios.miempresa.onboarding.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.brios.miempresa.core.auth.GoogleAuthClient
+import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.onboarding.domain.OnboardingRepository
 import com.brios.miempresa.onboarding.domain.WorkspaceCreationResult
+import com.brios.miempresa.onboarding.domain.WorkspaceIssueType
 import com.brios.miempresa.onboarding.domain.WorkspaceSetupRequest
 import com.brios.miempresa.onboarding.domain.WorkspaceStep
+import com.brios.miempresa.onboarding.domain.WorkspaceValidationResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +25,7 @@ class OnboardingViewModel
     @Inject
     constructor(
         private val repository: OnboardingRepository,
+        private val googleAuthClient: GoogleAuthClient,
     ) : ViewModel() {
         companion object {
             const val MAX_COMPANY_NAME = 50
@@ -39,25 +44,71 @@ class OnboardingViewModel
         private var formState = OnboardingFormState()
 
         init {
-            checkExistingCompanies()
+            initializeOnboarding()
         }
 
-        private fun checkExistingCompanies() {
+        private fun initializeOnboarding() {
             viewModelScope.launch {
                 try {
-                    val count = repository.getOwnedCompanyCount()
-                    if (count > 0) {
-                        _events.emit(OnboardingEvent.NavigateToHome)
-                    } else {
+                    val ownedCount = repository.getOwnedCompanyCount()
+                    if (ownedCount == 0) {
                         _uiState.value = OnboardingUiState.WizardStep1(formState)
+                        return@launch
+                    }
+
+                    // Returning user — sync from Drive then validate
+                    _uiState.value = OnboardingUiState.ValidatingWorkspace
+                    val companies = repository.syncCompaniesFromDrive()
+
+                    if (companies.isEmpty()) {
+                        _uiState.value = OnboardingUiState.WizardStep1(formState)
+                        return@launch
+                    }
+
+                    val selectedExists = companies.any { it.selected }
+                    if (!selectedExists && companies.size > 1) {
+                        showCompanySelector(companies)
+                        return@launch
+                    }
+
+                    if (!selectedExists && companies.size == 1) {
+                        repository.selectCompany(companies.first())
+                    }
+
+                    when (val result = repository.validateExistingWorkspace()) {
+                        is WorkspaceValidationResult.Valid ->
+                            _events.emit(OnboardingEvent.NavigateToHome)
+                        is WorkspaceValidationResult.MissingSheets ->
+                            _uiState.value =
+                                OnboardingUiState.WorkspaceIssue(
+                                    company = result.company,
+                                    issueType = WorkspaceIssueType.SPREADSHEET_NOT_FOUND,
+                                )
+                        is WorkspaceValidationResult.NoCompany ->
+                            _uiState.value = OnboardingUiState.WizardStep1(formState)
+                        is WorkspaceValidationResult.Error ->
+                            _uiState.value =
+                                OnboardingUiState.WorkspaceIssue(
+                                    company = Company(id = "", name = ""),
+                                    issueType = WorkspaceIssueType.GENERIC_ERROR,
+                                )
                     }
                 } catch (e: Exception) {
                     _uiState.value =
                         OnboardingUiState.Error(
-                            e.message ?: "Error checking existing companies",
+                            e.message ?: "Error initializing onboarding",
                         )
                 }
             }
+        }
+
+        private fun showCompanySelector(companies: List<Company>) {
+            val username = googleAuthClient.getSignedInUser()?.username ?: ""
+            _uiState.value =
+                OnboardingUiState.CompanySelector(
+                    companies = companies,
+                    username = username,
+                )
         }
 
         fun updateCompanyName(name: String) {
@@ -138,6 +189,7 @@ class OnboardingViewModel
                         whatsappNumber = formState.whatsappNumber.trim(),
                         specialization = formState.specialization.ifBlank { null },
                         logoUri = formState.logoUri,
+                        logoFile = formState.logoFile,
                         address = formState.address.ifBlank { null },
                         businessHours = formState.businessHours.ifBlank { null },
                     )
@@ -179,6 +231,75 @@ class OnboardingViewModel
         fun navigateToHome() {
             viewModelScope.launch {
                 _events.emit(OnboardingEvent.NavigateToHome)
+            }
+        }
+
+        fun selectCompany(company: Company) {
+            viewModelScope.launch {
+                _uiState.value = OnboardingUiState.ValidatingWorkspace
+                repository.selectCompany(company)
+                when (val result = repository.validateExistingWorkspace()) {
+                    is WorkspaceValidationResult.Valid ->
+                        _events.emit(OnboardingEvent.NavigateToHome)
+                    is WorkspaceValidationResult.MissingSheets ->
+                        _uiState.value =
+                            OnboardingUiState.WorkspaceIssue(
+                                company = result.company,
+                                issueType = WorkspaceIssueType.SPREADSHEET_NOT_FOUND,
+                            )
+                    is WorkspaceValidationResult.NoCompany ->
+                        _uiState.value = OnboardingUiState.WizardStep1(formState)
+                    is WorkspaceValidationResult.Error ->
+                        _uiState.value = OnboardingUiState.Error(result.message)
+                }
+            }
+        }
+
+        fun retryValidation() {
+            viewModelScope.launch {
+                _uiState.value = OnboardingUiState.ValidatingWorkspace
+                when (val result = repository.validateExistingWorkspace()) {
+                    is WorkspaceValidationResult.Valid ->
+                        _events.emit(OnboardingEvent.NavigateToHome)
+                    is WorkspaceValidationResult.MissingSheets ->
+                        _uiState.value =
+                            OnboardingUiState.WorkspaceIssue(
+                                company = result.company,
+                                issueType = WorkspaceIssueType.SPREADSHEET_NOT_FOUND,
+                            )
+                    is WorkspaceValidationResult.NoCompany ->
+                        _uiState.value = OnboardingUiState.WizardStep1(formState)
+                    is WorkspaceValidationResult.Error ->
+                        _uiState.value = OnboardingUiState.Error(result.message)
+                }
+            }
+        }
+
+        fun createNewCompany() {
+            formState = OnboardingFormState()
+            _uiState.value = OnboardingUiState.WizardStep1(formState)
+        }
+
+        fun deleteLocalCompany(company: Company) {
+            viewModelScope.launch {
+                repository.deleteLocalCompany(company)
+                val companies = repository.getOwnedCompanies()
+                if (companies.isEmpty()) {
+                    _uiState.value = OnboardingUiState.WizardStep1(formState)
+                } else {
+                    showCompanySelector(companies)
+                }
+            }
+        }
+
+        fun showSelector() {
+            viewModelScope.launch {
+                val companies = repository.getOwnedCompanies()
+                if (companies.isEmpty()) {
+                    _uiState.value = OnboardingUiState.WizardStep1(formState)
+                } else {
+                    showCompanySelector(companies)
+                }
             }
         }
 

@@ -6,6 +6,7 @@ data class WorkspaceSetupRequest(
     val whatsappNumber: String,
     val specialization: String?,
     val logoUri: String?,
+    val logoFile: java.io.File?,
     val address: String?,
     val businessHours: String?,
 )
@@ -24,4 +25,22 @@ enum class WorkspaceStep(val displayOrder: Int) {
     POPULATE_INFO(5),
     CREATE_IMAGES_FOLDER(6),
     SAVE_CONFIG(7),
+}
+
+sealed class WorkspaceValidationResult {
+    data class Valid(val companyId: String) : WorkspaceValidationResult()
+
+    data object NoCompany : WorkspaceValidationResult()
+
+    data class MissingSheets(
+        val company: com.brios.miempresa.core.data.local.entities.Company,
+    ) : WorkspaceValidationResult()
+
+    data class Error(val message: String) : WorkspaceValidationResult()
+}
+
+enum class WorkspaceIssueType {
+    SPREADSHEET_NOT_FOUND,
+    NO_CONNECTION,
+    GENERIC_ERROR,
 }

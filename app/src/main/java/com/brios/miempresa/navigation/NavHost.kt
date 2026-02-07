@@ -121,7 +121,9 @@ fun NavHostComposable(
                     }
                 },
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.navigate(MiEmpresaScreen.Welcome.name) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 },
             )
         }

@@ -21,14 +21,7 @@ class DriveApi
         @ApplicationContext private val context: Context,
     ) {
         private val mainFolderName = context.getString(R.string.main_folder_name)
-        private val spreadsheetName =
-            context.getString(
-                R.string.spreadsheet_name,
-                context.getString(R.string.do_not_delete_advice),
-            )
         private val spreadsheetNameToSearch = context.getString(R.string.spreadsheet_name, "")
-        private val sheet1Name = context.getString(R.string.sheet_1_name)
-        private val sheet2Name = context.getString(R.string.sheet_2_name)
 
         suspend fun findMainFolder(): File? =
             withContext(Dispatchers.IO) {
@@ -152,80 +145,147 @@ class DriveApi
                 return@withContext null
             }
 
-        suspend fun createAndInitializeSpreadsheet(parentFolderId: String): Spreadsheet? =
+        suspend fun createPrivateSpreadsheet(
+            parentFolderId: String,
+            companyName: String,
+        ): Spreadsheet? =
             withContext(Dispatchers.IO) {
                 val sheetsService = googleAuthClient.getGoogleSheetsService()
                 val driveService = googleAuthClient.getGoogleDriveService()
 
                 sheetsService?.let {
-                    // Crear la metadata de la nueva spreadsheet
+                    val title = "$companyName${context.getString(R.string.private_sheet_suffix)}"
+                    val tabNames =
+                        listOf(
+                            context.getString(R.string.tab_info),
+                            context.getString(R.string.tab_products),
+                            context.getString(R.string.tab_categories),
+                            context.getString(R.string.tab_pedidos),
+                        )
+
                     val spreadsheet =
                         Spreadsheet().apply {
-                            properties = SpreadsheetProperties().setTitle(spreadsheetName)
+                            properties = SpreadsheetProperties().setTitle(title)
                             sheets =
-                                listOf(
-                                    Sheet().apply {
-                                        properties = SheetProperties().setTitle(sheet1Name)
-                                    },
-                                    Sheet().apply {
-                                        properties = SheetProperties().setTitle(sheet2Name)
-                                    },
-                                )
+                                tabNames.map { name ->
+                                    Sheet().apply { properties = SheetProperties().setTitle(name) }
+                                }
                         }
 
-                    // Crear la nueva spreadsheet
-                    val createdSpreadsheet = sheetsService.spreadsheets().create(spreadsheet).execute()
+                    val created = sheetsService.spreadsheets().create(spreadsheet).execute()
 
-                    // Mover la spreadsheet a la carpeta de la empresa
-                    driveService?.let {
-                        val fileId = createdSpreadsheet.spreadsheetId
-                        driveService.files().update(fileId, null)
+                    driveService?.let { drive ->
+                        drive.files().update(created.spreadsheetId, null)
                             .setAddParents(parentFolderId)
                             .setFields("id, parents")
                             .execute()
                     }
 
-                    // Inicializar los datos de las hojas "Productos" y "Categorías"
-                    val valueRangeProductos =
-                        ValueRange().setRange("$sheet1Name!A1:E1").setMajorDimension("ROWS")
-                            .setValues(
-                                listOf(
-                                    listOf(
-                                        context.getString(R.string.name_column),
-                                        context.getString(R.string.description_column),
-                                        context.getString(R.string.price_column),
-                                        context.getString(R.string.categories_column),
-                                        context.getString(R.string.image_url_column),
-                                    ),
-                                ),
-                            )
-
-                    val valueRangeCategorias =
-                        ValueRange().setRange("$sheet2Name!A1:C1").setMajorDimension("ROWS")
-                            .setValues(
-                                listOf(
-                                    listOf(
-                                        context.getString(R.string.name_column),
-                                        context.getString(R.string.product_amount_column),
-                                        context.getString(R.string.image_url_column),
-                                    ),
-                                ),
-                            )
-
-                    // Escribir los valores iniciales en ambas hojas
-                    sheetsService.spreadsheets().values()
-                        .update(createdSpreadsheet.spreadsheetId, valueRangeProductos.range, valueRangeProductos)
-                        .setValueInputOption("RAW")
-                        .execute()
-
-                    sheetsService.spreadsheets().values()
-                        .update(createdSpreadsheet.spreadsheetId, valueRangeCategorias.range, valueRangeCategorias)
-                        .setValueInputOption("RAW")
-                        .execute()
-
-                    return@withContext createdSpreadsheet
+                    return@withContext created
                 }
 
                 return@withContext null
+            }
+
+        suspend fun createPublicSpreadsheet(
+            parentFolderId: String,
+            companyName: String,
+        ): Spreadsheet? =
+            withContext(Dispatchers.IO) {
+                val sheetsService = googleAuthClient.getGoogleSheetsService()
+                val driveService = googleAuthClient.getGoogleDriveService()
+
+                sheetsService?.let {
+                    val title = "$companyName${context.getString(R.string.public_sheet_suffix)}"
+                    val tabNames =
+                        listOf(
+                            context.getString(R.string.tab_info),
+                            context.getString(R.string.tab_products),
+                        )
+
+                    val spreadsheet =
+                        Spreadsheet().apply {
+                            properties = SpreadsheetProperties().setTitle(title)
+                            sheets =
+                                tabNames.map { name ->
+                                    Sheet().apply { properties = SheetProperties().setTitle(name) }
+                                }
+                        }
+
+                    val created = sheetsService.spreadsheets().create(spreadsheet).execute()
+
+                    driveService?.let { drive ->
+                        drive.files().update(created.spreadsheetId, null)
+                            .setAddParents(parentFolderId)
+                            .setFields("id, parents")
+                            .execute()
+
+                        val permission =
+                            com.google.api.services.drive.model.Permission().apply {
+                                type = "anyone"
+                                role = "reader"
+                            }
+                        drive.permissions().create(created.spreadsheetId, permission).execute()
+                    }
+
+                    return@withContext created
+                }
+
+                return@withContext null
+            }
+
+        suspend fun writeInfoTab(
+            spreadsheetId: String,
+            infoData: List<List<String>>,
+        ): Boolean =
+            withContext(Dispatchers.IO) {
+                val sheetsService = googleAuthClient.getGoogleSheetsService() ?: return@withContext false
+
+                try {
+                    val tabName = context.getString(R.string.tab_info)
+                    val range = "$tabName!A1:B${infoData.size}"
+                    val valueRange =
+                        ValueRange()
+                            .setRange(range)
+                            .setMajorDimension("ROWS")
+                            .setValues(infoData.map { it as List<Any> })
+
+                    sheetsService.spreadsheets().values()
+                        .update(spreadsheetId, range, valueRange)
+                        .setValueInputOption("RAW")
+                        .execute()
+
+                    return@withContext true
+                } catch (e: Exception) {
+                    return@withContext false
+                }
+            }
+
+        suspend fun initializeSheetHeaders(
+            spreadsheetId: String,
+            tabName: String,
+            headers: List<String>,
+        ): Boolean =
+            withContext(Dispatchers.IO) {
+                val sheetsService = googleAuthClient.getGoogleSheetsService() ?: return@withContext false
+
+                try {
+                    val lastCol = ('A' + headers.size - 1)
+                    val range = "$tabName!A1:${lastCol}1"
+                    val valueRange =
+                        ValueRange()
+                            .setRange(range)
+                            .setMajorDimension("ROWS")
+                            .setValues(listOf(headers as List<Any>))
+
+                    sheetsService.spreadsheets().values()
+                        .update(spreadsheetId, range, valueRange)
+                        .setValueInputOption("RAW")
+                        .execute()
+
+                    return@withContext true
+                } catch (e: Exception) {
+                    return@withContext false
+                }
             }
     }

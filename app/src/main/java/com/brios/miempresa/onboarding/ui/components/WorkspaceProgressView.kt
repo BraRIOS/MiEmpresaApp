@@ -260,6 +260,7 @@ private fun getStepLabel(step: WorkspaceStep): String =
         WorkspaceStep.UPLOAD_LOGO -> stringResource(R.string.workspace_step_logo)
         WorkspaceStep.CREATE_PRIVATE_SHEET -> stringResource(R.string.workspace_step_private_sheet)
         WorkspaceStep.CREATE_PUBLIC_SHEET -> stringResource(R.string.workspace_step_public_sheet)
+        WorkspaceStep.POPULATE_INFO -> stringResource(R.string.workspace_step_populate_info)
         WorkspaceStep.CREATE_IMAGES_FOLDER -> stringResource(R.string.workspace_step_images_folder)
         WorkspaceStep.SAVE_CONFIG -> stringResource(R.string.workspace_step_save_config)
     }

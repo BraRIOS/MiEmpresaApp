@@ -55,27 +55,72 @@ class OnboardingRepositoryImpl
                 _stepProgress.emit(currentStep)
                 // TODO: Implement logo upload when DriveApi supports file upload
 
-                // Step 3: Create private spreadsheet with Products/Categories tabs
+                // Step 3: Create private spreadsheet (tabs: Info, Products, Categories, Pedidos)
                 currentStep = WorkspaceStep.CREATE_PRIVATE_SHEET
                 _stepProgress.emit(currentStep)
                 val privateSheet =
-                    driveApi.createAndInitializeSpreadsheet(companyFolder.id)
+                    driveApi.createPrivateSpreadsheet(companyFolder.id, request.companyName)
                         ?: return WorkspaceCreationResult.Error(currentStep, "Failed to create private spreadsheet")
+                driveApi.initializeSheetHeaders(
+                    privateSheet.spreadsheetId,
+                    "Products",
+                    listOf("Name", "Description", "Price", "Category", "ImageId"),
+                )
+                driveApi.initializeSheetHeaders(
+                    privateSheet.spreadsheetId,
+                    "Categories",
+                    listOf("Name", "Icon", "ProductCount"),
+                )
 
-                // Step 4: Create public spreadsheet (reuses same method for now)
+                // Step 4: Create public spreadsheet (tabs: Info, Products) + "anyone with link can view"
                 currentStep = WorkspaceStep.CREATE_PUBLIC_SHEET
                 _stepProgress.emit(currentStep)
                 val publicSheet =
-                    driveApi.createAndInitializeSpreadsheet(companyFolder.id)
+                    driveApi.createPublicSpreadsheet(companyFolder.id, request.companyName)
                         ?: return WorkspaceCreationResult.Error(currentStep, "Failed to create public spreadsheet")
+                driveApi.initializeSheetHeaders(
+                    publicSheet.spreadsheetId,
+                    "Products",
+                    listOf("Name", "Description", "Price", "Category", "ImageId"),
+                )
 
-                // Step 5: Create images folder inside company folder
+                // Step 5: Populate Tab "Info" in both sheets
+                currentStep = WorkspaceStep.POPULATE_INFO
+                _stepProgress.emit(currentStep)
+                val fullWhatsappNumber = "${request.whatsappCountryCode}${request.whatsappNumber}"
+                val privateInfoData =
+                    listOf(
+                        listOf("company_id", companyId),
+                        listOf("name", request.companyName),
+                        listOf("specialization", request.specialization ?: ""),
+                        listOf("whatsapp_number", fullWhatsappNumber),
+                        listOf("logo_url", request.logoUri ?: ""),
+                        listOf("address", request.address ?: ""),
+                        listOf("business_hours", request.businessHours ?: ""),
+                    )
+                if (!driveApi.writeInfoTab(privateSheet.spreadsheetId, privateInfoData)) {
+                    return WorkspaceCreationResult.Error(currentStep, "Failed to write private Info tab")
+                }
+                val publicInfoData =
+                    listOf(
+                        listOf("name", request.companyName),
+                        listOf("specialization", request.specialization ?: ""),
+                        listOf("whatsapp_number", fullWhatsappNumber),
+                        listOf("logo_url", request.logoUri ?: ""),
+                        listOf("address", request.address ?: ""),
+                        listOf("business_hours", request.businessHours ?: ""),
+                    )
+                if (!driveApi.writeInfoTab(publicSheet.spreadsheetId, publicInfoData)) {
+                    return WorkspaceCreationResult.Error(currentStep, "Failed to write public Info tab")
+                }
+
+                // Step 6: Create images folder inside company folder
                 currentStep = WorkspaceStep.CREATE_IMAGES_FOLDER
                 _stepProgress.emit(currentStep)
                 driveApi.createCompanyFolder(companyFolder.id, "Images")
                     ?: return WorkspaceCreationResult.Error(currentStep, "Failed to create images folder")
 
-                // Step 6: Save company to Room
+                // Step 7: Save company to Room
                 currentStep = WorkspaceStep.SAVE_CONFIG
                 _stepProgress.emit(currentStep)
                 val company =

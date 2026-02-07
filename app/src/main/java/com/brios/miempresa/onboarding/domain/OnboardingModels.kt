@@ -21,6 +21,7 @@ enum class WorkspaceStep(val displayOrder: Int) {
     UPLOAD_LOGO(2),
     CREATE_PRIVATE_SHEET(3),
     CREATE_PUBLIC_SHEET(4),
-    CREATE_IMAGES_FOLDER(5),
-    SAVE_CONFIG(6),
+    POPULATE_INFO(5),
+    CREATE_IMAGES_FOLDER(6),
+    SAVE_CONFIG(7),
 }

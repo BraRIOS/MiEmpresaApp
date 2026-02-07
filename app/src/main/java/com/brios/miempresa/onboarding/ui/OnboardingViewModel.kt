@@ -170,6 +170,9 @@ class OnboardingViewModel
         }
 
         fun retryWorkspaceCreation() {
+            // TODO Sprint 3: Implement incremental retry that resumes from failed step
+            // Currently restarts from scratch; folder creation is idempotent but
+            // spreadsheet creation may leave orphaned sheets in Drive on retry.
             startWorkspaceCreation()
         }
 

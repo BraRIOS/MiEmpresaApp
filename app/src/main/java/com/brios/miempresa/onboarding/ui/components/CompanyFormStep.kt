@@ -7,8 +7,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +24,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -46,35 +43,30 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.brios.miempresa.R
+import com.brios.miempresa.core.ui.components.FormFieldGroup
+import com.brios.miempresa.core.ui.components.FormLabel
+import com.brios.miempresa.core.ui.components.FormOutlinedTextField
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
-import com.brios.miempresa.core.ui.theme.RequiredRed
 import com.brios.miempresa.core.ui.theme.SlateGray100
 import com.brios.miempresa.core.ui.theme.SlateGray200
 import com.brios.miempresa.core.ui.theme.SlateGray400
@@ -83,7 +75,6 @@ import com.brios.miempresa.core.ui.theme.SlateGray700
 import com.brios.miempresa.core.ui.theme.SuccessGreen
 import com.brios.miempresa.onboarding.ui.OnboardingFormState
 
-private val inputShape = RoundedCornerShape(AppDimensions.mediumCornerRadius)
 private val cardShape = RoundedCornerShape(AppDimensions.mediumCornerRadius)
 private val cardBorder = BorderStroke(1.dp, SlateGray100)
 
@@ -476,88 +467,6 @@ fun CompanyFormStep(
 
         Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
     }
-}
-
-// --- Reusable form components ---
-
-@Composable
-private fun FormLabel(
-    text: String,
-    required: Boolean = false,
-) {
-    Text(
-        text =
-            buildAnnotatedString {
-                append(text)
-                if (required) {
-                    append(" ")
-                    withStyle(SpanStyle(color = RequiredRed, fontSize = 14.sp)) {
-                        append("*")
-                    }
-                }
-            },
-        style = MaterialTheme.typography.labelSmall,
-        fontWeight = FontWeight.Bold,
-        color = SlateGray500,
-        modifier = Modifier.padding(start = AppDimensions.extraSmallPadding, bottom = AppDimensions.smallPadding),
-    )
-}
-
-@Composable
-private fun FormFieldGroup(
-    label: String,
-    required: Boolean = false,
-    content: @Composable () -> Unit,
-) {
-    Column {
-        FormLabel(text = label, required = required)
-        content()
-    }
-}
-
-@Composable
-private fun FormOutlinedTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    leadingIcon: ImageVector,
-    modifier: Modifier = Modifier,
-    isError: Boolean = false,
-    supportingText: String? = null,
-    keyboardType: KeyboardType = KeyboardType.Text,
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isFocused by interactionSource.collectIsFocusedAsState()
-    val iconTint = if (isFocused) MaterialTheme.colorScheme.primary else SlateGray400
-
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        placeholder = {
-            Text(placeholder, color = SlateGray400, style = MaterialTheme.typography.bodyLarge)
-        },
-        leadingIcon = {
-            Icon(leadingIcon, contentDescription = null, tint = iconTint)
-        },
-        isError = isError,
-        supportingText =
-            supportingText?.let {
-                { Text(it) }
-            },
-        singleLine = true,
-        shape = inputShape,
-        interactionSource = interactionSource,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        colors =
-            OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = SlateGray200,
-                unfocusedLeadingIconColor = SlateGray400,
-                focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
-                unfocusedContainerColor = MaterialTheme.colorScheme.background,
-                focusedContainerColor = MaterialTheme.colorScheme.background,
-            ),
-        modifier = modifier.fillMaxWidth(),
-    )
 }
 
 @Preview(showBackground = true, device = Devices.PIXEL_7_PRO)

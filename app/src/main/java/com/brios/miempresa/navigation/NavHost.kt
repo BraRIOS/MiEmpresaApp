@@ -33,11 +33,11 @@ fun NavHostComposable(
     navController: NavHostController,
 ) {
     val signInViewModel = hiltViewModel<SignInViewModel>()
+    val isAlreadySignedIn = signInViewModel.getSignedInUser() != null
 
-    // Session persistence: check if user is already authenticated on app start
-    LaunchedEffect(Unit) {
-        val user = signInViewModel.getSignedInUser()
-        if (user != null) {
+    // If already signed in, skip Welcome and check Drive authorization
+    if (isAlreadySignedIn) {
+        LaunchedEffect(Unit) {
             val authState = signInViewModel.checkDriveAuthorization()
             when (authState) {
                 is AuthState.Authorized -> {
@@ -46,12 +46,12 @@ fun NavHostComposable(
                 is AuthState.PendingAuth -> {
                     signInViewModel.updateAuthState(authState)
                     navController.navigate(MiEmpresaScreen.SignIn.name) {
-                        popUpTo(MiEmpresaScreen.Welcome.name) { inclusive = true }
+                        popUpTo(MiEmpresaScreen.Onboarding.name) { inclusive = true }
                     }
                 }
                 else -> {
                     navController.navigate(MiEmpresaScreen.SignIn.name) {
-                        popUpTo(MiEmpresaScreen.Welcome.name) { inclusive = true }
+                        popUpTo(MiEmpresaScreen.Onboarding.name) { inclusive = true }
                     }
                 }
             }
@@ -66,17 +66,32 @@ fun NavHostComposable(
             is PostAuthDestination.CompanySelector,
             is PostAuthDestination.Home,
             -> {
+                val startRoute =
+                    if (isAlreadySignedIn) {
+                        MiEmpresaScreen.Onboarding.name
+                    } else {
+                        MiEmpresaScreen.Welcome.name
+                    }
                 navController.navigate(MiEmpresaScreen.Onboarding.name) {
-                    popUpTo(MiEmpresaScreen.Welcome.name) { inclusive = true }
+                    popUpTo(startRoute) { inclusive = true }
                 }
             }
             null -> {}
         }
     }
 
+    // Start at Onboarding if already signed in (shows discovery loading),
+    // otherwise start at Welcome for new/signed-out users
+    val startDestination =
+        if (isAlreadySignedIn) {
+            MiEmpresaScreen.Onboarding.name
+        } else {
+            MiEmpresaScreen.Welcome.name
+        }
+
     NavHost(
         navController = navController,
-        startDestination = MiEmpresaScreen.Welcome.name,
+        startDestination = startDestination,
         modifier = Modifier.fillMaxSize(),
     ) {
         composable(route = MiEmpresaScreen.Welcome.name) {

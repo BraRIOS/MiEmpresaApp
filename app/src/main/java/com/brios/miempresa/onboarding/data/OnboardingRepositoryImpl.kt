@@ -170,24 +170,31 @@ class OnboardingRepositoryImpl
                     companyDao.getSelectedOwnedCompany()
                         ?: return WorkspaceValidationResult.NoCompany
 
+                // Offline-fast: if Room already has sheet IDs, trust them
+                if (company.privateSheetId != null && company.publicSheetId != null) {
+                    return WorkspaceValidationResult.Valid(company.id)
+                }
+
                 val folderId = company.driveFolderId ?: return WorkspaceValidationResult.MissingSheets(company)
 
                 val privateSheet = driveApi.findSpreadsheetInFolder(folderId, "Privado")
                 val publicSheet = driveApi.findSpreadsheetInFolder(folderId, "Público")
 
                 return if (privateSheet != null && publicSheet != null) {
-                    if (company.privateSheetId == null || company.publicSheetId == null) {
-                        companyDao.update(
-                            company.copy(
-                                privateSheetId = privateSheet.id,
-                                publicSheetId = publicSheet.id,
-                            ),
-                        )
-                    }
+                    companyDao.update(
+                        company.copy(
+                            privateSheetId = privateSheet.id,
+                            publicSheetId = publicSheet.id,
+                        ),
+                    )
                     WorkspaceValidationResult.Valid(company.id)
                 } else {
                     WorkspaceValidationResult.MissingSheets(company)
                 }
+            } catch (e: java.net.UnknownHostException) {
+                return WorkspaceValidationResult.Error(
+                    "Sin conexión a internet. Verificá tu conexión e intentá nuevamente.",
+                )
             } catch (e: Exception) {
                 return WorkspaceValidationResult.Error(
                     e.message ?: "Error validating workspace",
@@ -230,7 +237,10 @@ class OnboardingRepositoryImpl
             companyDao.update(company.copy(selected = true))
         }
 
-        override suspend fun deleteLocalCompany(company: Company) {
+        override suspend fun deleteCompany(company: Company) {
+            company.driveFolderId?.let { folderId ->
+                driveApi.deleteFile(folderId)
+            }
             companyDao.delete(company)
         }
 

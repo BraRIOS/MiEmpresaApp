@@ -315,6 +315,17 @@ class DriveApi
                 return@withContext uploadedFile.id
             }
 
+        suspend fun deleteFile(fileId: String): Boolean =
+            withContext(Dispatchers.IO) {
+                try {
+                    val driveService = googleAuthClient.getGoogleDriveService() ?: return@withContext false
+                    driveService.files().delete(fileId).execute()
+                    return@withContext true
+                } catch (e: Exception) {
+                    return@withContext false
+                }
+            }
+
         suspend fun makeFilePublic(fileId: String): Boolean =
             withContext(Dispatchers.IO) {
                 try {

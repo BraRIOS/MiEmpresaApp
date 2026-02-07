@@ -16,7 +16,7 @@ interface OnboardingRepository {
 
     suspend fun selectCompany(company: Company)
 
-    suspend fun deleteLocalCompany(company: Company)
+    suspend fun deleteCompany(company: Company)
 
     suspend fun saveCompanyToRoom(company: Company)
 

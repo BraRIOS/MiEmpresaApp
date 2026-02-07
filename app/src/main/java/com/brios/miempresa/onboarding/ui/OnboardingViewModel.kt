@@ -55,23 +55,35 @@ class OnboardingViewModel
         private fun initializeOnboarding() {
             viewModelScope.launch {
                 try {
-                    // Step 1: Always check Drive first (discover workspace even with empty Room)
+                    // Offline-first: check Room for a selected company with valid sheets
+                    val localCompanies = repository.getOwnedCompanies()
+                    val selectedCompany = localCompanies.find { it.selected }
+
+                    if (selectedCompany != null &&
+                        selectedCompany.privateSheetId != null &&
+                        selectedCompany.publicSheetId != null
+                    ) {
+                        // Fast path: Room has valid company → go home immediately
+                        _events.emit(OnboardingEvent.NavigateToHome)
+                        return@launch
+                    }
+
+                    // Room doesn't have a fully valid workspace — discover from Drive
                     _uiState.value = OnboardingUiState.DiscoveringWorkspace("Buscando tu espacio de trabajo...")
                     val companies =
                         try {
                             repository.syncCompaniesFromDrive()
                         } catch (_: Exception) {
-                            // Drive unavailable — fall back to local Room data
-                            repository.getOwnedCompanies()
+                            // Drive unavailable — use whatever Room has
+                            localCompanies
                         }
 
                     if (companies.isEmpty()) {
-                        // No companies in Drive nor Room — truly new user
                         _uiState.value = OnboardingUiState.WizardStep1(formState)
                         return@launch
                     }
 
-                    // Step 2: Route based on company count and selection
+                    // Route based on company count and selection
                     val selectedExists = companies.any { it.selected }
                     if (!selectedExists && companies.size > 1) {
                         showCompanySelector(companies)
@@ -82,7 +94,7 @@ class OnboardingViewModel
                         repository.selectCompany(companies.first())
                     }
 
-                    // Step 3: Validate workspace for selected company
+                    // Validate workspace for selected company
                     _uiState.value = OnboardingUiState.DiscoveringWorkspace("Verificando base de datos...")
                     when (val result = repository.validateExistingWorkspace()) {
                         is WorkspaceValidationResult.Valid ->
@@ -273,6 +285,13 @@ class OnboardingViewModel
             viewModelScope.launch {
                 _uiState.value = OnboardingUiState.DiscoveringWorkspace("Verificando base de datos...")
                 repository.selectCompany(company)
+
+                // Offline-fast: if company already has sheet IDs, go home
+                if (company.privateSheetId != null && company.publicSheetId != null) {
+                    _events.emit(OnboardingEvent.NavigateToHome)
+                    return@launch
+                }
+
                 when (val result = repository.validateExistingWorkspace()) {
                     is WorkspaceValidationResult.Valid ->
                         _events.emit(OnboardingEvent.NavigateToHome)
@@ -315,9 +334,10 @@ class OnboardingViewModel
             _uiState.value = OnboardingUiState.WizardStep1(formState)
         }
 
-        fun deleteLocalCompany(company: Company) {
+        fun deleteCompany(company: Company) {
             viewModelScope.launch {
-                repository.deleteLocalCompany(company)
+                _uiState.value = OnboardingUiState.DiscoveringWorkspace("Eliminando empresa...")
+                repository.deleteCompany(company)
                 val companies = repository.getOwnedCompanies()
                 if (companies.isEmpty()) {
                     _uiState.value = OnboardingUiState.WizardStep1(formState)

@@ -49,7 +49,7 @@ fun OnboardingScreen(
                 company = state.company,
                 onRetry = { viewModel.retryValidation() },
                 onCreateSpreadsheet = { viewModel.createSpreadsheetsForExisting(state.company) },
-                onDeleteCompany = viewModel::deleteLocalCompany,
+                onDeleteCompany = viewModel::deleteCompany,
                 onSelectAnotherCompany = viewModel::showSelector,
             )
         is OnboardingUiState.WizardStep1 ->

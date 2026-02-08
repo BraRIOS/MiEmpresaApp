@@ -42,11 +42,10 @@ android {
             useSupportLibrary = true
         }
         signingConfig = signingConfigs.getByName("debug")
-        // Obtener la propiedad de forma estándar usando una utilidad de AGP
         val webClientId: String = gradleLocalProperties(rootDir, providers).getProperty("WEB_CLIENT_ID") ?: ""
-
-        // IMPORTANTE: El tercer parámetro debe incluir comillas escapadas "\"valor\""
+        val syncPeriodMinutes: Long = gradleLocalProperties(rootDir, providers).getProperty("SYNC_PERIOD_MINUTES")?.toLong() ?: 15
         buildConfigField("String", "WEB_CLIENT_ID", "\"$webClientId\"")
+        buildConfigField("long", "SYNC_PERIOD_MINUTES", "$syncPeriodMinutes")
     }
 
     buildTypes {

@@ -5,6 +5,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.brios.miempresa.BuildConfig
 import com.brios.miempresa.core.sync.workers.PeriodicSyncWorker
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -25,7 +26,7 @@ class SyncManager
         fun schedulePeriodic() {
             val syncRequest =
                 PeriodicWorkRequestBuilder<PeriodicSyncWorker>(
-                    15,
+                    BuildConfig.SYNC_PERIOD_MINUTES,
                     TimeUnit.MINUTES,
                 ).build()
 

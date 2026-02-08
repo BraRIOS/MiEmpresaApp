@@ -1,7 +1,14 @@
 package com.brios.miempresa.onboarding.ui.components
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,19 +34,20 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -52,6 +60,11 @@ import com.brios.miempresa.onboarding.ui.OnboardingUiState
 
 private const val SECONDS_PER_STEP = 3
 private const val PENDING_OPACITY = 0.5f
+private const val SHIMMER_DURATION_MS = 2000
+private const val PING_DURATION_MS = 1500
+private const val ACTIVE_CARD_SCALE = 1.02f
+private const val RING_WIDTH_DP = 4
+private const val CARD_BORDER_ALPHA = 0.2f
 
 @Composable
 fun WorkspaceProgressView(
@@ -104,14 +117,21 @@ fun WorkspaceProgressView(
 
         // Progress card
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        shape = RoundedCornerShape(AppDimensions.OnboardingProgress.progressCardCornerRadius),
+                    ),
             shape = RoundedCornerShape(AppDimensions.OnboardingProgress.progressCardCornerRadius),
             colors =
                 CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
                 ),
             elevation =
-                CardDefaults.cardElevation(),
+                CardDefaults.cardElevation(defaultElevation = 6.dp),
         ) {
             Column(
                 modifier = Modifier.padding(AppDimensions.OnboardingProgress.progressCardPadding),
@@ -126,11 +146,11 @@ fun WorkspaceProgressView(
                         text = stringResource(R.string.workspace_in_progress),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = SuccessGreen,
+                        color = MaterialTheme.colorScheme.primary,
                         modifier =
                             Modifier
                                 .background(
-                                    color = SuccessGreen.copy(alpha = 0.12f),
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                                     shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
                                 )
                                 .padding(
@@ -154,7 +174,7 @@ fun WorkspaceProgressView(
                     Text(
                         text = "${state.progressPercent}",
                         style = MaterialTheme.typography.displayLarge,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
@@ -185,35 +205,53 @@ fun WorkspaceProgressView(
 
                 Spacer(modifier = Modifier.height(AppDimensions.mediumSmallPadding))
 
-                // Progress bar
-                LinearProgressIndicator(
-                    progress = { state.progress },
+                // Progress bar with shimmer
+                ShimmerProgressBar(
+                    progress = state.progress,
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .height(AppDimensions.OnboardingProgress.progressBarHeight)
-                            .clip(MaterialTheme.shapes.small),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                    strokeCap = StrokeCap.Round,
+                            .height(AppDimensions.OnboardingProgress.progressBarHeight),
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(AppDimensions.extraLargePadding))
 
-        // Steps timeline
-        Column {
-            steps.forEachIndexed { index, step ->
-                val stepStatus = getStepStatus(step, state)
-                val stepLabel = getStepLabel(step)
-                val isLast = index == steps.lastIndex
-
-                StepTimelineItem(
-                    label = stepLabel,
-                    status = stepStatus,
-                    isLast = isLast,
+        // Steps timeline with connector line
+        val circleColumnWidth = AppDimensions.OnboardingProgress.stepCircleSize + RING_WIDTH_DP.dp * 2
+        Box {
+            // Connector line behind circles
+            val lineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            Canvas(
+                modifier =
+                    Modifier
+                        .width(circleColumnWidth)
+                        .matchParentSize(),
+            ) {
+                val centerX = size.width / 2
+                val topOffset = circleColumnWidth.toPx() / 2
+                val bottomOffset = topOffset
+                drawLine(
+                    color = lineColor,
+                    start = Offset(centerX, topOffset),
+                    end = Offset(centerX, size.height - bottomOffset),
+                    strokeWidth = AppDimensions.OnboardingProgress.connectorLineWidth.toPx(),
                 )
+            }
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(AppDimensions.extraLargePadding),
+            ) {
+                steps.forEachIndexed { index, step ->
+                    val stepStatus = getStepStatus(step, state)
+                    val stepLabel = getStepLabel(step)
+
+                    StepTimelineItem(
+                        label = stepLabel,
+                        status = stepStatus,
+                    )
+                }
             }
         }
 
@@ -268,128 +306,196 @@ private fun getStepLabel(step: WorkspaceStep): String =
     }
 
 @Composable
+private fun ShimmerProgressBar(
+    progress: Float,
+    modifier: Modifier = Modifier,
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "shimmer")
+    val shimmerOffset by infiniteTransition.animateFloat(
+        initialValue = -1f,
+        targetValue = 2f,
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(SHIMMER_DURATION_MS, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart,
+            ),
+        label = "shimmerOffset",
+    )
+
+    val trackColor = MaterialTheme.colorScheme.surfaceVariant
+    val barColor = MaterialTheme.colorScheme.primary
+    val shimmerBrush =
+        Brush.linearGradient(
+            colors =
+                listOf(
+                    Color.Transparent,
+                    Color.White.copy(alpha = 0.3f),
+                    Color.Transparent,
+                ),
+            start = Offset(shimmerOffset * 300f, 0f),
+            end = Offset((shimmerOffset + 0.5f) * 300f, 0f),
+        )
+
+    Canvas(modifier = modifier.clip(RoundedCornerShape(50))) {
+        // Track
+        drawRoundRect(
+            color = trackColor,
+            size = size,
+        )
+        // Filled portion
+        val filledWidth = size.width * progress
+        if (filledWidth > 0f) {
+            drawRoundRect(
+                color = barColor,
+                size = size.copy(width = filledWidth),
+            )
+            // Shimmer overlay on filled portion
+            drawRect(
+                brush = shimmerBrush,
+                size = size.copy(width = filledWidth),
+            )
+        }
+    }
+}
+
+@Composable
 private fun StepTimelineItem(
     label: String,
     status: StepStatus,
-    isLast: Boolean,
 ) {
     val circleSize = AppDimensions.OnboardingProgress.stepCircleSize
-    val spacing = AppDimensions.OnboardingProgress.stepVerticalSpacing
+    val totalCircleSize = circleSize + RING_WIDTH_DP.dp * 2
+    val ringColor = MaterialTheme.colorScheme.background
 
     Row(
-        modifier =
-            Modifier.height(
-                if (isLast) circleSize else circleSize + (spacing - circleSize),
-            ),
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment =
+            if (status == StepStatus.ACTIVE) Alignment.CenterVertically else Alignment.Top,
     ) {
-        // Circle + connector column
+        // Ring + circle indicator
         Box(
-            modifier = Modifier.width(circleSize),
-            contentAlignment = Alignment.TopCenter,
+            modifier = Modifier.size(totalCircleSize),
+            contentAlignment = Alignment.Center,
         ) {
-            // Vertical connector line (below circle)
-            if (!isLast) {
-                val lineColor =
-                    when (status) {
-                        StepStatus.COMPLETED -> SuccessGreen.copy(alpha = 0.3f)
-                        else -> MaterialTheme.colorScheme.outlineVariant
+            // Ring background
+            Box(
+                modifier =
+                    Modifier
+                        .size(totalCircleSize)
+                        .background(color = ringColor, shape = CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                when (status) {
+                    StepStatus.COMPLETED -> {
+                        Box(
+                            modifier =
+                                Modifier
+                                    .size(circleSize)
+                                    .background(color = SuccessGreen, shape = CircleShape),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = stringResource(R.string.workspace_step_completed),
+                                tint = Color.White,
+                                modifier = Modifier.size(AppDimensions.OnboardingProgress.stepCheckIconSize),
+                            )
+                        }
                     }
-                Canvas(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(top = circleSize),
-                ) {
-                    drawLine(
-                        color = lineColor,
-                        start = Offset(size.width / 2, 0f),
-                        end = Offset(size.width / 2, size.height),
-                        strokeWidth = AppDimensions.OnboardingProgress.connectorLineWidth.toPx(),
-                        pathEffect =
-                            if (status == StepStatus.PENDING) {
-                                PathEffect.dashPathEffect(
-                                    floatArrayOf(4.dp.toPx(), 4.dp.toPx()),
-                                )
-                            } else {
-                                null
-                            },
-                    )
-                }
-            }
-
-            // Circle indicator
-            when (status) {
-                StepStatus.COMPLETED -> {
-                    Box(
-                        modifier =
-                            Modifier
-                                .size(circleSize)
-                                .background(color = SuccessGreen, shape = CircleShape),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = stringResource(R.string.workspace_step_completed),
-                            tint = Color.White,
-                            modifier = Modifier.size(AppDimensions.OnboardingProgress.stepCheckIconSize),
-                        )
+                    StepStatus.ACTIVE -> {
+                        Box(
+                            modifier =
+                                Modifier
+                                    .size(circleSize)
+                                    .border(
+                                        width = 2.dp,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        shape = CircleShape,
+                                    )
+                                    .background(
+                                        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                                        shape = CircleShape,
+                                    ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(AppDimensions.OnboardingProgress.stepSpinnerIconSize),
+                                strokeWidth = AppDimensions.OnboardingProgress.connectorLineWidth,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
                     }
-                }
-                StepStatus.ACTIVE -> {
-                    Box(
-                        modifier =
-                            Modifier
-                                .size(circleSize)
-                                .background(
-                                    color = MaterialTheme.colorScheme.surface,
-                                    shape = CircleShape,
-                                ),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(AppDimensions.OnboardingProgress.stepSpinnerIconSize),
-                            strokeWidth = AppDimensions.OnboardingProgress.connectorLineWidth,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                }
-                StepStatus.PENDING -> {
-                    val outlineColor = MaterialTheme.colorScheme.outlineVariant
-                    val dotColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-                    Canvas(modifier = Modifier.size(circleSize)) {
-                        drawCircle(
-                            color = outlineColor,
-                            radius = size.minDimension / 2f - 1.dp.toPx(),
-                            style =
-                                androidx.compose.ui.graphics.drawscope.Stroke(
-                                    width = AppDimensions.OnboardingProgress.connectorLineWidth.toPx(),
-                                    pathEffect =
-                                        PathEffect.dashPathEffect(
-                                            floatArrayOf(4.dp.toPx(), 4.dp.toPx()),
-                                        ),
-                                ),
-                        )
-                        drawCircle(
-                            color = dotColor,
-                            radius = AppDimensions.OnboardingProgress.stepPendingDotSize.toPx() / 2f,
-                        )
+                    StepStatus.PENDING -> {
+                        val outlineColor = MaterialTheme.colorScheme.outlineVariant
+                        val dotColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                        Canvas(modifier = Modifier.size(circleSize)) {
+                            drawCircle(
+                                color = outlineColor,
+                                radius = size.minDimension / 2f - 1.dp.toPx(),
+                                style =
+                                    androidx.compose.ui.graphics.drawscope.Stroke(
+                                        width = AppDimensions.OnboardingProgress.connectorLineWidth.toPx(),
+                                        pathEffect =
+                                            PathEffect.dashPathEffect(
+                                                floatArrayOf(4.dp.toPx(), 4.dp.toPx()),
+                                            ),
+                                    ),
+                            )
+                            drawCircle(
+                                color = dotColor,
+                                radius = AppDimensions.OnboardingProgress.stepPendingDotSize.toPx() / 2f,
+                            )
+                        }
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.width(AppDimensions.OnboardingProgress.stepCircleToTextGap))
+        Spacer(modifier = Modifier.width(AppDimensions.OnboardingProgress.stepCircleToTextGap - RING_WIDTH_DP.dp))
 
         // Label area
         when (status) {
             StepStatus.ACTIVE -> {
+                val primaryColor = MaterialTheme.colorScheme.primary
+
+                val infiniteTransition = rememberInfiniteTransition(label = "ping")
+                val pingScale by infiniteTransition.animateFloat(
+                    initialValue = 1f,
+                    targetValue = 2.5f,
+                    animationSpec =
+                        infiniteRepeatable(
+                            animation = tween(PING_DURATION_MS, easing = LinearEasing),
+                            repeatMode = RepeatMode.Restart,
+                        ),
+                    label = "pingScale",
+                )
+                val pingAlpha by infiniteTransition.animateFloat(
+                    initialValue = 0.75f,
+                    targetValue = 0f,
+                    animationSpec =
+                        infiniteRepeatable(
+                            animation = tween(PING_DURATION_MS, easing = LinearEasing),
+                            repeatMode = RepeatMode.Restart,
+                        ),
+                    label = "pingAlpha",
+                )
+
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .scale(ACTIVE_CARD_SCALE)
+                            .border(
+                                width = 1.dp,
+                                color = primaryColor.copy(alpha = CARD_BORDER_ALPHA),
+                                shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                            ),
                     shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                     colors =
                         CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                         ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 ) {
                     Column(
                         modifier = Modifier.padding(AppDimensions.mediumPadding),
@@ -406,18 +512,35 @@ private fun StepTimelineItem(
                             modifier = Modifier.padding(top = AppDimensions.extraSmallPadding),
                         ) {
                             Box(
-                                modifier =
-                                    Modifier
-                                        .size(AppDimensions.smallPadding)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.primary,
-                                            shape = CircleShape,
-                                        ),
-                            )
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.size(AppDimensions.mediumSmallPadding),
+                            ) {
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .size(AppDimensions.smallPadding)
+                                            .scale(pingScale)
+                                            .alpha(pingAlpha)
+                                            .background(
+                                                color = primaryColor,
+                                                shape = CircleShape,
+                                            ),
+                                )
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .size(AppDimensions.smallPadding)
+                                            .background(
+                                                color = primaryColor,
+                                                shape = CircleShape,
+                                            ),
+                                )
+                            }
                             Text(
                                 text = stringResource(R.string.workspace_step_processing),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Medium,
+                                color = primaryColor,
                             )
                         }
                     }
@@ -427,6 +550,7 @@ private fun StepTimelineItem(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textDecoration = TextDecoration.LineThrough,
                     modifier = Modifier.padding(top = AppDimensions.mediumSmallPadding),
@@ -436,6 +560,7 @@ private fun StepTimelineItem(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier =
                         Modifier

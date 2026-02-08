@@ -389,6 +389,19 @@ class OnboardingViewModel
             }
         }
 
+        fun cancelWizard() {
+            viewModelScope.launch {
+                val companies = repository.getOwnedCompanies()
+                if (companies.isEmpty()) {
+                    // New user with no companies — signal to sign out
+                    _events.emit(OnboardingEvent.SignOutRequested)
+                } else {
+                    // User has companies — return to selector
+                    showCompanySelector(companies)
+                }
+            }
+        }
+
         fun showSelector() {
             viewModelScope.launch {
                 val companies = repository.getOwnedCompanies()

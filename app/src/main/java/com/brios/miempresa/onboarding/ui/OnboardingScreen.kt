@@ -19,7 +19,7 @@ import com.brios.miempresa.onboarding.ui.components.WorkspaceProgressView
 fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel(),
     onNavigateToHome: () -> Unit,
-    onNavigateBack: () -> Unit = {},
+    onSignOutRequested: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -29,6 +29,7 @@ fun OnboardingScreen(
                 is OnboardingEvent.NavigateToHome -> onNavigateToHome()
                 is OnboardingEvent.ShowError -> { /* Snackbar if needed */ }
                 is OnboardingEvent.NavigateToCompanySelector -> { /* Handled via uiState */ }
+                is OnboardingEvent.SignOutRequested -> onSignOutRequested()
             }
         }
     }
@@ -63,7 +64,7 @@ fun OnboardingScreen(
                 onUpdateAddress = viewModel::updateAddress,
                 onUpdateBusinessHours = viewModel::updateBusinessHours,
                 onContinue = viewModel::startWorkspaceCreation,
-                onCancel = onNavigateBack,
+                onCancel = viewModel::cancelWizard,
             )
         is OnboardingUiState.WizardStep2 ->
             WorkspaceProgressView(

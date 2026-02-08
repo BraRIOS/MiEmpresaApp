@@ -2,10 +2,8 @@ package com.brios.miempresa.categories.data
 
 import com.brios.miempresa.categories.domain.CategoriesRepository
 import com.brios.miempresa.core.api.sheets.SpreadsheetsApi
-import com.brios.miempresa.core.data.local.daos.CategoryDao
 import com.brios.miempresa.core.data.local.daos.CompanyDao
-import com.brios.miempresa.core.data.local.daos.ProductDao
-import com.brios.miempresa.core.data.local.entities.Category
+import com.brios.miempresa.products.data.ProductDao
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 import javax.inject.Inject

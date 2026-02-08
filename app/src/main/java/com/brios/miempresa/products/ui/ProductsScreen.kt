@@ -42,10 +42,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.brios.miempresa.R
-import com.brios.miempresa.core.data.local.entities.Category
-import com.brios.miempresa.core.data.local.entities.ProductEntity
+import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.core.ui.components.MessageWithIcon
 import com.brios.miempresa.core.ui.components.OfflineBanner
+import com.brios.miempresa.products.data.ProductEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

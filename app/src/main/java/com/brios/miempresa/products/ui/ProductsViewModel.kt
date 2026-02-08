@@ -8,6 +8,7 @@ import com.brios.miempresa.categories.domain.CategoriesRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.core.sync.SyncManager
 import com.brios.miempresa.core.sync.SyncType
+import com.brios.miempresa.products.data.ProductEntity
 import com.brios.miempresa.products.domain.ProductsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -100,9 +101,9 @@ class ProductsViewModel
         }
 
         private fun applyFilters(
-            products: List<com.brios.miempresa.core.data.local.entities.ProductEntity>,
+            products: List<ProductEntity>,
             filters: ProductFilters,
-        ): List<com.brios.miempresa.core.data.local.entities.ProductEntity> {
+        ): List<ProductEntity> {
             var result = products
             if (filters.searchQuery.isNotBlank()) {
                 result =

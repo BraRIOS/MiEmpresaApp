@@ -1,6 +1,6 @@
 package com.brios.miempresa.categories.ui
 
-import com.brios.miempresa.core.data.local.entities.Category
+import com.brios.miempresa.categories.data.Category
 
 data class CategoryWithCount(
     val category: Category,

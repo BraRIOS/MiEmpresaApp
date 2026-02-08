@@ -1,7 +1,7 @@
 package com.brios.miempresa.products.ui
 
-import com.brios.miempresa.core.data.local.entities.Category
-import com.brios.miempresa.core.data.local.entities.ProductEntity
+import com.brios.miempresa.categories.data.Category
+import com.brios.miempresa.products.data.ProductEntity
 
 enum class PublicFilter {
     ALL,

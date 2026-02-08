@@ -3,10 +3,10 @@ package com.brios.miempresa.categories.ui
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.categories.domain.CategoriesRepository
 import com.brios.miempresa.categories.domain.EmojiData
 import com.brios.miempresa.core.data.local.daos.CompanyDao
-import com.brios.miempresa.core.data.local.entities.Category
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

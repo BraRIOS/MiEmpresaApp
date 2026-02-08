@@ -3,10 +3,10 @@ package com.brios.miempresa.products.ui
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.categories.domain.CategoriesRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
-import com.brios.miempresa.core.data.local.entities.Category
-import com.brios.miempresa.core.data.local.entities.ProductEntity
+import com.brios.miempresa.products.data.ProductEntity
 import com.brios.miempresa.products.domain.ProductsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

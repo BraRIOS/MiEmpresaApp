@@ -1,10 +1,8 @@
 package com.brios.miempresa.products.data
 
+import com.brios.miempresa.categories.data.CategoryDao
 import com.brios.miempresa.core.api.sheets.SpreadsheetsApi
-import com.brios.miempresa.core.data.local.daos.CategoryDao
 import com.brios.miempresa.core.data.local.daos.CompanyDao
-import com.brios.miempresa.core.data.local.daos.ProductDao
-import com.brios.miempresa.core.data.local.entities.ProductEntity
 import com.brios.miempresa.products.domain.ProductsRepository
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
@@ -66,7 +64,7 @@ class ProductsRepositoryImpl
             val privateRows =
                 allProducts.mapIndexed { index, p ->
                     val rowNum = index + 2 // Headers are row 1, data starts at row 2
-                    val vlookupFormula = "=VLOOKUP(E$rowNum,Categories!A:B,2,FALSE)"
+                    val vlookupFormula = "=VLOOKUP(E$rowNum,Categories!A:D,4,FALSE)&\" \"&VLOOKUP(E$rowNum,Categories!A:B,2,FALSE)"
                     listOf<Any>(
                         p.id,
                         p.name,

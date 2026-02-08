@@ -6,12 +6,9 @@ import com.brios.miempresa.cart.domain.PriceChange
 import com.brios.miempresa.cart.domain.PriceValidationResult
 import com.brios.miempresa.cart.domain.UnavailableProduct
 import com.brios.miempresa.core.api.sheets.SpreadsheetsApi
-import com.brios.miempresa.core.data.local.daos.CartItemDao
-import com.brios.miempresa.core.data.local.daos.CartItemWithProduct
 import com.brios.miempresa.core.data.local.daos.CompanyDao
-import com.brios.miempresa.core.data.local.daos.ProductDao
-import com.brios.miempresa.core.data.local.entities.CartItemEntity
-import com.brios.miempresa.core.data.local.entities.ProductEntity
+import com.brios.miempresa.products.data.ProductDao
+import com.brios.miempresa.products.data.ProductEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject

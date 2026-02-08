@@ -1,6 +1,6 @@
 package com.brios.miempresa.categories.domain
 
-import com.brios.miempresa.core.data.local.entities.Category
+import com.brios.miempresa.categories.data.Category
 import kotlinx.coroutines.flow.Flow
 
 interface CategoriesRepository {

@@ -1,6 +1,6 @@
 package com.brios.miempresa.products.domain
 
-import com.brios.miempresa.core.data.local.entities.ProductEntity
+import com.brios.miempresa.products.data.ProductEntity
 import kotlinx.coroutines.flow.Flow
 
 interface ProductsRepository {

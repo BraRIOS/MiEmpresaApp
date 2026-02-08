@@ -40,49 +40,53 @@ class SpreadsheetsApi
             rowIndex: Int,
             workingSheetId: Int,
         ) {
-            val service = googleAuthClient.getGoogleSheetsService()
-            val deleteDimensionRequest =
-                Request().apply {
-                    deleteDimension =
-                        DeleteDimensionRequest().apply {
-                            range =
-                                DimensionRange().apply {
-                                    sheetId = workingSheetId
-                                    dimension = "ROWS"
-                                    startIndex = rowIndex
-                                    endIndex = rowIndex + 1
-                                }
-                        }
-                }
-            val batchUpdateRequest =
-                BatchUpdateSpreadsheetRequest().apply {
-                    requests = listOf(deleteDimensionRequest)
-                }
-            service?.spreadsheets()?.batchUpdate(spreadsheetId, batchUpdateRequest)?.execute()
+            withContext(Dispatchers.IO) {
+                val service = googleAuthClient.getGoogleSheetsService()
+                val deleteDimensionRequest =
+                    Request().apply {
+                        deleteDimension =
+                            DeleteDimensionRequest().apply {
+                                range =
+                                    DimensionRange().apply {
+                                        sheetId = workingSheetId
+                                        dimension = "ROWS"
+                                        startIndex = rowIndex
+                                        endIndex = rowIndex + 1
+                                    }
+                            }
+                    }
+                val batchUpdateRequest =
+                    BatchUpdateSpreadsheetRequest().apply {
+                        requests = listOf(deleteDimensionRequest)
+                    }
+                service?.spreadsheets()?.batchUpdate(spreadsheetId, batchUpdateRequest)?.execute()
+            }
         }
 
         suspend fun getSheetId(
             spreadsheetId: String,
             sheetName: String,
-        ): Int? {
-            val service = googleAuthClient.getGoogleSheetsService()
-            val spreadsheet = service?.spreadsheets()?.get(spreadsheetId)?.execute()
-            val sheet = spreadsheet?.sheets?.find { it.properties?.title == sheetName }
-            return sheet?.properties?.sheetId
-        }
+        ): Int? =
+            withContext(Dispatchers.IO) {
+                val service = googleAuthClient.getGoogleSheetsService()
+                val spreadsheet = service?.spreadsheets()?.get(spreadsheetId)?.execute()
+                val sheet = spreadsheet?.sheets?.find { it.properties?.title == sheetName }
+                sheet?.properties?.sheetId
+            }
 
         suspend fun readRange(
             spreadsheetId: String,
             range: String,
-        ): List<List<Any>>? {
-            val service = googleAuthClient.getGoogleSheetsService()
-            if (service == null) {
-                android.util.Log.e("SpreadsheetsApi", "GoogleSheetsService is null - authentication required")
-                return null
+        ): List<List<Any>>? =
+            withContext(Dispatchers.IO) {
+                val service = googleAuthClient.getGoogleSheetsService()
+                if (service == null) {
+                    android.util.Log.e("SpreadsheetsApi", "GoogleSheetsService is null - authentication required")
+                    return@withContext null
+                }
+                val response = service.spreadsheets().values().get(spreadsheetId, range).execute()
+                response?.getValues()
             }
-            val response = service.spreadsheets().values().get(spreadsheetId, range).execute()
-            return response?.getValues()
-        }
 
         suspend fun appendRows(
             spreadsheetId: String,
@@ -90,11 +94,13 @@ class SpreadsheetsApi
             values: List<List<Any>>,
             valueInputOption: String = "USER_ENTERED",
         ) {
-            val service = googleAuthClient.getGoogleSheetsService()
-            val body = ValueRange().setValues(values)
-            service?.spreadsheets()?.values()?.append(spreadsheetId, range, body)
-                ?.setValueInputOption(valueInputOption)
-                ?.execute()
+            withContext(Dispatchers.IO) {
+                val service = googleAuthClient.getGoogleSheetsService()
+                val body = ValueRange().setValues(values)
+                service?.spreadsheets()?.values()?.append(spreadsheetId, range, body)
+                    ?.setValueInputOption(valueInputOption)
+                    ?.execute()
+            }
         }
 
         suspend fun clearAndWriteAll(

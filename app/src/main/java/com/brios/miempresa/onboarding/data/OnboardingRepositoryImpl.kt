@@ -1,6 +1,7 @@
 package com.brios.miempresa.onboarding.data
 
 import com.brios.miempresa.core.api.drive.DriveApi
+import com.brios.miempresa.core.api.sheets.SpreadsheetsApi
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.onboarding.domain.OnboardingRepository
@@ -18,6 +19,7 @@ class OnboardingRepositoryImpl
     @Inject
     constructor(
         private val driveApi: DriveApi,
+        private val sheetsApi: SpreadsheetsApi,
         private val companyDao: CompanyDao,
     ) : OnboardingRepository {
         private val _stepProgress = MutableSharedFlow<WorkspaceStep>(replay = 1)
@@ -70,11 +72,17 @@ class OnboardingRepositoryImpl
                     "Products",
                     listOf("ProductID", "Name", "Description", "Price", "CategoryID", "Publico", "ImageUrl"),
                 )
+                // Hide ProductID (A=0) and CategoryID (E=4) columns
+                sheetsApi.hideColumns(privateSheet.spreadsheetId, "Products", listOf(0, 4))
+
                 driveApi.initializeSheetHeaders(
                     privateSheet.spreadsheetId,
                     "Categories",
                     listOf("CategoryID", "Name", "IconEmoji"),
                 )
+                // Hide CategoryID (A=0) column
+                sheetsApi.hideColumns(privateSheet.spreadsheetId, "Categories", listOf(0))
+
                 val fullWhatsappNumber = "${request.whatsappCountryCode}${request.whatsappNumber}"
                 val privateInfoData =
                     listOf(
@@ -258,11 +266,17 @@ class OnboardingRepositoryImpl
                     "Products",
                     listOf("ProductID", "Name", "Description", "Price", "CategoryID", "Publico", "ImageUrl"),
                 )
+                // Hide ProductID (A=0) and CategoryID (E=4) columns
+                sheetsApi.hideColumns(privateSheet.spreadsheetId, "Products", listOf(0, 4))
+
                 driveApi.initializeSheetHeaders(
                     privateSheet.spreadsheetId,
                     "Categories",
                     listOf("CategoryID", "Name", "IconEmoji"),
                 )
+                // Hide CategoryID (A=0) column
+                sheetsApi.hideColumns(privateSheet.spreadsheetId, "Categories", listOf(0))
+
                 val whatsapp = "${company.whatsappCountryCode}${company.whatsappNumber ?: ""}"
                 val privateInfoData =
                     listOf(

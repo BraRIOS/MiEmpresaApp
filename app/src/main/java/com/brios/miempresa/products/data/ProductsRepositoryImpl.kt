@@ -64,13 +64,16 @@ class ProductsRepositoryImpl
 
             // Write ALL products to private sheet (with IDs)
             val privateRows =
-                allProducts.map { p ->
+                allProducts.mapIndexed { index, p ->
+                    val rowNum = index + 2 // Headers are row 1, data starts at row 2
+                    val vlookupFormula = "=VLOOKUP(E$rowNum,Categories!A:B,2,FALSE)"
                     listOf<Any>(
                         p.id,
                         p.name,
                         p.description ?: "",
                         p.price,
                         p.categoryId ?: "",
+                        vlookupFormula,
                         p.isPublic.toString().uppercase(),
                         p.imageUrl ?: "",
                     )
@@ -121,7 +124,7 @@ class ProductsRepositoryImpl
             val company = companyDao.getCompanyById(companyId) ?: return
             val privateSheetId = company.privateSheetId ?: return
 
-            val sheetRows = sheetsApi.readRange(privateSheetId, "$PRODUCTS_TAB!A2:G") ?: return
+            val sheetRows = sheetsApi.readRange(privateSheetId, "$PRODUCTS_TAB!A2:H") ?: return
             val sheetProductIds = mutableSetOf<String>()
 
             for (row in sheetRows) {
@@ -131,8 +134,9 @@ class ProductsRepositoryImpl
                 val description = row.getOrNull(2)?.toString() ?: ""
                 val price = row[3]?.toString()?.toDoubleOrNull() ?: 0.0
                 val categoryId = row.getOrNull(4)?.toString()?.takeIf { it.isNotBlank() }
-                val isPublic = row.getOrNull(5)?.toString()?.equals("TRUE", ignoreCase = true) ?: true
-                val imageUrl = row.getOrNull(6)?.toString()?.takeIf { it.isNotBlank() }
+                // row[5] is CategoryName formula (skip)
+                val isPublic = row.getOrNull(6)?.toString()?.equals("TRUE", ignoreCase = true) ?: true
+                val imageUrl = row.getOrNull(7)?.toString()?.takeIf { it.isNotBlank() }
                 sheetProductIds.add(id)
 
                 val existing = productDao.getById(id, companyId)
@@ -179,7 +183,7 @@ class ProductsRepositoryImpl
         companion object {
             private const val PRODUCTS_TAB = "Products"
             private val PRIVATE_PRODUCTS_HEADERS =
-                listOf("ProductID", "Name", "Description", "Price", "CategoryID", "Publico", "ImageUrl")
+                listOf("ProductID", "Name", "Description", "Price", "CategoryID", "CategoryName", "Publico", "ImageUrl")
             private val PUBLIC_PRODUCTS_HEADERS =
                 listOf("Name", "Description", "Price", "Category", "ImageUrl")
         }

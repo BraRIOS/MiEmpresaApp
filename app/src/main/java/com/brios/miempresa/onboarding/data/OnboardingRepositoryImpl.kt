@@ -70,7 +70,7 @@ class OnboardingRepositoryImpl
                 driveApi.initializeSheetHeaders(
                     privateSheet.spreadsheetId,
                     "Products",
-                    listOf("ProductID", "Name", "Description", "Price", "CategoryID", "Publico", "ImageUrl"),
+                    listOf("ProductID", "Name", "Description", "Price", "CategoryID", "CategoryName", "Publico", "ImageUrl"),
                 )
                 // Hide ProductID (A=0) and CategoryID (E=4) columns
                 sheetsApi.hideColumns(privateSheet.spreadsheetId, "Products", listOf(0, 4))
@@ -78,7 +78,7 @@ class OnboardingRepositoryImpl
                 driveApi.initializeSheetHeaders(
                     privateSheet.spreadsheetId,
                     "Categories",
-                    listOf("CategoryID", "Name", "IconEmoji"),
+                    listOf("CategoryID", "Name", "ProductCount", "IconEmoji"),
                 )
                 // Hide CategoryID (A=0) column
                 sheetsApi.hideColumns(privateSheet.spreadsheetId, "Categories", listOf(0))
@@ -264,7 +264,7 @@ class OnboardingRepositoryImpl
                 driveApi.initializeSheetHeaders(
                     privateSheet.spreadsheetId,
                     "Products",
-                    listOf("ProductID", "Name", "Description", "Price", "CategoryID", "Publico", "ImageUrl"),
+                    listOf("ProductID", "Name", "Description", "Price", "CategoryID", "CategoryName", "Publico", "ImageUrl"),
                 )
                 // Hide ProductID (A=0) and CategoryID (E=4) columns
                 sheetsApi.hideColumns(privateSheet.spreadsheetId, "Products", listOf(0, 4))
@@ -272,7 +272,7 @@ class OnboardingRepositoryImpl
                 driveApi.initializeSheetHeaders(
                     privateSheet.spreadsheetId,
                     "Categories",
-                    listOf("CategoryID", "Name", "IconEmoji"),
+                    listOf("CategoryID", "Name", "ProductCount", "IconEmoji"),
                 )
                 // Hide CategoryID (A=0) column
                 sheetsApi.hideColumns(privateSheet.spreadsheetId, "Categories", listOf(0))

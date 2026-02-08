@@ -57,8 +57,10 @@ class CategoriesRepositoryImpl
 
             val allCategories = categoryDao.getAll(companyId)
             val rows =
-                allCategories.map { cat ->
-                    listOf<Any>(cat.id, cat.name, cat.iconEmoji)
+                allCategories.mapIndexed { index, cat ->
+                    val rowNum = index + 2 // Headers are row 1, data starts at row 2
+                    val countFormula = "=COUNTIF(Products!E:E,A$rowNum)"
+                    listOf<Any>(cat.id, cat.name, countFormula, cat.iconEmoji)
                 }
 
             sheetsApi.clearAndWriteAll(
@@ -84,14 +86,15 @@ class CategoriesRepositoryImpl
             val company = companyDao.getCompanyById(companyId) ?: return
             val privateSheetId = company.privateSheetId ?: return
 
-            val sheetRows = sheetsApi.readRange(privateSheetId, "$CATEGORIES_TAB!A2:C") ?: return
+            val sheetRows = sheetsApi.readRange(privateSheetId, "$CATEGORIES_TAB!A2:D") ?: return
             val sheetCategoryIds = mutableSetOf<String>()
 
             for (row in sheetRows) {
-                if (row.size < 3) continue
+                if (row.size < 2) continue
                 val id = row[0]?.toString() ?: continue
                 val name = row[1]?.toString() ?: continue
-                val iconEmoji = row[2]?.toString() ?: ""
+                // row[2] is ProductCount formula (skip)
+                val iconEmoji = row.getOrNull(3)?.toString() ?: ""
                 sheetCategoryIds.add(id)
 
                 val existing = categoryDao.getById(id, companyId)
@@ -132,6 +135,6 @@ class CategoriesRepositoryImpl
 
         companion object {
             private const val CATEGORIES_TAB = "Categories"
-            private val CATEGORIES_HEADERS = listOf("CategoryID", "Name", "IconEmoji")
+            private val CATEGORIES_HEADERS = listOf("CategoryID", "Name", "ProductCount", "IconEmoji")
         }
     }

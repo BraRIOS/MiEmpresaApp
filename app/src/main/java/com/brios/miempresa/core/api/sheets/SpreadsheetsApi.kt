@@ -5,6 +5,7 @@ import android.util.Log
 import com.brios.miempresa.core.auth.GoogleAuthClient
 import com.brios.miempresa.core.data.local.entities.ProductEntity
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest
+import com.google.api.services.sheets.v4.model.ClearValuesRequest
 import com.google.api.services.sheets.v4.model.DeleteDimensionRequest
 import com.google.api.services.sheets.v4.model.DimensionRange
 import com.google.api.services.sheets.v4.model.Request
@@ -94,6 +95,32 @@ class SpreadsheetsApi
             service?.spreadsheets()?.values()?.append(spreadsheetId, range, body)
                 ?.setValueInputOption(valueInputOption)
                 ?.execute()
+        }
+
+        suspend fun clearAndWriteAll(
+            spreadsheetId: String,
+            tabName: String,
+            headers: List<String>,
+            rows: List<List<Any>>,
+        ) {
+            val service = googleAuthClient.getGoogleSheetsService() ?: return
+            val dataRange = "$tabName!A2:${('A' + headers.size - 1)}$MAX_SHEET_ROWS"
+            withContext(Dispatchers.IO) {
+                service.spreadsheets().values()
+                    .clear(spreadsheetId, dataRange, ClearValuesRequest())
+                    .execute()
+                if (rows.isNotEmpty()) {
+                    val body = ValueRange().setValues(rows)
+                    service.spreadsheets().values()
+                        .update(spreadsheetId, "$tabName!A2", body)
+                        .setValueInputOption("USER_ENTERED")
+                        .execute()
+                }
+            }
+        }
+
+        companion object {
+            private const val MAX_SHEET_ROWS = 10000
         }
 
         /**

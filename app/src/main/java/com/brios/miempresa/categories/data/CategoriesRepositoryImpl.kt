@@ -1,7 +1,9 @@
 package com.brios.miempresa.categories.data
 
 import com.brios.miempresa.categories.domain.CategoriesRepository
+import com.brios.miempresa.core.api.sheets.SpreadsheetsApi
 import com.brios.miempresa.core.data.local.daos.CategoryDao
+import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.core.data.local.daos.ProductDao
 import com.brios.miempresa.core.data.local.entities.Category
 import kotlinx.coroutines.flow.Flow
@@ -13,6 +15,8 @@ class CategoriesRepositoryImpl
     constructor(
         private val categoryDao: CategoryDao,
         private val productDao: ProductDao,
+        private val companyDao: CompanyDao,
+        private val sheetsApi: SpreadsheetsApi,
     ) : CategoriesRepository {
         override fun getAll(companyId: String): Flow<List<Category>> = categoryDao.getAllFlow(companyId)
 
@@ -48,13 +52,38 @@ class CategoriesRepositoryImpl
         ): Int = productDao.countByCategory(categoryId, companyId)
 
         override suspend fun syncPendingChanges(companyId: String) {
-            val dirtyCategories = categoryDao.getDirty(companyId)
-            if (dirtyCategories.isEmpty()) return
-            // TODO: Upload to Sheets in Sprint 2 task A2
-            categoryDao.markSynced(
-                ids = dirtyCategories.map { it.id },
-                timestamp = System.currentTimeMillis(),
-                companyId = companyId,
+            val company = companyDao.getCompanyById(companyId) ?: return
+            val privateSheetId = company.privateSheetId ?: return
+            val allCategories = categoryDao.getAll(companyId)
+
+            val rows =
+                allCategories.map { cat ->
+                    listOf<Any>(
+                        cat.name,
+                        cat.icon,
+                        productDao.countByCategory(cat.id, companyId),
+                    )
+                }
+
+            sheetsApi.clearAndWriteAll(
+                spreadsheetId = privateSheetId,
+                tabName = CATEGORIES_TAB,
+                headers = CATEGORIES_HEADERS,
+                rows = rows,
             )
+
+            val dirtyIds = categoryDao.getDirty(companyId).map { it.id }
+            if (dirtyIds.isNotEmpty()) {
+                categoryDao.markSynced(
+                    ids = dirtyIds,
+                    timestamp = System.currentTimeMillis(),
+                    companyId = companyId,
+                )
+            }
+        }
+
+        companion object {
+            private const val CATEGORIES_TAB = "Categories"
+            private val CATEGORIES_HEADERS = listOf("Name", "Icon", "ProductCount")
         }
     }

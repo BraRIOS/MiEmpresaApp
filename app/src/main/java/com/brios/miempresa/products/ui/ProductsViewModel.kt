@@ -14,6 +14,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -35,7 +36,7 @@ class ProductsViewModel
         private val connectivityManager: ConnectivityManager,
     ) : ViewModel() {
         private val _filters = MutableStateFlow(ProductFilters())
-        val filters: StateFlow<ProductFilters> = _filters
+        val filters: StateFlow<ProductFilters> = _filters.asStateFlow()
 
         private val _companyId = MutableStateFlow<String?>(null)
 

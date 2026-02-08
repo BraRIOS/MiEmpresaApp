@@ -14,6 +14,7 @@ import com.brios.miempresa.onboarding.domain.WorkspaceStep
 import com.brios.miempresa.onboarding.domain.WorkspaceValidationResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -73,6 +74,8 @@ class OnboardingViewModel
                     val companies =
                         try {
                             repository.syncCompaniesFromDrive()
+                        } catch (e: CancellationException) {
+                            throw e // Rethrow for cooperative cancellation
                         } catch (_: Exception) {
                             // Drive unavailable — use whatever Room has
                             localCompanies
@@ -114,6 +117,8 @@ class OnboardingViewModel
                                     issueType = WorkspaceIssueType.GENERIC_ERROR,
                                 )
                     }
+                } catch (e: CancellationException) {
+                    throw e // Must rethrow for cooperative cancellation
                 } catch (e: Exception) {
                     _uiState.value =
                         OnboardingUiState.Error(

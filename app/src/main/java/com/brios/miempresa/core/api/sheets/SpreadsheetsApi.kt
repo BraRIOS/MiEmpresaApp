@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.brios.miempresa.core.auth.GoogleAuthClient
 import com.brios.miempresa.core.data.local.entities.ProductEntity
+import com.brios.miempresa.core.di.IoDispatcher
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest
 import com.google.api.services.sheets.v4.model.ClearValuesRequest
 import com.google.api.services.sheets.v4.model.DeleteDimensionRequest
@@ -11,7 +12,7 @@ import com.google.api.services.sheets.v4.model.DimensionRange
 import com.google.api.services.sheets.v4.model.Request
 import com.google.api.services.sheets.v4.model.ValueRange
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -24,6 +25,7 @@ class SpreadsheetsApi
     constructor(
         private val googleAuthClient: GoogleAuthClient,
         @ApplicationContext private val context: Context,
+        @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) {
         // TODO: Restore after refactor (online-first methods using Product/Category)
         // suspend fun readProductsFromSheet(spreadsheetId: String): List<Product> { ... }
@@ -40,7 +42,7 @@ class SpreadsheetsApi
             rowIndex: Int,
             workingSheetId: Int,
         ) {
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 val service = googleAuthClient.getGoogleSheetsService()
                 val deleteDimensionRequest =
                     Request().apply {
@@ -67,7 +69,7 @@ class SpreadsheetsApi
             spreadsheetId: String,
             sheetName: String,
         ): Int? =
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 val service = googleAuthClient.getGoogleSheetsService()
                 val spreadsheet = service?.spreadsheets()?.get(spreadsheetId)?.execute()
                 val sheet = spreadsheet?.sheets?.find { it.properties?.title == sheetName }
@@ -78,7 +80,7 @@ class SpreadsheetsApi
             spreadsheetId: String,
             range: String,
         ): List<List<Any>>? =
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 val service = googleAuthClient.getGoogleSheetsService()
                 if (service == null) {
                     android.util.Log.e("SpreadsheetsApi", "GoogleSheetsService is null - authentication required")
@@ -94,7 +96,7 @@ class SpreadsheetsApi
             values: List<List<Any>>,
             valueInputOption: String = "USER_ENTERED",
         ) {
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 val service = googleAuthClient.getGoogleSheetsService()
                 val body = ValueRange().setValues(values)
                 service?.spreadsheets()?.values()?.append(spreadsheetId, range, body)
@@ -112,7 +114,7 @@ class SpreadsheetsApi
             val service = googleAuthClient.getGoogleSheetsService() ?: return
             val lastCol = ('A' + headers.size - 1)
             val fullRange = "$tabName!A1:${lastCol}$MAX_SHEET_ROWS"
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 service.spreadsheets().values()
                     .clear(spreadsheetId, fullRange, ClearValuesRequest())
                     .execute()
@@ -152,7 +154,7 @@ class SpreadsheetsApi
                             .setFields("hiddenByUser"),
                     )
                 }
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 service.spreadsheets()
                     .batchUpdate(
                         spreadsheetId,
@@ -177,7 +179,7 @@ class SpreadsheetsApi
             productIds: List<String>,
             companyId: String,
         ): List<ProductEntity> {
-            return withContext(Dispatchers.IO) {
+            return withContext(ioDispatcher) {
                 try {
                     val service = googleAuthClient.getGoogleSheetsService()
 

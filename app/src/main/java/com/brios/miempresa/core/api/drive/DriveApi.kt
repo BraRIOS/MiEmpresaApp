@@ -3,6 +3,7 @@ package com.brios.miempresa.core.api.drive
 import android.content.Context
 import com.brios.miempresa.R
 import com.brios.miempresa.core.auth.GoogleAuthClient
+import com.brios.miempresa.core.di.IoDispatcher
 import com.google.api.client.http.FileContent
 import com.google.api.services.drive.model.File
 import com.google.api.services.drive.model.Permission
@@ -12,7 +13,7 @@ import com.google.api.services.sheets.v4.model.Spreadsheet
 import com.google.api.services.sheets.v4.model.SpreadsheetProperties
 import com.google.api.services.sheets.v4.model.ValueRange
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -21,12 +22,13 @@ class DriveApi
     constructor(
         private val googleAuthClient: GoogleAuthClient,
         @ApplicationContext private val context: Context,
+        @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) {
         private val mainFolderName = context.getString(R.string.main_folder_name)
         private val spreadsheetNameToSearch = context.getString(R.string.spreadsheet_name, "")
 
         suspend fun findMainFolder(): File? =
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 val driveService = googleAuthClient.getGoogleDriveService()
 
                 driveService?.let {
@@ -45,7 +47,7 @@ class DriveApi
             }
 
         suspend fun listFoldersInFolder(parentFolderId: String): List<File>? =
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 val driveService = googleAuthClient.getGoogleDriveService()
 
                 driveService?.let {
@@ -67,7 +69,7 @@ class DriveApi
             parentFolderId: String,
             spreadsheetName: String = this.spreadsheetNameToSearch,
         ): File? =
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 val driveService = googleAuthClient.getGoogleDriveService()
                 driveService?.let {
                     val query =
@@ -88,7 +90,7 @@ class DriveApi
             }
 
         suspend fun createMainFolder(): File? =
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 val driveService = googleAuthClient.getGoogleDriveService()
 
                 driveService?.let {
@@ -116,7 +118,7 @@ class DriveApi
             parentFolderId: String,
             companyName: String,
         ): File? =
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 val driveService = googleAuthClient.getGoogleDriveService()
 
                 driveService?.let {
@@ -151,7 +153,7 @@ class DriveApi
             parentFolderId: String,
             companyName: String,
         ): Spreadsheet? =
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 val sheetsService = googleAuthClient.getGoogleSheetsService()
                 val driveService = googleAuthClient.getGoogleDriveService()
 
@@ -193,7 +195,7 @@ class DriveApi
             parentFolderId: String,
             companyName: String,
         ): Spreadsheet? =
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 val sheetsService = googleAuthClient.getGoogleSheetsService()
                 val driveService = googleAuthClient.getGoogleDriveService()
 
@@ -240,7 +242,7 @@ class DriveApi
             spreadsheetId: String,
             infoData: List<List<String>>,
         ): Boolean =
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 val sheetsService = googleAuthClient.getGoogleSheetsService() ?: return@withContext false
 
                 try {
@@ -268,7 +270,7 @@ class DriveApi
             tabName: String,
             headers: List<String>,
         ): Boolean =
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 val sheetsService = googleAuthClient.getGoogleSheetsService() ?: return@withContext false
 
                 try {
@@ -297,7 +299,7 @@ class DriveApi
             parentFolderId: String,
             fileName: String,
         ): String? =
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 val driveService = googleAuthClient.getGoogleDriveService() ?: return@withContext null
 
                 val fileMetadata =
@@ -316,7 +318,7 @@ class DriveApi
             }
 
         suspend fun deleteFile(fileId: String): Boolean =
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 try {
                     val driveService = googleAuthClient.getGoogleDriveService() ?: return@withContext false
                     driveService.files().delete(fileId).execute()
@@ -327,7 +329,7 @@ class DriveApi
             }
 
         suspend fun makeFilePublic(fileId: String): Boolean =
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 try {
                     val driveService = googleAuthClient.getGoogleDriveService() ?: return@withContext false
 

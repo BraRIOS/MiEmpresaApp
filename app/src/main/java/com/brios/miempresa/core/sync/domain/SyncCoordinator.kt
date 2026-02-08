@@ -1,5 +1,8 @@
 package com.brios.miempresa.core.sync.domain
 
+import com.brios.miempresa.categories.domain.CategoriesRepository
+import com.brios.miempresa.core.data.local.daos.CompanyDao
+import com.brios.miempresa.products.domain.ProductsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -7,15 +10,16 @@ import javax.inject.Singleton
 class SyncCoordinator
     @Inject
     constructor(
-        // TODO: Inject ProductRepository, CategoryRepository, OrderRepository when created
+        private val productsRepository: ProductsRepository,
+        private val categoriesRepository: CategoriesRepository,
+        private val companyDao: CompanyDao,
     ) {
         suspend fun syncAll(): Result<Unit> {
+            val companyId = getActiveCompanyId() ?: return Result.success(Unit)
             return try {
-                // TODO: Call repository.syncPendingChanges() for each feature
-                // Example:
-                // productRepository.syncPendingChanges()
-                // categoryRepository.syncPendingChanges()
-                // orderRepository.syncPendingChanges()
+                syncCategories(companyId)
+                syncProducts(companyId)
+                companyDao.updateLastSyncedAt(companyId, System.currentTimeMillis())
                 Result.success(Unit)
             } catch (e: Exception) {
                 Result.failure(e)
@@ -23,8 +27,9 @@ class SyncCoordinator
         }
 
         suspend fun syncProducts(): Result<Unit> {
+            val companyId = getActiveCompanyId() ?: return Result.success(Unit)
             return try {
-                // TODO: productRepository.syncPendingChanges()
+                syncProducts(companyId)
                 Result.success(Unit)
             } catch (e: Exception) {
                 Result.failure(e)
@@ -32,20 +37,24 @@ class SyncCoordinator
         }
 
         suspend fun syncCategories(): Result<Unit> {
+            val companyId = getActiveCompanyId() ?: return Result.success(Unit)
             return try {
-                // TODO: categoryRepository.syncPendingChanges()
+                syncCategories(companyId)
                 Result.success(Unit)
             } catch (e: Exception) {
                 Result.failure(e)
             }
         }
 
-        suspend fun syncOrders(): Result<Unit> {
-            return try {
-                // TODO: orderRepository.syncPendingChanges()
-                Result.success(Unit)
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
+        private suspend fun syncCategories(companyId: String) {
+            categoriesRepository.syncPendingChanges(companyId)
+        }
+
+        private suspend fun syncProducts(companyId: String) {
+            productsRepository.syncPendingChanges(companyId)
+        }
+
+        private suspend fun getActiveCompanyId(): String? {
+            return companyDao.getSelectedOwnedCompany()?.id
         }
     }

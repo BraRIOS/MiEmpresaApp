@@ -1,17 +1,19 @@
 package com.brios.miempresa.core.sync
 
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.brios.miempresa.core.sync.workers.PeriodicSyncWorker
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
 enum class SyncType {
+    ALL,
     PRODUCTS,
     CATEGORIES,
-    ORDERS,
 }
 
 @Singleton
@@ -34,11 +36,19 @@ class SyncManager
             )
         }
 
-        fun syncNow(type: SyncType) {
-            // Manual sync trigger (future: OneTimeWorkRequest)
+        fun syncNow(type: SyncType = SyncType.ALL) {
+            val syncRequest =
+                OneTimeWorkRequestBuilder<PeriodicSyncWorker>()
+                    .setInputData(workDataOf(SYNC_TYPE_KEY to type.name))
+                    .build()
+            workManager.enqueue(syncRequest)
         }
 
         fun cancelAll() {
             workManager.cancelUniqueWork("periodic_sync")
+        }
+
+        companion object {
+            const val SYNC_TYPE_KEY = "sync_type"
         }
     }

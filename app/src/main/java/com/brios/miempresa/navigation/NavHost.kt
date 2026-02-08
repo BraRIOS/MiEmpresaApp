@@ -7,7 +7,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,7 +24,11 @@ import com.brios.miempresa.auth.ui.PostAuthDestination
 import com.brios.miempresa.auth.ui.SignInScreen
 import com.brios.miempresa.auth.ui.SignInViewModel
 import com.brios.miempresa.auth.ui.WelcomeScreen
+import com.brios.miempresa.categories.ui.CategoriesScreen
+import com.brios.miempresa.categories.ui.CategoryFormScreen
 import com.brios.miempresa.onboarding.ui.OnboardingScreen
+import com.brios.miempresa.products.ui.ProductFormScreen
+import com.brios.miempresa.products.ui.ProductsScreen
 
 @Composable
 fun NavHostComposable(
@@ -169,8 +172,50 @@ fun NavHostComposable(
             )
         }
         composable(route = MiEmpresaScreen.Products.name) {
-            // TODO: Replace with ProductsScreen when implemented
-            Text(text = "Products (placeholder)")
+            ProductsScreen(
+                onNavigateToAddProduct = {
+                    navController.navigate("${MiEmpresaScreen.Product.name}/add")
+                },
+                onNavigateToProductDetail = { productId ->
+                    navController.navigate("${MiEmpresaScreen.Product.name}/$productId")
+                },
+            )
+        }
+        composable(route = "${MiEmpresaScreen.Product.name}/add") {
+            ProductFormScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAddCategory = {
+                    navController.navigate("${MiEmpresaScreen.Categories.name}/add")
+                },
+            )
+        }
+        composable(route = "${MiEmpresaScreen.Product.name}/{productId}") {
+            ProductFormScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAddCategory = {
+                    navController.navigate("${MiEmpresaScreen.Categories.name}/add")
+                },
+            )
+        }
+        composable(route = MiEmpresaScreen.Categories.name) {
+            CategoriesScreen(
+                onNavigateToAddCategory = {
+                    navController.navigate("${MiEmpresaScreen.Categories.name}/add")
+                },
+                onNavigateToCategoryDetail = { categoryId ->
+                    navController.navigate("${MiEmpresaScreen.Categories.name}/$categoryId")
+                },
+            )
+        }
+        composable(route = "${MiEmpresaScreen.Categories.name}/add") {
+            CategoryFormScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+        composable(route = "${MiEmpresaScreen.Categories.name}/{categoryId}") {
+            CategoryFormScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
         }
     }
 }

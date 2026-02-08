@@ -208,4 +208,33 @@
     <string name="onboarding_success_cta">Empezar a gestionar</string>
     <string name="search">Buscar</string>
     <string name="validating_workspace">Validando workspace…</string>
+
+    <!-- Categories screen -->
+    <string name="search_categories">Buscar categorías…</string>
+    <string name="no_categories_yet">Aún no tenés categorías</string>
+    <string name="no_categories_match">No se encontraron categorías</string>
+    <string name="category_name">Nombre de la categoría</string>
+    <string name="select_emoji">Seleccionar emoji</string>
+    <string name="delete_category">Eliminar categoría</string>
+    <string name="category_has_products">Esta categoría tiene %1$d productos asociados. Reasigná los productos antes de eliminarla.</string>
+    <string name="confirm_delete_category">¿Estás seguro de que querés eliminar esta categoría?</string>
+
+    <!-- Products screen -->
+    <string name="search_products">Buscar productos…</string>
+    <string name="no_products_yet">Aún no tenés productos</string>
+    <string name="no_products_match">No se encontraron productos</string>
+    <string name="clear_filters">Limpiar filtros</string>
+    <string name="filter_all">Todos</string>
+    <string name="filter_public">Públicos</string>
+    <string name="filter_private">Privados</string>
+    <string name="public_label">Público</string>
+    <string name="private_label">Privado</string>
+    <string name="product_name">Nombre del producto</string>
+    <string name="price">Precio</string>
+    <string name="category">Categoría</string>
+    <string name="description_optional">Descripción (opcional)</string>
+    <string name="visible_public_catalog">Visible en catálogo público</string>
+    <string name="no_categories_create_first">No hay categorías. Creá una antes de agregar productos.</string>
+    <string name="create_category">Crear categoría</string>
+    <string name="confirm_delete_product">¿Estás seguro de que querés eliminar este producto?</string>
 </resources>

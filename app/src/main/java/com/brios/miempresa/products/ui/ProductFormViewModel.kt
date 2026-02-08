@@ -87,7 +87,7 @@ class ProductFormViewModel
                         _price.value = it.price.toString()
                         _description.value = it.description ?: ""
                         _selectedCategoryId.value = it.categoryId
-                        _isPublic.value = it.publico
+                        _isPublic.value = it.isPublic
                         _localImagePath.value = it.localImagePath
                     }
                 }
@@ -152,7 +152,7 @@ class ProductFormViewModel
                             price = currentPrice!!,
                             description = _description.value.ifBlank { null },
                             categoryId = currentCategoryId,
-                            publico = _isPublic.value,
+                            isPublic = _isPublic.value,
                             localImagePath = _localImagePath.value,
                         ),
                     )
@@ -165,7 +165,7 @@ class ProductFormViewModel
                             companyId = currentCompanyId,
                             description = _description.value.ifBlank { null },
                             categoryId = currentCategoryId,
-                            publico = _isPublic.value,
+                            isPublic = _isPublic.value,
                             localImagePath = _localImagePath.value,
                         ),
                     )

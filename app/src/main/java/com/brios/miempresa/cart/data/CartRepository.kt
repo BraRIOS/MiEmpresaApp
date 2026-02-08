@@ -147,7 +147,7 @@ class CartRepository
 
                 when {
                     // Product not found in Sheets (deleted/hidden)
-                    updated == null || !updated.isAvailable -> {
+                    updated == null || updated.deleted -> {
                         unavailable.add(
                             UnavailableProduct(
                                 productId = cartItem.productId,

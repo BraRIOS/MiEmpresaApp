@@ -208,7 +208,7 @@ private fun FilterChipsRow(
                         if (filters.categoryId == category.id) null else category.id,
                     )
                 },
-                label = { Text("${category.icon} ${category.name}") },
+                label = { Text("${category.iconEmoji} ${category.name}") },
             )
         }
     }
@@ -264,14 +264,14 @@ private fun ProductCard(
             }
             Text(
                 text =
-                    if (product.publico) {
+                    if (product.isPublic) {
                         stringResource(R.string.public_label)
                     } else {
                         stringResource(R.string.private_label)
                     },
                 style = MaterialTheme.typography.labelSmall,
                 color =
-                    if (product.publico) {
+                    if (product.isPublic) {
                         MaterialTheme.colorScheme.primary
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant

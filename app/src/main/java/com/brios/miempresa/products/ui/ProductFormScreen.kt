@@ -149,7 +149,7 @@ fun ProductFormScreen(
                     OutlinedTextField(
                         value =
                             categories.find { it.id == selectedCategoryId }?.let {
-                                "${it.icon} ${it.name}"
+                                "${it.iconEmoji} ${it.name}"
                             } ?: "",
                         onValueChange = {},
                         readOnly = true,
@@ -170,7 +170,7 @@ fun ProductFormScreen(
                     ) {
                         categories.forEach { category ->
                             DropdownMenuItem(
-                                text = { Text("${category.icon} ${category.name}") },
+                                text = { Text("${category.iconEmoji} ${category.name}") },
                                 onClick = {
                                     viewModel.onCategorySelected(category.id)
                                     categoryExpanded = false

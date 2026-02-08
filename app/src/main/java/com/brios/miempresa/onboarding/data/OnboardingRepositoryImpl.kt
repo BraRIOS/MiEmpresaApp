@@ -73,7 +73,7 @@ class OnboardingRepositoryImpl
                 driveApi.initializeSheetHeaders(
                     privateSheet.spreadsheetId,
                     "Categories",
-                    listOf("CategoryID", "Name", "Icon"),
+                    listOf("CategoryID", "Name", "IconEmoji"),
                 )
                 val fullWhatsappNumber = "${request.whatsappCountryCode}${request.whatsappNumber}"
                 val privateInfoData =
@@ -261,7 +261,7 @@ class OnboardingRepositoryImpl
                 driveApi.initializeSheetHeaders(
                     privateSheet.spreadsheetId,
                     "Categories",
-                    listOf("CategoryID", "Name", "Icon"),
+                    listOf("CategoryID", "Name", "IconEmoji"),
                 )
                 val whatsapp = "${company.whatsappCountryCode}${company.whatsappNumber ?: ""}"
                 val privateInfoData =

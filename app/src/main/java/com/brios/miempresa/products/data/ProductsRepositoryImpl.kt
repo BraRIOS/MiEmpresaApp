@@ -52,7 +52,7 @@ class ProductsRepositoryImpl
             isPublic: Boolean,
         ) {
             val existing = productDao.getById(id, companyId) ?: return
-            productDao.upsert(existing.copy(publico = isPublic, dirty = true))
+            productDao.upsert(existing.copy(isPublic = isPublic, dirty = true))
         }
 
         override suspend fun syncPendingChanges(companyId: String) {
@@ -71,7 +71,7 @@ class ProductsRepositoryImpl
                         p.description ?: "",
                         p.price,
                         p.categoryId ?: "",
-                        p.publico.toString().uppercase(),
+                        p.isPublic.toString().uppercase(),
                         p.imageUrl ?: "",
                     )
                 }
@@ -82,12 +82,14 @@ class ProductsRepositoryImpl
                 headers = PRIVATE_PRODUCTS_HEADERS,
                 rows = privateRows,
             )
+            // Hide ProductID (A=0) and CategoryID (E=4) columns for clean admin UX
+            sheetsApi.hideColumns(privateSheetId, PRODUCTS_TAB, listOf(0, 4))
 
             // Write only public products to public sheet (resolved names, no IDs)
             if (publicSheetId != null) {
                 val categoryCache = categoryDao.getAll(companyId).associateBy { it.id }
                 val publicRows =
-                    allProducts.filter { it.publico }.map { p ->
+                    allProducts.filter { it.isPublic }.map { p ->
                         listOf<Any>(
                             p.name,
                             p.description ?: "",
@@ -129,7 +131,7 @@ class ProductsRepositoryImpl
                 val description = row.getOrNull(2)?.toString() ?: ""
                 val price = row[3]?.toString()?.toDoubleOrNull() ?: 0.0
                 val categoryId = row.getOrNull(4)?.toString()?.takeIf { it.isNotBlank() }
-                val publico = row.getOrNull(5)?.toString()?.equals("TRUE", ignoreCase = true) ?: true
+                val isPublic = row.getOrNull(5)?.toString()?.equals("TRUE", ignoreCase = true) ?: true
                 val imageUrl = row.getOrNull(6)?.toString()?.takeIf { it.isNotBlank() }
                 sheetProductIds.add(id)
 
@@ -142,7 +144,7 @@ class ProductsRepositoryImpl
                                 description = description,
                                 price = price,
                                 categoryId = categoryId,
-                                publico = publico,
+                                isPublic = isPublic,
                                 imageUrl = imageUrl,
                                 lastSyncedAt = System.currentTimeMillis(),
                             ),
@@ -156,7 +158,7 @@ class ProductsRepositoryImpl
                             description = description,
                             price = price,
                             categoryId = categoryId,
-                            publico = publico,
+                            isPublic = isPublic,
                             imageUrl = imageUrl,
                             companyId = companyId,
                             lastSyncedAt = System.currentTimeMillis(),

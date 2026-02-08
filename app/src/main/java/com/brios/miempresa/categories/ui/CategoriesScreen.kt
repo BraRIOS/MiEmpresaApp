@@ -156,7 +156,7 @@ private fun CategoryCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = item.category.icon,
+                text = item.category.iconEmoji,
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.size(40.dp),
             )

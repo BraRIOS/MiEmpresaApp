@@ -51,7 +51,7 @@ class CategoryFormViewModel
                     val category = categoriesRepository.getById(categoryId, companyId!!)
                     category?.let {
                         _name.value = it.name
-                        _selectedEmoji.value = it.icon
+                        _selectedEmoji.value = it.iconEmoji
                     }
                     _productCount.value =
                         categoriesRepository.getProductCount(
@@ -89,7 +89,7 @@ class CategoryFormViewModel
                         Category(
                             id = categoryId,
                             name = currentName,
-                            icon = _selectedEmoji.value,
+                            iconEmoji = _selectedEmoji.value,
                             companyId = currentCompanyId,
                             dirty = true,
                         ),
@@ -99,7 +99,7 @@ class CategoryFormViewModel
                         Category(
                             id = "",
                             name = currentName,
-                            icon = _selectedEmoji.value,
+                            iconEmoji = _selectedEmoji.value,
                             companyId = currentCompanyId,
                         ),
                     )

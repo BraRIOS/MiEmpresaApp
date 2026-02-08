@@ -58,7 +58,7 @@ class CategoriesRepositoryImpl
             val allCategories = categoryDao.getAll(companyId)
             val rows =
                 allCategories.map { cat ->
-                    listOf<Any>(cat.id, cat.name, cat.icon)
+                    listOf<Any>(cat.id, cat.name, cat.iconEmoji)
                 }
 
             sheetsApi.clearAndWriteAll(
@@ -67,6 +67,8 @@ class CategoriesRepositoryImpl
                 headers = CATEGORIES_HEADERS,
                 rows = rows,
             )
+            // Hide CategoryID column (A=0) for clean admin UX
+            sheetsApi.hideColumns(privateSheetId, CATEGORIES_TAB, listOf(0))
 
             val dirtyIds = categoryDao.getDirty(companyId).map { it.id }
             if (dirtyIds.isNotEmpty()) {
@@ -89,14 +91,18 @@ class CategoriesRepositoryImpl
                 if (row.size < 3) continue
                 val id = row[0]?.toString() ?: continue
                 val name = row[1]?.toString() ?: continue
-                val icon = row[2]?.toString() ?: ""
+                val iconEmoji = row[2]?.toString() ?: ""
                 sheetCategoryIds.add(id)
 
                 val existing = categoryDao.getById(id, companyId)
                 if (existing != null) {
                     if (!existing.dirty) {
                         categoryDao.upsert(
-                            existing.copy(name = name, icon = icon, lastSyncedAt = System.currentTimeMillis()),
+                            existing.copy(
+                                name = name,
+                                iconEmoji = iconEmoji,
+                                lastSyncedAt = System.currentTimeMillis(),
+                            ),
                         )
                     }
                 } else {
@@ -104,7 +110,7 @@ class CategoriesRepositoryImpl
                         Category(
                             id = id,
                             name = name,
-                            icon = icon,
+                            iconEmoji = iconEmoji,
                             companyId = companyId,
                             lastSyncedAt = System.currentTimeMillis(),
                         ),
@@ -126,6 +132,6 @@ class CategoriesRepositoryImpl
 
         companion object {
             private const val CATEGORIES_TAB = "Categories"
-            private val CATEGORIES_HEADERS = listOf("CategoryID", "Name", "Icon")
+            private val CATEGORIES_HEADERS = listOf("CategoryID", "Name", "IconEmoji")
         }
     }

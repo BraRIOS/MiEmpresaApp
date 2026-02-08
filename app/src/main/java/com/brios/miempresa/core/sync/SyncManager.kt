@@ -1,6 +1,8 @@
 package com.brios.miempresa.core.sync
 
+import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -24,15 +26,22 @@ class SyncManager
         private val workManager: WorkManager,
     ) {
         fun schedulePeriodic() {
+            val constraints =
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+
             val syncRequest =
                 PeriodicWorkRequestBuilder<PeriodicSyncWorker>(
                     BuildConfig.SYNC_PERIOD_MINUTES,
                     TimeUnit.MINUTES,
-                ).build()
+                )
+                    .setConstraints(constraints)
+                    .build()
 
             workManager.enqueueUniquePeriodicWork(
                 "periodic_sync",
-                ExistingPeriodicWorkPolicy.KEEP,
+                ExistingPeriodicWorkPolicy.UPDATE,
                 syncRequest,
             )
         }

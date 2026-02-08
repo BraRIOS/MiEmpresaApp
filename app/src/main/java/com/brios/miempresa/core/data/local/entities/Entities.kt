@@ -31,7 +31,7 @@ data class Company(
 data class Category(
     @PrimaryKey val id: String,
     val name: String,
-    val icon: String,
+    val iconEmoji: String,
     val companyId: String,
     // Modified offline, pending upload
     val dirty: Boolean = false,
@@ -78,8 +78,7 @@ data class ProductEntity(
     val imageUrl: String? = null,
     val localImagePath: String? = null,
     val driveImageId: String? = null,
-    val publico: Boolean = true,
-    val isAvailable: Boolean = true,
+    val isPublic: Boolean = true,
     val deleted: Boolean = false,
     // Modified offline, pending upload
     val dirty: Boolean = false,

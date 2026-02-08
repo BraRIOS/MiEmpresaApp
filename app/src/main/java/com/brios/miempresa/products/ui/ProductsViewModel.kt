@@ -113,8 +113,8 @@ class ProductsViewModel
                 result = result.filter { it.categoryId == filters.categoryId }
             }
             when (filters.publicFilter) {
-                PublicFilter.PUBLIC -> result = result.filter { it.publico }
-                PublicFilter.PRIVATE -> result = result.filter { !it.publico }
+                PublicFilter.PUBLIC -> result = result.filter { it.isPublic }
+                PublicFilter.PRIVATE -> result = result.filter { !it.isPublic }
                 PublicFilter.ALL -> {}
             }
             return result

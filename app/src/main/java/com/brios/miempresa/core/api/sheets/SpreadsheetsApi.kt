@@ -104,18 +104,55 @@ class SpreadsheetsApi
             rows: List<List<Any>>,
         ) {
             val service = googleAuthClient.getGoogleSheetsService() ?: return
-            val dataRange = "$tabName!A2:${('A' + headers.size - 1)}$MAX_SHEET_ROWS"
+            val lastCol = ('A' + headers.size - 1)
+            val fullRange = "$tabName!A1:${lastCol}$MAX_SHEET_ROWS"
             withContext(Dispatchers.IO) {
                 service.spreadsheets().values()
-                    .clear(spreadsheetId, dataRange, ClearValuesRequest())
+                    .clear(spreadsheetId, fullRange, ClearValuesRequest())
                     .execute()
-                if (rows.isNotEmpty()) {
-                    val body = ValueRange().setValues(rows)
-                    service.spreadsheets().values()
-                        .update(spreadsheetId, "$tabName!A2", body)
-                        .setValueInputOption("USER_ENTERED")
-                        .execute()
+                val allRows = mutableListOf<List<Any>>()
+                allRows.add(headers)
+                allRows.addAll(rows)
+                val body = ValueRange().setValues(allRows)
+                service.spreadsheets().values()
+                    .update(spreadsheetId, "$tabName!A1", body)
+                    .setValueInputOption("USER_ENTERED")
+                    .execute()
+            }
+        }
+
+        suspend fun hideColumns(
+            spreadsheetId: String,
+            tabName: String,
+            columnIndices: List<Int>,
+        ) {
+            val service = googleAuthClient.getGoogleSheetsService() ?: return
+            val sheetId = getSheetId(spreadsheetId, tabName) ?: return
+            val requests =
+                columnIndices.map { colIndex ->
+                    Request().setUpdateDimensionProperties(
+                        com.google.api.services.sheets.v4.model.UpdateDimensionPropertiesRequest()
+                            .setRange(
+                                DimensionRange()
+                                    .setSheetId(sheetId)
+                                    .setDimension("COLUMNS")
+                                    .setStartIndex(colIndex)
+                                    .setEndIndex(colIndex + 1),
+                            )
+                            .setProperties(
+                                com.google.api.services.sheets.v4.model.DimensionProperties()
+                                    .setHiddenByUser(true),
+                            )
+                            .setFields("hiddenByUser"),
+                    )
                 }
+            withContext(Dispatchers.IO) {
+                service.spreadsheets()
+                    .batchUpdate(
+                        spreadsheetId,
+                        BatchUpdateSpreadsheetRequest().setRequests(requests),
+                    )
+                    .execute()
             }
         }
 

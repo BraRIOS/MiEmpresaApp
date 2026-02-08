@@ -75,22 +75,6 @@ class OnboardingRepositoryImpl
                     "Categories",
                     listOf("Name", "Icon", "ProductCount"),
                 )
-
-                // Step 4: Create public spreadsheet (tabs: Info, Products) + "anyone with link can view"
-                currentStep = WorkspaceStep.CREATE_PUBLIC_SHEET
-                _stepProgress.emit(currentStep)
-                val publicSheet =
-                    driveApi.createPublicSpreadsheet(companyFolder.id, request.companyName)
-                        ?: return WorkspaceCreationResult.Error(currentStep, "Failed to create public spreadsheet")
-                driveApi.initializeSheetHeaders(
-                    publicSheet.spreadsheetId,
-                    "Products",
-                    listOf("Name", "Description", "Price", "Category", "ImageId"),
-                )
-
-                // Step 5: Populate Tab "Info" in both sheets
-                currentStep = WorkspaceStep.POPULATE_INFO
-                _stepProgress.emit(currentStep)
                 val fullWhatsappNumber = "${request.whatsappCountryCode}${request.whatsappNumber}"
                 val privateInfoData =
                     listOf(
@@ -105,6 +89,18 @@ class OnboardingRepositoryImpl
                 if (!driveApi.writeInfoTab(privateSheet.spreadsheetId, privateInfoData)) {
                     return WorkspaceCreationResult.Error(currentStep, "Failed to write private Info tab")
                 }
+
+                // Step 4: Create public spreadsheet (tabs: Info, Products) + "anyone with link can view"
+                currentStep = WorkspaceStep.CREATE_PUBLIC_SHEET
+                _stepProgress.emit(currentStep)
+                val publicSheet =
+                    driveApi.createPublicSpreadsheet(companyFolder.id, request.companyName)
+                        ?: return WorkspaceCreationResult.Error(currentStep, "Failed to create public spreadsheet")
+                driveApi.initializeSheetHeaders(
+                    publicSheet.spreadsheetId,
+                    "Products",
+                    listOf("Name", "Description", "Price", "Category", "ImageId"),
+                )
                 val publicInfoData =
                     listOf(
                         listOf("name", request.companyName),
@@ -118,13 +114,13 @@ class OnboardingRepositoryImpl
                     return WorkspaceCreationResult.Error(currentStep, "Failed to write public Info tab")
                 }
 
-                // Step 6: Create images folder inside company folder
+                // Step 5: Create images folder inside company folder
                 currentStep = WorkspaceStep.CREATE_IMAGES_FOLDER
                 _stepProgress.emit(currentStep)
                 driveApi.createCompanyFolder(companyFolder.id, "Images")
                     ?: return WorkspaceCreationResult.Error(currentStep, "Failed to create images folder")
 
-                // Step 7: Save company to Room
+                // Step 6: Save company to Room
                 currentStep = WorkspaceStep.SAVE_CONFIG
                 _stepProgress.emit(currentStep)
                 val company =
@@ -267,22 +263,6 @@ class OnboardingRepositoryImpl
                     "Categories",
                     listOf("Name", "Icon", "ProductCount"),
                 )
-
-                // Step 2: Create public spreadsheet
-                currentStep = WorkspaceStep.CREATE_PUBLIC_SHEET
-                _stepProgress.emit(currentStep)
-                val publicSheet =
-                    driveApi.createPublicSpreadsheet(folderId, company.name)
-                        ?: return WorkspaceCreationResult.Error(currentStep, "Failed to create public spreadsheet")
-                driveApi.initializeSheetHeaders(
-                    publicSheet.spreadsheetId,
-                    "Products",
-                    listOf("Name", "Description", "Price", "Category", "ImageId"),
-                )
-
-                // Step 3: Populate Info tabs with company data
-                currentStep = WorkspaceStep.POPULATE_INFO
-                _stepProgress.emit(currentStep)
                 val whatsapp = "${company.whatsappCountryCode}${company.whatsappNumber ?: ""}"
                 val privateInfoData =
                     listOf(
@@ -295,6 +275,18 @@ class OnboardingRepositoryImpl
                         listOf("business_hours", company.businessHours ?: ""),
                     )
                 driveApi.writeInfoTab(privateSheet.spreadsheetId, privateInfoData)
+
+                // Step 2: Create public spreadsheet
+                currentStep = WorkspaceStep.CREATE_PUBLIC_SHEET
+                _stepProgress.emit(currentStep)
+                val publicSheet =
+                    driveApi.createPublicSpreadsheet(folderId, company.name)
+                        ?: return WorkspaceCreationResult.Error(currentStep, "Failed to create public spreadsheet")
+                driveApi.initializeSheetHeaders(
+                    publicSheet.spreadsheetId,
+                    "Products",
+                    listOf("Name", "Description", "Price", "Category", "ImageId"),
+                )
                 val publicInfoData =
                     listOf(
                         listOf("name", company.name),
@@ -306,7 +298,7 @@ class OnboardingRepositoryImpl
                     )
                 driveApi.writeInfoTab(publicSheet.spreadsheetId, publicInfoData)
 
-                // Step 4: Update company in Room with sheet IDs
+                // Step 3: Update company in Room with sheet IDs
                 currentStep = WorkspaceStep.SAVE_CONFIG
                 _stepProgress.emit(currentStep)
                 companyDao.update(

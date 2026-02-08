@@ -45,12 +45,6 @@
                     android:host="catalogo" />
             </intent-filter>
         </activity>
-
-        <!-- TODO: DELETE before release — visual testing only -->
-        <activity
-            android:name=".onboarding.ui.WorkspacePreviewActivity"
-            android:exported="true"
-            android:theme="@style/Theme.MiEmpresa" />
     </application>
 
 </manifest>

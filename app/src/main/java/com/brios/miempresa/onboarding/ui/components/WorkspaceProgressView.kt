@@ -54,6 +54,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.SlateGray100
 import com.brios.miempresa.core.ui.theme.SuccessGreen
 import com.brios.miempresa.onboarding.domain.WorkspaceStep
 import com.brios.miempresa.onboarding.ui.OnboardingUiState
@@ -81,181 +82,198 @@ fun WorkspaceProgressView(
     val totalSteps = steps.size
     val remainingSeconds = (totalSteps - state.completedSteps) * SECONDS_PER_STEP
 
-    Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.safeDrawing)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = AppDimensions.largePadding),
-    ) {
-        Spacer(modifier = Modifier.height(AppDimensions.extraLargePadding))
+    Box(modifier = modifier.fillMaxSize()) {
+        val dotColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val step = 25.dp.toPx()
+            val radius = 1.5.dp.toPx()
+            for (x in 20..size.width.toInt() step step.toInt()) {
+                for (y in 20..size.height.toInt() step step.toInt()) {
+                    drawCircle(
+                        color = dotColor,
+                        radius = radius,
+                        center = Offset(x.toFloat(), y.toFloat()),
+                    )
+                }
+            }
+        }
 
-        // Hero text
-        Text(
-            text = stringResource(R.string.onboarding_step2_title_line1),
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-            text = stringResource(R.string.onboarding_step2_title_line2),
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
-
-        Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
-
-        Text(
-            text = stringResource(R.string.onboarding_step2_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        Spacer(modifier = Modifier.height(AppDimensions.largePadding))
-
-        // Progress card
-        Card(
+        Column(
             modifier =
                 Modifier
-                    .fillMaxWidth()
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                        shape = RoundedCornerShape(AppDimensions.OnboardingProgress.progressCardCornerRadius),
-                    ),
-            shape = RoundedCornerShape(AppDimensions.OnboardingProgress.progressCardCornerRadius),
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                ),
-            elevation =
-                CardDefaults.cardElevation(defaultElevation = 6.dp),
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = AppDimensions.largePadding),
         ) {
-            Column(
-                modifier = Modifier.padding(AppDimensions.OnboardingProgress.progressCardPadding),
-            ) {
-                // Top row: "EN PROGRESO" badge + "~15s restantes"
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(R.string.workspace_in_progress),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier =
-                            Modifier
-                                .background(
-                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                    shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
-                                )
-                                .padding(
-                                    horizontal = AppDimensions.smallPadding,
-                                    vertical = AppDimensions.extraSmallPadding,
-                                ),
-                    )
-                    Text(
-                        text = stringResource(R.string.progress_remaining, remainingSeconds),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+            Spacer(modifier = Modifier.height(AppDimensions.extraLargePadding))
 
-                Spacer(modifier = Modifier.height(AppDimensions.mediumSmallPadding))
+            // Hero text
+            Text(
+                text = stringResource(R.string.onboarding_step2_title_line1),
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = stringResource(R.string.onboarding_step2_title_line2),
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
 
-                // Large percentage
-                Row(
-                    verticalAlignment = Alignment.Bottom,
-                ) {
-                    Text(
-                        text = "${state.progressPercent}",
-                        style = MaterialTheme.typography.displayLarge,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        text = "%",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = AppDimensions.smallPadding),
-                    )
-                }
+            Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
 
-                Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
+            Text(
+                text = stringResource(R.string.onboarding_step2_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
 
-                // Current step label inside card
-                val currentStepIndex = steps.indexOfFirst { it.name == state.currentStep }
-                if (currentStepIndex >= 0) {
-                    Text(
-                        text =
-                            stringResource(
-                                R.string.step_label,
-                                currentStepIndex + 1,
-                                totalSteps,
-                                getStepLabel(steps[currentStepIndex]),
-                            ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
+            Spacer(modifier = Modifier.height(AppDimensions.largePadding))
 
-                Spacer(modifier = Modifier.height(AppDimensions.mediumSmallPadding))
-
-                // Progress bar with shimmer
-                ShimmerProgressBar(
-                    progress = state.progress,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(AppDimensions.OnboardingProgress.progressBarHeight),
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(AppDimensions.extraLargePadding))
-
-        // Steps timeline with connector line
-        val circleColumnWidth = AppDimensions.OnboardingProgress.stepCircleSize + RING_WIDTH_DP.dp * 2
-        Box {
-            // Connector line behind circles
-            val lineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-            Canvas(
+            // Progress card
+            Card(
                 modifier =
                     Modifier
-                        .width(circleColumnWidth)
-                        .matchParentSize(),
+                        .fillMaxWidth()
+                        .border(
+                            width = 1.dp,
+                            color = SlateGray100,
+                            shape = RoundedCornerShape(AppDimensions.OnboardingProgress.progressCardCornerRadius),
+                        ),
+                shape = RoundedCornerShape(AppDimensions.OnboardingProgress.progressCardCornerRadius),
+                colors =
+                    CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    ),
+                elevation =
+                    CardDefaults.cardElevation(defaultElevation = 12.dp),
             ) {
-                val centerX = size.width / 2
-                val topOffset = circleColumnWidth.toPx() / 2
-                val bottomOffset = topOffset
-                drawLine(
-                    color = lineColor,
-                    start = Offset(centerX, topOffset),
-                    end = Offset(centerX, size.height - bottomOffset),
-                    strokeWidth = AppDimensions.OnboardingProgress.connectorLineWidth.toPx(),
-                )
-            }
+                Column(
+                    modifier = Modifier.padding(AppDimensions.OnboardingProgress.progressCardPadding),
+                ) {
+                    // Top row: "EN PROGRESO" badge + "~15s restantes"
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.workspace_in_progress),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier =
+                                Modifier
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                        shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
+                                    )
+                                    .padding(
+                                        horizontal = AppDimensions.smallPadding,
+                                        vertical = AppDimensions.extraSmallPadding,
+                                    ),
+                        )
+                        Text(
+                            text = stringResource(R.string.progress_remaining, remainingSeconds),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
 
-            Column(
-                verticalArrangement = Arrangement.spacedBy(AppDimensions.extraLargePadding),
-            ) {
-                steps.forEachIndexed { index, step ->
-                    val stepStatus = getStepStatus(step, state)
-                    val stepLabel = getStepLabel(step)
+                    Spacer(modifier = Modifier.height(AppDimensions.mediumSmallPadding))
 
-                    StepTimelineItem(
-                        label = stepLabel,
-                        status = stepStatus,
+                    // Large percentage
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                    ) {
+                        Text(
+                            text = "${state.progressPercent}",
+                            style = MaterialTheme.typography.displayLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = "%",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = AppDimensions.smallPadding),
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
+
+                    // Current step label inside card
+                    val currentStepIndex = steps.indexOfFirst { it.name == state.currentStep }
+                    if (currentStepIndex >= 0) {
+                        Text(
+                            text =
+                                stringResource(
+                                    R.string.step_label,
+                                    currentStepIndex + 1,
+                                    totalSteps,
+                                    getStepLabel(steps[currentStepIndex]),
+                                ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(AppDimensions.mediumSmallPadding))
+
+                    // Progress bar with shimmer
+                    ShimmerProgressBar(
+                        progress = state.progress,
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(AppDimensions.OnboardingProgress.progressBarHeight),
                     )
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(AppDimensions.largePadding))
+            Spacer(modifier = Modifier.height(AppDimensions.extraLargePadding))
+
+            // Steps timeline with connector line
+            val circleColumnWidth = AppDimensions.OnboardingProgress.stepCircleSize + RING_WIDTH_DP.dp * 2
+            Box {
+                // Connector line behind circles
+                val lineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                Canvas(
+                    modifier =
+                        Modifier
+                            .width(circleColumnWidth)
+                            .matchParentSize(),
+                ) {
+                    val centerX = (size.width - 30) / 12
+                    val topOffset = circleColumnWidth.toPx() / 2
+                    val bottomOffset = topOffset
+                    drawLine(
+                        color = lineColor,
+                        start = Offset(centerX, topOffset),
+                        end = Offset(centerX, size.height - bottomOffset),
+                        strokeWidth = AppDimensions.OnboardingProgress.connectorLineWidth.toPx(),
+                    )
+                }
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
+                ) {
+                    steps.forEachIndexed { index, step ->
+                        val stepStatus = getStepStatus(step, state)
+                        val stepLabel = getStepLabel(step)
+
+                        StepTimelineItem(
+                            label = stepLabel,
+                            status = stepStatus,
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(AppDimensions.largePadding))
+        }
     }
 
     // Error dialog
@@ -300,7 +318,6 @@ private fun getStepLabel(step: WorkspaceStep): String =
         WorkspaceStep.UPLOAD_LOGO -> stringResource(R.string.workspace_step_logo)
         WorkspaceStep.CREATE_PRIVATE_SHEET -> stringResource(R.string.workspace_step_private_sheet)
         WorkspaceStep.CREATE_PUBLIC_SHEET -> stringResource(R.string.workspace_step_public_sheet)
-        WorkspaceStep.POPULATE_INFO -> stringResource(R.string.workspace_step_populate_info)
         WorkspaceStep.CREATE_IMAGES_FOLDER -> stringResource(R.string.workspace_step_images_folder)
         WorkspaceStep.SAVE_CONFIG -> stringResource(R.string.workspace_step_save_config)
     }
@@ -369,8 +386,7 @@ private fun StepTimelineItem(
 
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment =
-            if (status == StepStatus.ACTIVE) Alignment.CenterVertically else Alignment.Top,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         // Ring + circle indicator
         Box(
@@ -493,7 +509,7 @@ private fun StepTimelineItem(
                     shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                     colors =
                         CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
                         ),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 ) {
@@ -553,7 +569,6 @@ private fun StepTimelineItem(
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textDecoration = TextDecoration.LineThrough,
-                    modifier = Modifier.padding(top = AppDimensions.mediumSmallPadding),
                 )
             }
             StepStatus.PENDING -> {
@@ -562,10 +577,7 @@ private fun StepTimelineItem(
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier =
-                        Modifier
-                            .padding(top = AppDimensions.mediumSmallPadding)
-                            .alpha(PENDING_OPACITY),
+                    modifier = Modifier.alpha(PENDING_OPACITY),
                 )
             }
         }

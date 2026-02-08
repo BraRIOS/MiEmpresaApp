@@ -82,7 +82,7 @@ object AppDimensions {
 
     object OnboardingProgress {
         val progressCardCornerRadius = 16.dp
-        val progressCardPadding = 24.dp
+        val progressCardPadding = 16.dp
         val progressBarHeight = 12.dp
         val stepCircleSize = 48.dp
         val stepCheckIconSize = 20.dp

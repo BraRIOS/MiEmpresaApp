@@ -184,7 +184,6 @@
     <string name="workspace_step_private_sheet">Creando hoja privada</string>
     <string name="workspace_step_public_sheet">Creando hoja pública</string>
     <string name="workspace_step_images_folder">Creando carpeta de imágenes</string>
-    <string name="workspace_step_populate_info">Poblando información</string>
     <string name="workspace_step_save_config">Guardando configuración</string>
 
     <!-- Sheet tab names -->

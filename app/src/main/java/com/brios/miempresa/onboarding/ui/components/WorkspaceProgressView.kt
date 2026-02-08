@@ -108,8 +108,10 @@ fun WorkspaceProgressView(
             shape = RoundedCornerShape(AppDimensions.OnboardingProgress.progressCardCornerRadius),
             colors =
                 CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
                 ),
+            elevation =
+                CardDefaults.cardElevation(),
         ) {
             Column(
                 modifier = Modifier.padding(AppDimensions.OnboardingProgress.progressCardPadding),

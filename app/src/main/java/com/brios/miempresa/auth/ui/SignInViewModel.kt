@@ -8,8 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
 import com.brios.miempresa.auth.domain.AuthRepository
 import com.brios.miempresa.auth.domain.AuthState
-import com.brios.miempresa.core.data.datastore.PreferencesKeys
-import com.brios.miempresa.core.data.datastore.removeValueFromDataStore
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -65,7 +63,6 @@ class SignInViewModel
             viewModelScope.launch {
                 withContext(Dispatchers.IO) {
                     companyDao.clear()
-                    removeValueFromDataStore(activity, PreferencesKeys.SPREADSHEET_ID_KEY)
                     _postAuthDestination.value = null
                     _authState.update { AuthState.Unauthorized }
                     authRepository.signOut(activity)

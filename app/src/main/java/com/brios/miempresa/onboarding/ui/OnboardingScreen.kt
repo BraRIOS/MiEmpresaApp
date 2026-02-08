@@ -28,7 +28,6 @@ fun OnboardingScreen(
             when (event) {
                 is OnboardingEvent.NavigateToHome -> onNavigateToHome()
                 is OnboardingEvent.ShowError -> { /* Snackbar if needed */ }
-                is OnboardingEvent.NavigateToCompanySelector -> { /* Handled via uiState */ }
                 is OnboardingEvent.SignOutRequested -> onSignOutRequested()
             }
         }

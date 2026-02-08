@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 
 @Composable
 fun DeleteDialog(
@@ -61,9 +62,11 @@ fun DeleteDialog(
 @Preview
 @Composable
 fun DeleteDialogPreview() {
-    DeleteDialog(
-        itemName = "Producto re loco",
-        onDismiss = {},
-        onConfirm = {},
-    )
+    MiEmpresaTheme {
+        DeleteDialog(
+            itemName = "Producto re loco",
+            onDismiss = {},
+            onConfirm = {},
+        )
+    }
 }

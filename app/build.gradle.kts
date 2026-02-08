@@ -85,7 +85,6 @@ dependencies {
     implementation(libs.google.play.services.auth)
     implementation(libs.firebase.auth.ktx)
     implementation(platform(libs.firebase.bom))
-    implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx)

@@ -14,9 +14,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 
 @Composable
 fun MessageWithIcon(
@@ -25,7 +28,7 @@ fun MessageWithIcon(
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding, Alignment.CenterVertically),
+        verticalArrangement = Arrangement.spacedBy(AppDimensions.largePadding, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
@@ -34,12 +37,19 @@ fun MessageWithIcon(
             modifier = Modifier.size(AppDimensions.extraLargeIconSize),
             tint = MaterialTheme.colorScheme.primary,
         )
-        Text(message, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+        Text(
+            message,
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun MessageWithIconPreview() {
-    MessageWithIcon(stringResource(R.string.product_not_found), Icons.Filled.Warning)
+    MiEmpresaTheme {
+        MessageWithIcon("Sin conexión a internet. Verificá tu conexión e intentá nuevamente.", Icons.Filled.Warning)
+    }
 }

@@ -67,8 +67,20 @@ interface CategoryDao {
     @Query("SELECT * FROM categories WHERE companyId = :companyId")
     suspend fun getAll(companyId: String): List<Category>
 
+    @Query("SELECT * FROM categories WHERE companyId = :companyId")
+    fun getAllFlow(companyId: String): Flow<List<Category>>
+
+    @Query("SELECT * FROM categories WHERE id = :id AND companyId = :companyId")
+    suspend fun getById(
+        id: String,
+        companyId: String,
+    ): Category?
+
     @Upsert
     suspend fun upsertAll(categories: List<Category>)
+
+    @Upsert
+    suspend fun upsert(category: Category)
 
     @Query("SELECT * FROM categories WHERE dirty = 1 AND companyId = :companyId")
     suspend fun getDirty(companyId: String): List<Category>
@@ -147,6 +159,9 @@ interface ProductDao {
     @Upsert
     suspend fun upsertAll(products: List<ProductEntity>)
 
+    @Upsert
+    suspend fun upsert(product: ProductEntity)
+
     @Query("SELECT * FROM products WHERE id IN (:productIds) AND companyId = :companyId")
     suspend fun getByIds(
         productIds: List<String>,
@@ -155,4 +170,47 @@ interface ProductDao {
 
     @Query("SELECT * FROM products WHERE companyId = :companyId")
     suspend fun getAllByCompany(companyId: String): List<ProductEntity>
+
+    @Query("SELECT * FROM products WHERE companyId = :companyId AND deleted = 0")
+    fun getAllByCompanyFlow(companyId: String): Flow<List<ProductEntity>>
+
+    @Query("SELECT * FROM products WHERE id = :id AND companyId = :companyId")
+    suspend fun getById(
+        id: String,
+        companyId: String,
+    ): ProductEntity?
+
+    @Query("SELECT * FROM products WHERE dirty = 1 AND companyId = :companyId")
+    suspend fun getDirty(companyId: String): List<ProductEntity>
+
+    suspend fun markSynced(
+        ids: List<String>,
+        timestamp: Long,
+        companyId: String,
+    ) {
+        if (ids.isEmpty()) return
+        markSyncedInternal(ids, timestamp, companyId)
+    }
+
+    @Query(
+        "UPDATE products SET dirty = 0, lastSyncedAt = :timestamp " +
+            "WHERE id IN (:ids) AND companyId = :companyId",
+    )
+    suspend fun markSyncedInternal(
+        ids: List<String>,
+        timestamp: Long,
+        companyId: String,
+    )
+
+    @Query(
+        "SELECT COUNT(*) FROM products " +
+            "WHERE categoryId = :categoryId AND companyId = :companyId AND deleted = 0",
+    )
+    suspend fun countByCategory(
+        categoryId: String,
+        companyId: String,
+    ): Int
+
+    @Query("DELETE FROM products WHERE companyId = :companyId")
+    suspend fun deleteAll(companyId: String)
 }

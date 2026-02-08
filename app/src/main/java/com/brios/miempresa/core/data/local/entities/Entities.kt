@@ -66,13 +66,23 @@ data class CartItemEntity(
 
 @Entity(
     tableName = "products",
-    indices = [Index(value = ["companyId"])],
+    indices = [Index(value = ["companyId", "dirty"])],
 )
 data class ProductEntity(
     @PrimaryKey val id: String,
     val name: String,
     val price: Double,
     val companyId: String,
+    val description: String? = null,
+    val categoryId: String? = null,
+    val imageUrl: String? = null,
+    val localImagePath: String? = null,
+    val driveImageId: String? = null,
+    val publico: Boolean = true,
     val isAvailable: Boolean = true,
-    val lastSyncedAt: Long = System.currentTimeMillis(),
+    val deleted: Boolean = false,
+    // Modified offline, pending upload
+    val dirty: Boolean = false,
+    // Timestamp of last successful sync
+    val lastSyncedAt: Long? = null,
 )

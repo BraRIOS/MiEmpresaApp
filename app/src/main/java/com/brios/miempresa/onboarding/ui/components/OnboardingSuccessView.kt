@@ -242,3 +242,41 @@ fun OnboardingSuccessView(
         Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
     }
 }
+
+// ============================================================
+// Previews
+// ============================================================
+
+@androidx.compose.ui.tooling.preview.Preview(
+    name = "Success with Logo",
+    showBackground = true,
+)
+@Composable
+private fun PreviewOnboardingSuccessWithLogo() {
+    com.brios.miempresa.core.ui.theme.MiEmpresaTheme {
+        OnboardingSuccessView(
+            companyName = "Mi Tienda",
+            whatsappCountryCode = "+54",
+            whatsappNumber = "11 2345-6789",
+            logoUri = "content://some.local.uri",
+            onNavigateToHome = {},
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(
+    name = "Success without Logo",
+    showBackground = true,
+)
+@Composable
+private fun PreviewOnboardingSuccessNoLogo() {
+    com.brios.miempresa.core.ui.theme.MiEmpresaTheme {
+        OnboardingSuccessView(
+            companyName = "Super Empresa con Nombre Muy Largo SRL",
+            whatsappCountryCode = "+54",
+            whatsappNumber = "9 2233-4455",
+            logoUri = null,
+            onNavigateToHome = {},
+        )
+    }
+}

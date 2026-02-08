@@ -444,3 +444,91 @@ private fun StepTimelineItem(
         }
     }
 }
+
+// ============================================================
+// Previews
+// ============================================================
+
+@androidx.compose.ui.tooling.preview.Preview(
+    name = "Step2 Progress 0%",
+    showBackground = true,
+)
+@Composable
+private fun PreviewWorkspaceProgress0() {
+    com.brios.miempresa.core.ui.theme.MiEmpresaTheme {
+        WorkspaceProgressView(
+            state =
+                OnboardingUiState.WizardStep2(
+                    completedSteps = 0,
+                    totalSteps = 7,
+                    currentStep = "CREATE_FOLDER",
+                    errorMessage = null,
+                    hasLogo = true,
+                ),
+            onRetry = {},
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(
+    name = "Step2 Progress 42%",
+    showBackground = true,
+)
+@Composable
+private fun PreviewWorkspaceProgress42() {
+    com.brios.miempresa.core.ui.theme.MiEmpresaTheme {
+        WorkspaceProgressView(
+            state =
+                OnboardingUiState.WizardStep2(
+                    completedSteps = 3,
+                    totalSteps = 7,
+                    currentStep = "CREATE_PUBLIC_SHEET",
+                    errorMessage = null,
+                    hasLogo = true,
+                ),
+            onRetry = {},
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(
+    name = "Step2 Progress 85% (No logo)",
+    showBackground = true,
+)
+@Composable
+private fun PreviewWorkspaceProgress85NoLogo() {
+    com.brios.miempresa.core.ui.theme.MiEmpresaTheme {
+        WorkspaceProgressView(
+            state =
+                OnboardingUiState.WizardStep2(
+                    completedSteps = 5,
+                    totalSteps = 6,
+                    currentStep = "SAVE_CONFIG",
+                    errorMessage = null,
+                    hasLogo = false,
+                ),
+            onRetry = {},
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(
+    name = "Step2 With Error",
+    showBackground = true,
+)
+@Composable
+private fun PreviewWorkspaceProgressError() {
+    com.brios.miempresa.core.ui.theme.MiEmpresaTheme {
+        WorkspaceProgressView(
+            state =
+                OnboardingUiState.WizardStep2(
+                    completedSteps = 2,
+                    totalSteps = 7,
+                    currentStep = "UPLOAD_LOGO",
+                    errorMessage = "No se pudo subir el logo. Verificá tu conexión a internet.",
+                    hasLogo = true,
+                ),
+            onRetry = {},
+        )
+    }
+}

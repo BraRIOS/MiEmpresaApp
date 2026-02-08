@@ -54,15 +54,11 @@ class CategoriesRepositoryImpl
         override suspend fun syncPendingChanges(companyId: String) {
             val company = companyDao.getCompanyById(companyId) ?: return
             val privateSheetId = company.privateSheetId ?: return
-            val allCategories = categoryDao.getAll(companyId)
 
+            val allCategories = categoryDao.getAll(companyId)
             val rows =
                 allCategories.map { cat ->
-                    listOf<Any>(
-                        cat.name,
-                        cat.icon,
-                        productDao.countByCategory(cat.id, companyId),
-                    )
+                    listOf<Any>(cat.id, cat.name, cat.icon)
                 }
 
             sheetsApi.clearAndWriteAll(
@@ -82,8 +78,54 @@ class CategoriesRepositoryImpl
             }
         }
 
+        override suspend fun downloadFromSheets(companyId: String) {
+            val company = companyDao.getCompanyById(companyId) ?: return
+            val privateSheetId = company.privateSheetId ?: return
+
+            val sheetRows = sheetsApi.readRange(privateSheetId, "$CATEGORIES_TAB!A2:C") ?: return
+            val sheetCategoryIds = mutableSetOf<String>()
+
+            for (row in sheetRows) {
+                if (row.size < 3) continue
+                val id = row[0]?.toString() ?: continue
+                val name = row[1]?.toString() ?: continue
+                val icon = row[2]?.toString() ?: ""
+                sheetCategoryIds.add(id)
+
+                val existing = categoryDao.getById(id, companyId)
+                if (existing != null) {
+                    if (!existing.dirty) {
+                        categoryDao.upsert(
+                            existing.copy(name = name, icon = icon, lastSyncedAt = System.currentTimeMillis()),
+                        )
+                    }
+                } else {
+                    categoryDao.upsert(
+                        Category(
+                            id = id,
+                            name = name,
+                            icon = icon,
+                            companyId = companyId,
+                            lastSyncedAt = System.currentTimeMillis(),
+                        ),
+                    )
+                }
+            }
+
+            // Delete categories in Room that are NOT in Sheet (and not dirty locally)
+            val roomCategories = categoryDao.getAll(companyId)
+            for (cat in roomCategories) {
+                if (cat.id !in sheetCategoryIds && !cat.dirty) {
+                    val productCount = productDao.countByCategory(cat.id, companyId)
+                    if (productCount == 0) {
+                        categoryDao.deleteById(cat.id, companyId)
+                    }
+                }
+            }
+        }
+
         companion object {
             private const val CATEGORIES_TAB = "Categories"
-            private val CATEGORIES_HEADERS = listOf("Name", "Icon", "ProductCount")
+            private val CATEGORIES_HEADERS = listOf("CategoryID", "Name", "Icon")
         }
     }

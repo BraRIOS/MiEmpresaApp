@@ -125,10 +125,9 @@ class SpreadsheetsApi
 
         /**
          * SPIKE S4 SIMPLIFIED: Fetches ALL products, filters in-memory.
-         * OPTIMIZATION DEFERRED: Use Sheet FILTER() formula or batch queries in User Stories.
-         *
-         * For spike validation with ~10 products, this is acceptable.
-         * Production optimization: See docs/plans/2026-02-04-spike-s4-price-validation.md §"Known Optimizations"
+         * TODO: Update after bidirectional sync — Public Sheet format is now
+         * [Name, Desc, Price, Category, ImageUrl] (no IDs).
+         * This method needs rework to match the new public sheet format.
          */
         suspend fun getProductsByIds(
             spreadsheetId: String,
@@ -139,32 +138,28 @@ class SpreadsheetsApi
                 try {
                     val service = googleAuthClient.getGoogleSheetsService()
 
-                    // Fetch ALL products from Sheet Public "Products" tab
+                    // Public Sheet now: A=Name, B=Desc, C=Price, D=Category, E=ImageUrl (no IDs)
                     val response =
                         service?.spreadsheets()?.values()
-                            ?.get(spreadsheetId, "Products!A2:E") // A=id, B=name, C=price, D=isAvailable, E=unused
+                            ?.get(spreadsheetId, "Products!A2:E")
                             ?.execute()
 
                     val rows = response?.getValues() ?: emptyList()
 
-                    // Parse and filter by productIds
+                    // NOTE: Public sheet no longer has IDs. Match by name as fallback.
                     rows.mapNotNull { row ->
                         if (row.size < 3) return@mapNotNull null
-                        val id = row[0]?.toString() ?: return@mapNotNull null
-
-                        // Filter: Only return products in cart
-                        if (id !in productIds) return@mapNotNull null
-
-                        val name = row[1]?.toString() ?: "Unknown"
+                        val name = row[0]?.toString() ?: return@mapNotNull null
                         val price = row[2]?.toString()?.toDoubleOrNull() ?: 0.0
-                        val isAvailable = row.getOrNull(3)?.toString()?.toBoolean() ?: true
 
+                        // Use name as pseudo-ID until cart refactor
                         ProductEntity(
-                            id = id,
+                            id = name,
                             name = name,
                             price = price,
                             companyId = companyId,
-                            isAvailable = isAvailable,
+                            description = row.getOrNull(1)?.toString(),
+                            imageUrl = row.getOrNull(4)?.toString(),
                             lastSyncedAt = System.currentTimeMillis(),
                         )
                     }

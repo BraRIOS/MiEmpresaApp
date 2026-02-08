@@ -68,12 +68,12 @@ class OnboardingRepositoryImpl
                 driveApi.initializeSheetHeaders(
                     privateSheet.spreadsheetId,
                     "Products",
-                    listOf("Name", "Description", "Price", "Category", "ImageId"),
+                    listOf("ProductID", "Name", "Description", "Price", "CategoryID", "Publico", "ImageUrl"),
                 )
                 driveApi.initializeSheetHeaders(
                     privateSheet.spreadsheetId,
                     "Categories",
-                    listOf("Name", "Icon", "ProductCount"),
+                    listOf("CategoryID", "Name", "Icon"),
                 )
                 val fullWhatsappNumber = "${request.whatsappCountryCode}${request.whatsappNumber}"
                 val privateInfoData =
@@ -99,7 +99,7 @@ class OnboardingRepositoryImpl
                 driveApi.initializeSheetHeaders(
                     publicSheet.spreadsheetId,
                     "Products",
-                    listOf("Name", "Description", "Price", "Category", "ImageId"),
+                    listOf("Name", "Description", "Price", "Category", "ImageUrl"),
                 )
                 val publicInfoData =
                     listOf(
@@ -256,12 +256,12 @@ class OnboardingRepositoryImpl
                 driveApi.initializeSheetHeaders(
                     privateSheet.spreadsheetId,
                     "Products",
-                    listOf("Name", "Description", "Price", "Category", "ImageId"),
+                    listOf("ProductID", "Name", "Description", "Price", "CategoryID", "Publico", "ImageUrl"),
                 )
                 driveApi.initializeSheetHeaders(
                     privateSheet.spreadsheetId,
                     "Categories",
-                    listOf("Name", "Icon", "ProductCount"),
+                    listOf("CategoryID", "Name", "Icon"),
                 )
                 val whatsapp = "${company.whatsappCountryCode}${company.whatsappNumber ?: ""}"
                 val privateInfoData =
@@ -285,7 +285,7 @@ class OnboardingRepositoryImpl
                 driveApi.initializeSheetHeaders(
                     publicSheet.spreadsheetId,
                     "Products",
-                    listOf("Name", "Description", "Price", "Category", "ImageId"),
+                    listOf("Name", "Description", "Price", "Category", "ImageUrl"),
                 )
                 val publicInfoData =
                     listOf(

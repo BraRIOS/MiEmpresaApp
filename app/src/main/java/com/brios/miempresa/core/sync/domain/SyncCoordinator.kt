@@ -1,5 +1,6 @@
 package com.brios.miempresa.core.sync.domain
 
+import android.util.Log
 import com.brios.miempresa.categories.domain.CategoriesRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.products.domain.ProductsRepository
@@ -17,8 +18,30 @@ class SyncCoordinator
         suspend fun syncAll(): Result<Unit> {
             val companyId = getActiveCompanyId() ?: return Result.success(Unit)
             return try {
-                syncCategories(companyId)
-                syncProducts(companyId)
+                // 1. Download from Sheets (remote → local)
+                try {
+                    categoriesRepository.downloadFromSheets(companyId)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to download categories", e)
+                }
+                try {
+                    productsRepository.downloadFromSheets(companyId)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to download products", e)
+                }
+
+                // 2. Upload to Sheets (local → remote)
+                try {
+                    categoriesRepository.syncPendingChanges(companyId)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to upload categories", e)
+                }
+                try {
+                    productsRepository.syncPendingChanges(companyId)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to upload products", e)
+                }
+
                 companyDao.updateLastSyncedAt(companyId, System.currentTimeMillis())
                 Result.success(Unit)
             } catch (e: Exception) {
@@ -29,7 +52,12 @@ class SyncCoordinator
         suspend fun syncProducts(): Result<Unit> {
             val companyId = getActiveCompanyId() ?: return Result.success(Unit)
             return try {
-                syncProducts(companyId)
+                try {
+                    productsRepository.downloadFromSheets(companyId)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to download products", e)
+                }
+                productsRepository.syncPendingChanges(companyId)
                 Result.success(Unit)
             } catch (e: Exception) {
                 Result.failure(e)
@@ -39,22 +67,23 @@ class SyncCoordinator
         suspend fun syncCategories(): Result<Unit> {
             val companyId = getActiveCompanyId() ?: return Result.success(Unit)
             return try {
-                syncCategories(companyId)
+                try {
+                    categoriesRepository.downloadFromSheets(companyId)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to download categories", e)
+                }
+                categoriesRepository.syncPendingChanges(companyId)
                 Result.success(Unit)
             } catch (e: Exception) {
                 Result.failure(e)
             }
         }
 
-        private suspend fun syncCategories(companyId: String) {
-            categoriesRepository.syncPendingChanges(companyId)
-        }
-
-        private suspend fun syncProducts(companyId: String) {
-            productsRepository.syncPendingChanges(companyId)
-        }
-
         private suspend fun getActiveCompanyId(): String? {
             return companyDao.getSelectedOwnedCompany()?.id
+        }
+
+        companion object {
+            private const val TAG = "SyncCoordinator"
         }
     }

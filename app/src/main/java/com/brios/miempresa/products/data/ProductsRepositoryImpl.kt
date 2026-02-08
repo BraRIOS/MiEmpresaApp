@@ -62,30 +62,30 @@ class ProductsRepositoryImpl
 
             val allProducts = productDao.getAllByCompany(companyId).filter { !it.deleted }
 
-            val categoryCache =
-                categoryDao.getAll(companyId).associateBy { it.id }
-
-            // Write ALL products to private sheet
+            // Write ALL products to private sheet (with IDs)
             val privateRows =
                 allProducts.map { p ->
                     listOf<Any>(
+                        p.id,
                         p.name,
                         p.description ?: "",
                         p.price,
-                        categoryCache[p.categoryId]?.name ?: "",
-                        p.driveImageId ?: p.imageUrl ?: "",
+                        p.categoryId ?: "",
+                        p.publico.toString().uppercase(),
+                        p.imageUrl ?: "",
                     )
                 }
 
             sheetsApi.clearAndWriteAll(
                 spreadsheetId = privateSheetId,
                 tabName = PRODUCTS_TAB,
-                headers = PRODUCTS_HEADERS,
+                headers = PRIVATE_PRODUCTS_HEADERS,
                 rows = privateRows,
             )
 
-            // Write only public products to public sheet
+            // Write only public products to public sheet (resolved names, no IDs)
             if (publicSheetId != null) {
+                val categoryCache = categoryDao.getAll(companyId).associateBy { it.id }
                 val publicRows =
                     allProducts.filter { it.publico }.map { p ->
                         listOf<Any>(
@@ -93,14 +93,14 @@ class ProductsRepositoryImpl
                             p.description ?: "",
                             p.price,
                             categoryCache[p.categoryId]?.name ?: "",
-                            p.driveImageId ?: p.imageUrl ?: "",
+                            p.imageUrl ?: "",
                         )
                     }
 
                 sheetsApi.clearAndWriteAll(
                     spreadsheetId = publicSheetId,
                     tabName = PRODUCTS_TAB,
-                    headers = PRODUCTS_HEADERS,
+                    headers = PUBLIC_PRODUCTS_HEADERS,
                     rows = publicRows,
                 )
             }
@@ -115,8 +115,70 @@ class ProductsRepositoryImpl
             }
         }
 
+        override suspend fun downloadFromSheets(companyId: String) {
+            val company = companyDao.getCompanyById(companyId) ?: return
+            val privateSheetId = company.privateSheetId ?: return
+
+            val sheetRows = sheetsApi.readRange(privateSheetId, "$PRODUCTS_TAB!A2:G") ?: return
+            val sheetProductIds = mutableSetOf<String>()
+
+            for (row in sheetRows) {
+                if (row.size < 4) continue
+                val id = row[0]?.toString() ?: continue
+                val name = row[1]?.toString() ?: continue
+                val description = row.getOrNull(2)?.toString() ?: ""
+                val price = row[3]?.toString()?.toDoubleOrNull() ?: 0.0
+                val categoryId = row.getOrNull(4)?.toString()?.takeIf { it.isNotBlank() }
+                val publico = row.getOrNull(5)?.toString()?.equals("TRUE", ignoreCase = true) ?: true
+                val imageUrl = row.getOrNull(6)?.toString()?.takeIf { it.isNotBlank() }
+                sheetProductIds.add(id)
+
+                val existing = productDao.getById(id, companyId)
+                if (existing != null) {
+                    if (!existing.dirty) {
+                        productDao.upsert(
+                            existing.copy(
+                                name = name,
+                                description = description,
+                                price = price,
+                                categoryId = categoryId,
+                                publico = publico,
+                                imageUrl = imageUrl,
+                                lastSyncedAt = System.currentTimeMillis(),
+                            ),
+                        )
+                    }
+                } else {
+                    productDao.upsert(
+                        ProductEntity(
+                            id = id,
+                            name = name,
+                            description = description,
+                            price = price,
+                            categoryId = categoryId,
+                            publico = publico,
+                            imageUrl = imageUrl,
+                            companyId = companyId,
+                            lastSyncedAt = System.currentTimeMillis(),
+                        ),
+                    )
+                }
+            }
+
+            // Delete products in Room that are NOT in Sheet (and not dirty locally)
+            val roomProducts = productDao.getAllByCompany(companyId)
+            for (product in roomProducts) {
+                if (product.id !in sheetProductIds && !product.dirty) {
+                    productDao.deleteById(product.id, companyId)
+                }
+            }
+        }
+
         companion object {
             private const val PRODUCTS_TAB = "Products"
-            private val PRODUCTS_HEADERS = listOf("Name", "Description", "Price", "Category", "ImageId")
+            private val PRIVATE_PRODUCTS_HEADERS =
+                listOf("ProductID", "Name", "Description", "Price", "CategoryID", "Publico", "ImageUrl")
+            private val PUBLIC_PRODUCTS_HEADERS =
+                listOf("Name", "Description", "Price", "Category", "ImageUrl")
         }
     }

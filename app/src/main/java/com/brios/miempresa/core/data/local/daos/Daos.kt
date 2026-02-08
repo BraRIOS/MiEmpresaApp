@@ -103,6 +103,12 @@ interface CategoryDao {
 
     @Query("DELETE FROM categories WHERE companyId = :companyId")
     suspend fun deleteAll(companyId: String)
+
+    @Query("DELETE FROM categories WHERE id = :id AND companyId = :companyId")
+    suspend fun deleteById(
+        id: String,
+        companyId: String,
+    )
 }
 
 data class CartItemWithProduct(
@@ -213,4 +219,10 @@ interface ProductDao {
 
     @Query("DELETE FROM products WHERE companyId = :companyId")
     suspend fun deleteAll(companyId: String)
+
+    @Query("DELETE FROM products WHERE id = :id AND companyId = :companyId")
+    suspend fun deleteById(
+        id: String,
+        companyId: String,
+    )
 }

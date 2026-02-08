@@ -27,4 +27,6 @@ interface ProductsRepository {
     )
 
     suspend fun syncPendingChanges(companyId: String)
+
+    suspend fun downloadFromSheets(companyId: String)
 }

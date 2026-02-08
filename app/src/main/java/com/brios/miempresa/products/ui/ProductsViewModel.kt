@@ -1,5 +1,7 @@
 package com.brios.miempresa.products.ui
 
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.categories.domain.CategoriesRepository
@@ -30,6 +32,7 @@ class ProductsViewModel
         private val categoriesRepository: CategoriesRepository,
         private val companyDao: CompanyDao,
         private val syncManager: SyncManager,
+        private val connectivityManager: ConnectivityManager,
     ) : ViewModel() {
         private val _filters = MutableStateFlow(ProductFilters())
         val filters: StateFlow<ProductFilters> = _filters
@@ -38,6 +41,15 @@ class ProductsViewModel
 
         private val _isRefreshing = MutableStateFlow(false)
         val isRefreshing: StateFlow<Boolean> = _isRefreshing
+
+        val isOffline: Boolean
+            get() {
+                val network = connectivityManager.activeNetwork ?: return true
+                val capabilities =
+                    connectivityManager.getNetworkCapabilities(network)
+                        ?: return true
+                return !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            }
 
         val uiState: StateFlow<ProductsUiState> =
             _companyId

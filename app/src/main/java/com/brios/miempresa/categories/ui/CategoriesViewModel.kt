@@ -1,9 +1,13 @@
 package com.brios.miempresa.categories.ui
 
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.categories.domain.CategoriesRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
+import com.brios.miempresa.core.sync.SyncManager
+import com.brios.miempresa.core.sync.SyncType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,11 +29,25 @@ class CategoriesViewModel
     constructor(
         private val categoriesRepository: CategoriesRepository,
         private val companyDao: CompanyDao,
+        private val syncManager: SyncManager,
+        private val connectivityManager: ConnectivityManager,
     ) : ViewModel() {
         private val _searchQuery = MutableStateFlow("")
         val searchQuery: StateFlow<String> = _searchQuery
 
         private val _companyId = MutableStateFlow<String?>(null)
+
+        private val _isRefreshing = MutableStateFlow(false)
+        val isRefreshing: StateFlow<Boolean> = _isRefreshing
+
+        val isOffline: Boolean
+            get() {
+                val network = connectivityManager.activeNetwork ?: return true
+                val capabilities =
+                    connectivityManager.getNetworkCapabilities(network)
+                        ?: return true
+                return !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            }
 
         val uiState: StateFlow<CategoriesUiState> =
             _companyId
@@ -98,5 +116,11 @@ class CategoriesViewModel
             viewModelScope.launch {
                 categoriesRepository.delete(categoryId, companyId)
             }
+        }
+
+        fun refresh() {
+            _isRefreshing.value = true
+            syncManager.syncNow(SyncType.CATEGORIES)
+            _isRefreshing.value = false
         }
     }

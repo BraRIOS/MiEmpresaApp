@@ -20,11 +20,13 @@ import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,8 +38,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.components.MessageWithIcon
+import com.brios.miempresa.core.ui.components.OfflineBanner
 
-@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoriesScreen(
     onNavigateToAddCategory: () -> Unit,
@@ -46,6 +49,7 @@ fun CategoriesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     Scaffold(
         floatingActionButton = {
@@ -54,67 +58,75 @@ fun CategoriesScreen(
             }
         },
     ) { paddingValues ->
-        Column(
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = viewModel::refresh,
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
         ) {
-            androidx.compose.material3.SearchBar(
-                query = searchQuery,
-                onQueryChange = viewModel::onSearchQueryChanged,
-                onSearch = {},
-                active = false,
-                onActiveChange = {},
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                placeholder = { Text(stringResource(R.string.search_categories)) },
-            ) {}
+            Column(modifier = Modifier.fillMaxSize()) {
+                if (viewModel.isOffline) {
+                    OfflineBanner()
+                }
 
-            when (val state = uiState) {
-                is CategoriesUiState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        CircularProgressIndicator()
+                androidx.compose.material3.SearchBar(
+                    query = searchQuery,
+                    onQueryChange = viewModel::onSearchQueryChanged,
+                    onSearch = {},
+                    active = false,
+                    onActiveChange = {},
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                    placeholder = { Text(stringResource(R.string.search_categories)) },
+                ) {}
+
+                when (val state = uiState) {
+                    is CategoriesUiState.Loading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            CircularProgressIndicator()
+                        }
                     }
-                }
-                is CategoriesUiState.Empty -> {
-                    MessageWithIcon(
-                        message = stringResource(R.string.no_categories_yet),
-                        icon = Icons.Outlined.Category,
-                    )
-                }
-                is CategoriesUiState.Error -> {
-                    MessageWithIcon(
-                        message = state.message,
-                        icon = Icons.Outlined.SearchOff,
-                    )
-                }
-                is CategoriesUiState.Success -> {
-                    if (state.categories.isEmpty()) {
+                    is CategoriesUiState.Empty -> {
                         MessageWithIcon(
-                            message = stringResource(R.string.no_categories_match),
+                            message = stringResource(R.string.no_categories_yet),
+                            icon = Icons.Outlined.Category,
+                        )
+                    }
+                    is CategoriesUiState.Error -> {
+                        MessageWithIcon(
+                            message = state.message,
                             icon = Icons.Outlined.SearchOff,
                         )
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            items(
-                                state.categories,
-                                key = { it.category.id },
-                            ) { item ->
-                                CategoryCard(
-                                    item = item,
-                                    onClick = {
-                                        onNavigateToCategoryDetail(item.category.id)
-                                    },
-                                )
+                    }
+                    is CategoriesUiState.Success -> {
+                        if (state.categories.isEmpty()) {
+                            MessageWithIcon(
+                                message = stringResource(R.string.no_categories_match),
+                                icon = Icons.Outlined.SearchOff,
+                            )
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                items(
+                                    state.categories,
+                                    key = { it.category.id },
+                                ) { item ->
+                                    CategoryCard(
+                                        item = item,
+                                        onClick = {
+                                            onNavigateToCategoryDetail(item.category.id)
+                                        },
+                                    )
+                                }
                             }
                         }
                     }

@@ -22,6 +22,7 @@ import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -29,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -43,8 +45,9 @@ import com.brios.miempresa.R
 import com.brios.miempresa.core.data.local.entities.Category
 import com.brios.miempresa.core.data.local.entities.ProductEntity
 import com.brios.miempresa.core.ui.components.MessageWithIcon
+import com.brios.miempresa.core.ui.components.OfflineBanner
 
-@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductsScreen(
     onNavigateToAddProduct: () -> Unit,
@@ -53,6 +56,7 @@ fun ProductsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val filters by viewModel.filters.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     Scaffold(
         floatingActionButton = {
@@ -61,94 +65,102 @@ fun ProductsScreen(
             }
         },
     ) { paddingValues ->
-        Column(
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = viewModel::refresh,
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
         ) {
-            androidx.compose.material3.SearchBar(
-                query = filters.searchQuery,
-                onQueryChange = viewModel::onSearchQueryChanged,
-                onSearch = {},
-                active = false,
-                onActiveChange = {},
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                placeholder = { Text(stringResource(R.string.search_products)) },
-            ) {}
+            Column(modifier = Modifier.fillMaxSize()) {
+                if (viewModel.isOffline) {
+                    OfflineBanner()
+                }
 
-            when (val state = uiState) {
-                is ProductsUiState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        CircularProgressIndicator()
+                androidx.compose.material3.SearchBar(
+                    query = filters.searchQuery,
+                    onQueryChange = viewModel::onSearchQueryChanged,
+                    onSearch = {},
+                    active = false,
+                    onActiveChange = {},
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                    placeholder = { Text(stringResource(R.string.search_products)) },
+                ) {}
+
+                when (val state = uiState) {
+                    is ProductsUiState.Loading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            CircularProgressIndicator()
+                        }
                     }
-                }
-                is ProductsUiState.Empty -> {
-                    MessageWithIcon(
-                        message = stringResource(R.string.no_products_yet),
-                        icon = Icons.Outlined.Inventory2,
-                    )
-                }
-                is ProductsUiState.Error -> {
-                    MessageWithIcon(
-                        message = state.message,
-                        icon = Icons.Outlined.SearchOff,
-                    )
-                }
-                is ProductsUiState.EmptyFiltered -> {
-                    Column(modifier = Modifier.fillMaxSize()) {
+                    is ProductsUiState.Empty -> {
+                        MessageWithIcon(
+                            message = stringResource(R.string.no_products_yet),
+                            icon = Icons.Outlined.Inventory2,
+                        )
+                    }
+                    is ProductsUiState.Error -> {
+                        MessageWithIcon(
+                            message = state.message,
+                            icon = Icons.Outlined.SearchOff,
+                        )
+                    }
+                    is ProductsUiState.EmptyFiltered -> {
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            FilterChipsRow(
+                                filters = filters,
+                                categories = state.categories,
+                                onPublicFilterChanged = viewModel::onPublicFilterChanged,
+                                onCategoryFilterChanged = viewModel::onCategoryFilterChanged,
+                            )
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = stringResource(R.string.no_products_match),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    TextButton(onClick = viewModel::clearFilters) {
+                                        Text(stringResource(R.string.clear_filters))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    is ProductsUiState.Success -> {
                         FilterChipsRow(
                             filters = filters,
                             categories = state.categories,
                             onPublicFilterChanged = viewModel::onPublicFilterChanged,
                             onCategoryFilterChanged = viewModel::onCategoryFilterChanged,
                         )
-                        Box(
+                        LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center,
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = stringResource(R.string.no_products_match),
-                                    style = MaterialTheme.typography.bodyLarge,
+                            items(
+                                state.products,
+                                key = { it.id },
+                            ) { product ->
+                                ProductCard(
+                                    product = product,
+                                    categoryName =
+                                        state.categories
+                                            .find { it.id == product.categoryId }
+                                            ?.name,
+                                    onClick = { onNavigateToProductDetail(product.id) },
                                 )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                TextButton(onClick = viewModel::clearFilters) {
-                                    Text(stringResource(R.string.clear_filters))
-                                }
                             }
-                        }
-                    }
-                }
-                is ProductsUiState.Success -> {
-                    FilterChipsRow(
-                        filters = filters,
-                        categories = state.categories,
-                        onPublicFilterChanged = viewModel::onPublicFilterChanged,
-                        onCategoryFilterChanged = viewModel::onCategoryFilterChanged,
-                    )
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        items(
-                            state.products,
-                            key = { it.id },
-                        ) { product ->
-                            ProductCard(
-                                product = product,
-                                categoryName =
-                                    state.categories
-                                        .find { it.id == product.categoryId }
-                                        ?.name,
-                                onClick = { onNavigateToProductDetail(product.id) },
-                            )
                         }
                     }
                 }

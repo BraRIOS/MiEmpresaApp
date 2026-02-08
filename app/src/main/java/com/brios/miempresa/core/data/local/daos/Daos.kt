@@ -141,9 +141,10 @@ interface CartItemDao {
             c.productId,
             c.quantity,
             c.addedAt,
-            NULL as productName,
-            NULL as productPrice
+            p.name as productName,
+            p.price as productPrice
         FROM cart_items c
+        INNER JOIN products p ON c.productId = p.id
         WHERE c.companyId = :companyId
         ORDER BY c.addedAt DESC
         """,

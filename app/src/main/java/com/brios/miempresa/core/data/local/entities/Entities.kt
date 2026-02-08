@@ -48,17 +48,22 @@ data class Category(
             childColumns = ["companyId"],
             onDelete = androidx.room.ForeignKey.CASCADE,
         ),
+        androidx.room.ForeignKey(
+            entity = ProductEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["productId"],
+            onDelete = androidx.room.ForeignKey.CASCADE,
+        ),
     ],
     indices = [
         Index(value = ["companyId"]),
-        Index(value = ["productId"]), // Performance for JOIN queries
+        Index(value = ["productId"]), // Performance for FK + JOIN queries
     ],
 )
 data class CartItemEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val companyId: String,
-    // TODO: Add FK to Product when Product entity is migrated to Room (post-spike)
     val productId: String,
     val quantity: Int,
     val addedAt: Long = System.currentTimeMillis(),
@@ -66,7 +71,18 @@ data class CartItemEntity(
 
 @Entity(
     tableName = "products",
-    indices = [Index(value = ["companyId", "dirty"])],
+    foreignKeys = [
+        androidx.room.ForeignKey(
+            entity = Category::class,
+            parentColumns = ["id"],
+            childColumns = ["categoryId"],
+            onDelete = androidx.room.ForeignKey.RESTRICT,
+        ),
+    ],
+    indices = [
+        Index(value = ["companyId", "dirty"]),
+        Index(value = ["categoryId"]), // Performance for FK queries
+    ],
 )
 data class ProductEntity(
     @PrimaryKey val id: String,

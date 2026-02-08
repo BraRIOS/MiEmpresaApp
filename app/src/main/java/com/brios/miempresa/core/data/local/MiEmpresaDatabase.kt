@@ -20,7 +20,7 @@ import com.brios.miempresa.core.data.local.entities.ProductEntity
         CartItemEntity::class,
         ProductEntity::class,
     ],
-    version = 8,
+    version = 9,
     exportSchema = false,
 )
 abstract class MiEmpresaDatabase : RoomDatabase() {

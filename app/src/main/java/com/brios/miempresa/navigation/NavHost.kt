@@ -24,11 +24,9 @@ import com.brios.miempresa.auth.ui.PostAuthDestination
 import com.brios.miempresa.auth.ui.SignInScreen
 import com.brios.miempresa.auth.ui.SignInViewModel
 import com.brios.miempresa.auth.ui.WelcomeScreen
-import com.brios.miempresa.categories.ui.CategoriesScreen
 import com.brios.miempresa.categories.ui.CategoryFormScreen
 import com.brios.miempresa.onboarding.ui.OnboardingScreen
 import com.brios.miempresa.products.ui.ProductFormScreen
-import com.brios.miempresa.products.ui.ProductsScreen
 
 @Composable
 fun NavHostComposable(
@@ -159,7 +157,7 @@ fun NavHostComposable(
             val activity = LocalContext.current as Activity
             OnboardingScreen(
                 onNavigateToHome = {
-                    navController.navigate(MiEmpresaScreen.Products.name) {
+                    navController.navigate(MiEmpresaScreen.Home.name) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
@@ -171,13 +169,20 @@ fun NavHostComposable(
                 },
             )
         }
-        composable(route = MiEmpresaScreen.Products.name) {
-            ProductsScreen(
+        composable(route = MiEmpresaScreen.Home.name) {
+            HomeAdminScreen(
+                navController = navController,
                 onNavigateToAddProduct = {
                     navController.navigate("${MiEmpresaScreen.Product.name}/add")
                 },
                 onNavigateToProductDetail = { productId ->
                     navController.navigate("${MiEmpresaScreen.Product.name}/$productId")
+                },
+                onNavigateToAddCategory = {
+                    navController.navigate("${MiEmpresaScreen.Categories.name}/add")
+                },
+                onNavigateToCategoryDetail = { categoryId ->
+                    navController.navigate("${MiEmpresaScreen.Categories.name}/$categoryId")
                 },
             )
         }
@@ -194,16 +199,6 @@ fun NavHostComposable(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToAddCategory = {
                     navController.navigate("${MiEmpresaScreen.Categories.name}/add")
-                },
-            )
-        }
-        composable(route = MiEmpresaScreen.Categories.name) {
-            CategoriesScreen(
-                onNavigateToAddCategory = {
-                    navController.navigate("${MiEmpresaScreen.Categories.name}/add")
-                },
-                onNavigateToCategoryDetail = { categoryId ->
-                    navController.navigate("${MiEmpresaScreen.Categories.name}/$categoryId")
                 },
             )
         }

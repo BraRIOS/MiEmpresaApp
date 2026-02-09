@@ -65,102 +65,159 @@ fun ProductsScreen(
             }
         },
     ) { paddingValues ->
-        PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = viewModel::refresh,
+        ProductsContentInternal(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                if (viewModel.isOffline) {
-                    OfflineBanner()
+            uiState = uiState,
+            filters = filters,
+            isRefreshing = isRefreshing,
+            isOffline = viewModel.isOffline,
+            onRefresh = viewModel::refresh,
+            onSearchQueryChanged = viewModel::onSearchQueryChanged,
+            onPublicFilterChanged = viewModel::onPublicFilterChanged,
+            onCategoryFilterChanged = viewModel::onCategoryFilterChanged,
+            onClearFilters = viewModel::clearFilters,
+            onNavigateToProductDetail = onNavigateToProductDetail,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProductsContent(
+    modifier: Modifier = Modifier,
+    onNavigateToAddProduct: () -> Unit,
+    onNavigateToProductDetail: (String) -> Unit,
+    viewModel: ProductsViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val filters by viewModel.filters.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+
+    ProductsContentInternal(
+        modifier = modifier.fillMaxSize(),
+        uiState = uiState,
+        filters = filters,
+        isRefreshing = isRefreshing,
+        isOffline = viewModel.isOffline,
+        onRefresh = viewModel::refresh,
+        onSearchQueryChanged = viewModel::onSearchQueryChanged,
+        onPublicFilterChanged = viewModel::onPublicFilterChanged,
+        onCategoryFilterChanged = viewModel::onCategoryFilterChanged,
+        onClearFilters = viewModel::clearFilters,
+        onNavigateToProductDetail = onNavigateToProductDetail,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ProductsContentInternal(
+    modifier: Modifier = Modifier,
+    uiState: ProductsUiState,
+    filters: ProductFilters,
+    isRefreshing: Boolean,
+    isOffline: Boolean,
+    onRefresh: () -> Unit,
+    onSearchQueryChanged: (String) -> Unit,
+    onPublicFilterChanged: (PublicFilter) -> Unit,
+    onCategoryFilterChanged: (String?) -> Unit,
+    onClearFilters: () -> Unit,
+    onNavigateToProductDetail: (String) -> Unit,
+) {
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        modifier = modifier,
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            if (isOffline) {
+                OfflineBanner()
+            }
+
+            androidx.compose.material3.SearchBar(
+                query = filters.searchQuery,
+                onQueryChange = onSearchQueryChanged,
+                onSearch = {},
+                active = false,
+                onActiveChange = {},
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                placeholder = { Text(stringResource(R.string.search_products)) },
+            ) {}
+
+            when (uiState) {
+                is ProductsUiState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
-
-                androidx.compose.material3.SearchBar(
-                    query = filters.searchQuery,
-                    onQueryChange = viewModel::onSearchQueryChanged,
-                    onSearch = {},
-                    active = false,
-                    onActiveChange = {},
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                    placeholder = { Text(stringResource(R.string.search_products)) },
-                ) {}
-
-                when (val state = uiState) {
-                    is ProductsUiState.Loading -> {
+                is ProductsUiState.Empty -> {
+                    MessageWithIcon(
+                        message = stringResource(R.string.no_products_yet),
+                        icon = Icons.Outlined.Inventory2,
+                    )
+                }
+                is ProductsUiState.Error -> {
+                    MessageWithIcon(
+                        message = uiState.message,
+                        icon = Icons.Outlined.SearchOff,
+                    )
+                }
+                is ProductsUiState.EmptyFiltered -> {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        FilterChipsRow(
+                            filters = filters,
+                            categories = uiState.categories,
+                            onPublicFilterChanged = onPublicFilterChanged,
+                            onCategoryFilterChanged = onCategoryFilterChanged,
+                        )
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center,
                         ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-                    is ProductsUiState.Empty -> {
-                        MessageWithIcon(
-                            message = stringResource(R.string.no_products_yet),
-                            icon = Icons.Outlined.Inventory2,
-                        )
-                    }
-                    is ProductsUiState.Error -> {
-                        MessageWithIcon(
-                            message = state.message,
-                            icon = Icons.Outlined.SearchOff,
-                        )
-                    }
-                    is ProductsUiState.EmptyFiltered -> {
-                        Column(modifier = Modifier.fillMaxSize()) {
-                            FilterChipsRow(
-                                filters = filters,
-                                categories = state.categories,
-                                onPublicFilterChanged = viewModel::onPublicFilterChanged,
-                                onCategoryFilterChanged = viewModel::onCategoryFilterChanged,
-                            )
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        text = stringResource(R.string.no_products_match),
-                                        style = MaterialTheme.typography.bodyLarge,
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    TextButton(onClick = viewModel::clearFilters) {
-                                        Text(stringResource(R.string.clear_filters))
-                                    }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = stringResource(R.string.no_products_match),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                TextButton(onClick = onClearFilters) {
+                                    Text(stringResource(R.string.clear_filters))
                                 }
                             }
                         }
                     }
-                    is ProductsUiState.Success -> {
-                        FilterChipsRow(
-                            filters = filters,
-                            categories = state.categories,
-                            onPublicFilterChanged = viewModel::onPublicFilterChanged,
-                            onCategoryFilterChanged = viewModel::onCategoryFilterChanged,
-                        )
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            items(
-                                state.products,
-                                key = { it.id },
-                            ) { product ->
-                                ProductCard(
-                                    product = product,
-                                    categoryName =
-                                        state.categories
-                                            .find { it.id == product.categoryId }
-                                            ?.name,
-                                    onClick = { onNavigateToProductDetail(product.id) },
-                                )
-                            }
+                }
+                is ProductsUiState.Success -> {
+                    FilterChipsRow(
+                        filters = filters,
+                        categories = uiState.categories,
+                        onPublicFilterChanged = onPublicFilterChanged,
+                        onCategoryFilterChanged = onCategoryFilterChanged,
+                    )
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        items(
+                            uiState.products,
+                            key = { it.id },
+                        ) { product ->
+                            ProductCard(
+                                product = product,
+                                categoryName =
+                                    uiState.categories
+                                        .find { it.id == product.categoryId }
+                                        ?.name,
+                                onClick = { onNavigateToProductDetail(product.id) },
+                            )
                         }
                     }
                 }

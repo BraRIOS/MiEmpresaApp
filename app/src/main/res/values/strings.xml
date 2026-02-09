@@ -208,6 +208,8 @@
     <string name="onboarding_success_cta">Empezar a gestionar</string>
     <string name="search">Buscar</string>
     <string name="validating_workspace">Validando workspace…</string>
+    <string name="config_title">Configuración</string>
+    <string name="config_coming_soon">Próximamente</string>
 
     <!-- Categories screen -->
     <string name="search_categories">Buscar categorías…</string>

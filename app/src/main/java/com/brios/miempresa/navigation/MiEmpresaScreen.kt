@@ -4,9 +4,11 @@ enum class MiEmpresaScreen {
     Welcome,
     SignIn,
     Onboarding,
+    Home,
     Products,
     Product,
     Categories,
+    Config,
 }
 
 val basePages =
@@ -14,6 +16,5 @@ val basePages =
         MiEmpresaScreen.Welcome.name,
         MiEmpresaScreen.SignIn.name,
         MiEmpresaScreen.Onboarding.name,
-        MiEmpresaScreen.Products.name,
-        MiEmpresaScreen.Categories.name,
+        MiEmpresaScreen.Home.name,
     )

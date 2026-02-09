@@ -137,10 +137,10 @@ private fun DrawerContent(
                                             .clickable {
                                                 scope.launch {
                                                     drawerState.close()
+                                                    navController.navigate(
+                                                        MiEmpresaScreen.Onboarding.name,
+                                                    )
                                                 }
-                                                navController.navigate(
-                                                    MiEmpresaScreen.Onboarding.name,
-                                                )
                                             },
                                     imageVector = Icons.AutoMirrored.Filled.CompareArrows,
                                     contentDescription = stringResource(R.string.switch_company),

@@ -1,5 +1,4 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
@@ -9,7 +8,6 @@ plugins {
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.ktlint)
 }
-
 
 android {
     namespace = "com.brios.miempresa"

@@ -12,17 +12,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -40,43 +36,6 @@ import com.brios.miempresa.core.ui.components.ItemCard
 import com.brios.miempresa.core.ui.components.MessageWithIcon
 import com.brios.miempresa.core.ui.components.OfflineBanner
 import com.brios.miempresa.core.ui.theme.AppDimensions
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ProductsScreen(
-    onNavigateToAddProduct: () -> Unit,
-    onNavigateToProductDetail: (String) -> Unit,
-    viewModel: ProductsViewModel = hiltViewModel(),
-) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val filters by viewModel.filters.collectAsStateWithLifecycle()
-    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToAddProduct) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_product))
-            }
-        },
-    ) { paddingValues ->
-        ProductsContentInternal(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-            uiState = uiState,
-            filters = filters,
-            isRefreshing = isRefreshing,
-            isOffline = viewModel.isOffline,
-            onRefresh = viewModel::refresh,
-            onSearchQueryChanged = viewModel::onSearchQueryChanged,
-            onPublicFilterChanged = viewModel::onPublicFilterChanged,
-            onCategoryFilterChanged = viewModel::onCategoryFilterChanged,
-            onClearFilters = viewModel::clearFilters,
-            onNavigateToProductDetail = onNavigateToProductDetail,
-        )
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

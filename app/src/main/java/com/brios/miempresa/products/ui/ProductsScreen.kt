@@ -262,6 +262,26 @@ private fun FilterChipsRow(
         horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
     ) {
         item {
+            AssistChip(
+                onClick = {
+                    if (filters.categoryId != null) {
+                        onClearCategoryFilter()
+                    } else {
+                        onShowCategorySelector()
+                    }
+                },
+                label = {
+                    Text(
+                        text = if (selectedCategoryName != null) {
+                            "Categoría: $selectedCategoryName"
+                        } else {
+                            "Categoría: Todas"
+                        },
+                    )
+                },
+            )
+        }
+        item {
             FilterChip(
                 selected = filters.publicFilter == PublicFilter.ALL,
                 onClick = { onPublicFilterChanged(PublicFilter.ALL) },
@@ -280,26 +300,6 @@ private fun FilterChipsRow(
                 selected = filters.publicFilter == PublicFilter.PRIVATE,
                 onClick = { onPublicFilterChanged(PublicFilter.PRIVATE) },
                 label = { Text(stringResource(R.string.filter_private)) },
-            )
-        }
-        item {
-            AssistChip(
-                onClick = {
-                    if (filters.categoryId != null) {
-                        onClearCategoryFilter()
-                    } else {
-                        onShowCategorySelector()
-                    }
-                },
-                label = {
-                    Text(
-                        text = if (selectedCategoryName != null) {
-                            "Categoría: $selectedCategoryName"
-                        } else {
-                            "Categoría: Todas"
-                        },
-                    )
-                },
             )
         }
     }

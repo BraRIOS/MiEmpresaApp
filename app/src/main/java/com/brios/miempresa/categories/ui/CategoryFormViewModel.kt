@@ -8,8 +8,11 @@ import com.brios.miempresa.categories.domain.CategoriesRepository
 import com.brios.miempresa.categories.domain.EmojiData
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,8 +39,8 @@ class CategoryFormViewModel
         private val _isSaving = MutableStateFlow(false)
         val isSaving: StateFlow<Boolean> = _isSaving
 
-        private val _saveComplete = MutableStateFlow(false)
-        val saveComplete: StateFlow<Boolean> = _saveComplete
+        private val _saveComplete = MutableSharedFlow<Unit>(replay = 0)
+        val saveComplete: SharedFlow<Unit> = _saveComplete.asSharedFlow()
 
         private val _productCount = MutableStateFlow(0)
         val productCount: StateFlow<Int> = _productCount
@@ -105,7 +108,7 @@ class CategoryFormViewModel
                     )
                 }
                 _isSaving.value = false
-                _saveComplete.value = true
+                _saveComplete.emit(Unit)
             }
         }
 
@@ -114,7 +117,7 @@ class CategoryFormViewModel
             if (categoryId == null) return
             viewModelScope.launch {
                 categoriesRepository.delete(categoryId, currentCompanyId)
-                _saveComplete.value = true
+                _saveComplete.emit(Unit)
             }
         }
 

@@ -3,7 +3,6 @@ package com.brios.miempresa.categories.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,7 +55,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -80,13 +78,12 @@ fun CategoryFormScreen(
     val selectedEmoji by viewModel.selectedEmoji.collectAsStateWithLifecycle()
     val nameError by viewModel.nameError.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
-    val saveComplete by viewModel.saveComplete.collectAsStateWithLifecycle()
     val productCount by viewModel.productCount.collectAsStateWithLifecycle()
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showEmojiBottomSheet by remember { mutableStateOf(false) }
 
-    LaunchedEffect(saveComplete) {
-        if (saveComplete) onNavigateBack()
+    LaunchedEffect(Unit) {
+        viewModel.saveComplete.collect { onNavigateBack() }
     }
 
     Scaffold(
@@ -104,7 +101,7 @@ fun CategoryFormScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back))
                     }
                 },
                 actions = {
@@ -357,37 +354,37 @@ private fun EmojiQuickPickSection(
             ) {
                 QuickPickEmojis.forEach { emoji ->
                     val isSelected = emoji == selectedEmoji
-                    Box(
+                    Surface(
+                        onClick = { onEmojiSelected(emoji) },
                         modifier =
                             Modifier
-                                .size(AppDimensions.categoryEmojiContainerSize)
-                                .clip(RoundedCornerShape(AppDimensions.mediumCornerRadius))
-                                .background(
-                                    if (isSelected) {
-                                        MaterialTheme.colorScheme.primary
-                                    } else {
-                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                                    },
+                                .size(AppDimensions.categoryEmojiContainerSize),
+                        shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                        color =
+                            if (isSelected) {
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            },
+                        border =
+                            if (isSelected) {
+                                BorderStroke(
+                                    AppDimensions.mediumBorderWidth,
+                                    MaterialTheme.colorScheme.primary,
                                 )
-                                .then(
-                                    if (isSelected) {
-                                        Modifier
-                                    } else {
-                                        Modifier.border(
-                                            AppDimensions.mediumBorderWidth,
-                                            Color.Transparent,
-                                            RoundedCornerShape(AppDimensions.mediumCornerRadius),
-                                        )
-                                    },
-                                )
-                                .clickable { onEmojiSelected(emoji) },
-                        contentAlignment = Alignment.Center,
+                            } else {
+                                null
+                            },
                     ) {
-                        Text(
-                            text = emoji,
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = if (isSelected) Color.White else Color.Unspecified,
-                        )
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            Text(
+                                text = emoji,
+                                style = MaterialTheme.typography.headlineSmall,
+                            )
+                        }
                     }
                 }
 
@@ -490,40 +487,38 @@ private fun EmojiBottomSheet(
                 horizontalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
                 modifier = Modifier.height(400.dp),
             ) {
-                items(EmojiData.allEmojis) { emoji ->
+                items(EmojiData.allEmojis, key = { it }) { emoji ->
                     val isSelected = emoji == selectedEmoji
-                    Box(
-                        modifier =
-                            Modifier
-                                .size(48.dp)
-                                .clip(RoundedCornerShape(AppDimensions.smallCornerRadius))
-                                .background(
-                                    if (isSelected) {
-                                        MaterialTheme.colorScheme.primary
-                                    } else {
-                                        Color.Transparent
-                                    },
+                    Surface(
+                        onClick = { onEmojiSelected(emoji) },
+                        modifier = Modifier.size(48.dp),
+                        shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
+                        color =
+                            if (isSelected) {
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                            } else {
+                                Color.Transparent
+                            },
+                        border =
+                            if (isSelected) {
+                                BorderStroke(
+                                    AppDimensions.mediumBorderWidth,
+                                    MaterialTheme.colorScheme.primary,
                                 )
-                                .then(
-                                    if (isSelected) {
-                                        Modifier.border(
-                                            AppDimensions.mediumBorderWidth,
-                                            MaterialTheme.colorScheme.primary,
-                                            RoundedCornerShape(AppDimensions.smallCornerRadius),
-                                        )
-                                    } else {
-                                        Modifier
-                                    },
-                                )
-                                .clickable { onEmojiSelected(emoji) },
-                        contentAlignment = Alignment.Center,
+                            } else {
+                                null
+                            },
                     ) {
-                        Text(
-                            text = emoji,
-                            style = MaterialTheme.typography.titleLarge,
-                            textAlign = TextAlign.Center,
-                            color = if (isSelected) Color.White else Color.Unspecified,
-                        )
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            Text(
+                                text = emoji,
+                                style = MaterialTheme.typography.titleLarge,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
                     }
                 }
             }

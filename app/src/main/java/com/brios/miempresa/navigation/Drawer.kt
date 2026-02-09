@@ -302,7 +302,10 @@ private fun DrawerMenuItem(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(50))
                 .background(backgroundColor)
-                .clickable(onClick = onClick)
+                .clickable(
+                    onClick = onClick,
+                    role = androidx.compose.ui.semantics.Role.Button,
+                )
                 .padding(
                     horizontal = AppDimensions.mediumPadding,
                     vertical = AppDimensions.mediumSmallPadding,

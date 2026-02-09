@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
@@ -30,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -48,9 +48,9 @@ fun ItemCard(
     subtitle: String,
     modifier: Modifier = Modifier,
     imageUrl: String? = null,
-    badge: (@Composable () -> Unit)? = null,
     isPublic: Boolean? = null,
-    onEdit: (() -> Unit)? = null,
+    badge: (@Composable () -> Unit)? = null,
+    onToggleVisibility: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
     onClick: () -> Unit = {},
 ) {
@@ -77,12 +77,14 @@ fun ItemCard(
             if (imageUrl != null) {
                 AsyncImage(
                     model = imageUrl,
-                    contentDescription = null,
+                    contentDescription = title,
                     modifier =
                         Modifier
                             .size(AppDimensions.itemCardImageSize)
                             .clip(imageShape),
                     contentScale = ContentScale.Crop,
+                    placeholder = painterResource(R.drawable.miempresa_logo_glyph),
+                    error = painterResource(R.drawable.miempresa_logo_glyph),
                 )
             } else {
                 Box(
@@ -128,29 +130,11 @@ fun ItemCard(
                     if (badge != null) {
                         badge()
                     }
-                    if (isPublic != null) {
-                        Icon(
-                            imageVector =
-                                if (isPublic) {
-                                    Icons.Outlined.Visibility
-                                } else {
-                                    Icons.Outlined.VisibilityOff
-                                },
-                            contentDescription = stringResource(R.string.toggle_visibility),
-                            modifier = Modifier.size(AppDimensions.smallIconSize),
-                            tint =
-                                if (isPublic) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                },
-                        )
-                    }
                 }
             }
 
             // Trailing actions with border separator
-            if (onEdit != null || onDelete != null) {
+            if (onToggleVisibility != null || onDelete != null) {
                 Box(
                     modifier =
                         Modifier
@@ -163,11 +147,16 @@ fun ItemCard(
                     modifier = Modifier.padding(start = AppDimensions.extraSmallPadding),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    if (onEdit != null) {
-                        IconButton(onClick = onEdit) {
+                    if (onToggleVisibility != null && isPublic != null) {
+                        IconButton(onClick = onToggleVisibility) {
                             Icon(
-                                imageVector = Icons.Outlined.Edit,
-                                contentDescription = stringResource(R.string.edit_item),
+                                imageVector =
+                                    if (isPublic) {
+                                        Icons.Outlined.Visibility
+                                    } else {
+                                        Icons.Outlined.VisibilityOff
+                                    },
+                                contentDescription = stringResource(R.string.toggle_visibility),
                                 modifier = Modifier.size(AppDimensions.smallIconSize),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -200,7 +189,7 @@ private fun ItemCardPreview() {
             badge = {
                 CategoryBadge(emoji = "☕", name = "Café")
             },
-            onEdit = {},
+            onToggleVisibility = {},
             onDelete = {},
         )
     }
@@ -217,7 +206,7 @@ private fun ItemCardPrivatePreview() {
             badge = {
                 CategoryBadge(emoji = "🏷️", name = "Accesorios")
             },
-            onEdit = {},
+            onToggleVisibility = {},
             onDelete = {},
         )
     }

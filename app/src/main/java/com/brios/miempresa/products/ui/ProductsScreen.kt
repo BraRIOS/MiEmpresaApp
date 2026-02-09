@@ -227,7 +227,7 @@ private fun ProductsContentInternal(
                                     } else {
                                         null
                                     },
-                                onEdit = { onNavigateToProductDetail(product.id) },
+                                onToggleVisibility = { /* TODO: toggle product visibility */ },
                                 onClick = { onNavigateToProductDetail(product.id) },
                             )
                         }

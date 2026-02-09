@@ -77,12 +77,11 @@ fun ProductFormScreen(
     val priceError by viewModel.priceError.collectAsStateWithLifecycle()
     val categoryError by viewModel.categoryError.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
-    val saveComplete by viewModel.saveComplete.collectAsStateWithLifecycle()
     var showDeleteDialog by remember { mutableStateOf(false) }
     var categoryExpanded by remember { mutableStateOf(false) }
 
-    LaunchedEffect(saveComplete) {
-        if (saveComplete) onNavigateBack()
+    LaunchedEffect(Unit) {
+        viewModel.saveComplete.collect { onNavigateBack() }
     }
 
     Scaffold(
@@ -100,7 +99,7 @@ fun ProductFormScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back))
                     }
                 },
                 actions = {
@@ -410,7 +409,7 @@ private fun FormField(
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             color =
                 if (isError) {
                     MaterialTheme.colorScheme.error

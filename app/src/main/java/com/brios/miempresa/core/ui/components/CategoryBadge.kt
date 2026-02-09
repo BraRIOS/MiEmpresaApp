@@ -25,7 +25,7 @@ fun CategoryBadge(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
 ) {
-    val shape = remember { RoundedCornerShape(AppDimensions.extraSmallPadding) }
+    val shape = remember { RoundedCornerShape(AppDimensions.smallCornerRadius) }
 
     if (onClick != null) {
         Surface(

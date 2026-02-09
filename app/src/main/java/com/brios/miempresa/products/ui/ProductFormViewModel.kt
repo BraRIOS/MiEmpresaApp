@@ -9,14 +9,21 @@ import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.products.data.ProductEntity
 import com.brios.miempresa.products.domain.ProductsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
+@OptIn(ExperimentalCoroutinesApi::class)
 class ProductFormViewModel
     @Inject
     constructor(
@@ -49,8 +56,8 @@ class ProductFormViewModel
         private val _isSaving = MutableStateFlow(false)
         val isSaving: StateFlow<Boolean> = _isSaving
 
-        private val _saveComplete = MutableStateFlow(false)
-        val saveComplete: StateFlow<Boolean> = _saveComplete
+        private val _saveComplete = MutableSharedFlow<Unit>(replay = 0)
+        val saveComplete: SharedFlow<Unit> = _saveComplete.asSharedFlow()
 
         private val _nameError = MutableStateFlow<String?>(null)
         val nameError: StateFlow<String?> = _nameError
@@ -64,21 +71,19 @@ class ProductFormViewModel
         private var companyId: String? = null
         private var originalProduct: ProductEntity? = null
 
+        private val _companyIdFlow = MutableStateFlow<String?>(null)
+
         val categories: StateFlow<List<Category>> =
-            MutableStateFlow<List<Category>>(emptyList()).also { flow ->
-                viewModelScope.launch {
-                    companyId = companyDao.getSelectedOwnedCompany()?.id
-                    companyId?.let { id ->
-                        categoriesRepository.getAll(id)
-                            .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-                            .collect { flow.value = it }
-                    }
+            _companyIdFlow
+                .flatMapLatest { id ->
+                    if (id != null) categoriesRepository.getAll(id) else flowOf(emptyList())
                 }
-            }
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
         init {
             viewModelScope.launch {
                 companyId = companyDao.getSelectedOwnedCompany()?.id
+                _companyIdFlow.value = companyId
                 if (isEditMode && productId != null && companyId != null) {
                     val product = productsRepository.getById(productId, companyId!!)
                     product?.let {
@@ -171,7 +176,7 @@ class ProductFormViewModel
                     )
                 }
                 _isSaving.value = false
-                _saveComplete.value = true
+                _saveComplete.emit(Unit)
             }
         }
 
@@ -180,7 +185,7 @@ class ProductFormViewModel
             if (productId == null) return
             viewModelScope.launch {
                 productsRepository.delete(productId, currentCompanyId)
-                _saveComplete.value = true
+                _saveComplete.emit(Unit)
             }
         }
     }

@@ -156,8 +156,11 @@ class ProductsViewModel
         }
 
         fun refresh() {
-            _isRefreshing.value = true
-            syncManager.syncNow(SyncType.ALL)
-            _isRefreshing.value = false
+            viewModelScope.launch {
+                _isRefreshing.value = true
+                syncManager.syncNow(SyncType.ALL)
+                kotlinx.coroutines.delay(1500)
+                _isRefreshing.value = false
+            }
         }
     }

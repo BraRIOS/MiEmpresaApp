@@ -119,8 +119,11 @@ class CategoriesViewModel
         }
 
         fun refresh() {
-            _isRefreshing.value = true
-            syncManager.syncNow(SyncType.CATEGORIES)
-            _isRefreshing.value = false
+            viewModelScope.launch {
+                _isRefreshing.value = true
+                syncManager.syncNow(SyncType.CATEGORIES)
+                kotlinx.coroutines.delay(1500)
+                _isRefreshing.value = false
+            }
         }
     }

@@ -1,6 +1,6 @@
 package com.brios.miempresa.core.ui.components
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -12,7 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
@@ -24,39 +25,78 @@ fun CategoryBadge(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
 ) {
-    val shape = remember { RoundedCornerShape(AppDimensions.smallCornerRadius) }
+    val shape = remember { RoundedCornerShape(AppDimensions.extraSmallPadding) }
 
-    Surface(
-        onClick = onClick ?: {},
-        enabled = onClick != null,
-        modifier = modifier,
-        shape = shape,
-        color = Color.Transparent,
-        border =
-            BorderStroke(
-                width = AppDimensions.smallBorderWidth,
-                color = MaterialTheme.colorScheme.outlineVariant,
-            ),
-    ) {
+    if (onClick != null) {
+        Surface(
+            onClick = onClick,
+            modifier = modifier,
+            shape = shape,
+            color = MaterialTheme.colorScheme.surfaceVariant,
+        ) {
+            BadgeContent(emoji = emoji, name = name)
+        }
+    } else {
         Row(
             modifier =
-                Modifier.padding(
-                    horizontal = AppDimensions.smallPadding,
-                    vertical = AppDimensions.extraSmallPadding,
-                ),
+                modifier
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = shape,
+                    )
+                    .padding(
+                        horizontal = AppDimensions.smallPadding,
+                        vertical = AppDimensions.extraSmallPadding,
+                    ),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
         ) {
+            if (emoji.isNotEmpty()) {
+                Text(
+                    text = emoji,
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
             Text(
-                text = emoji,
-                style = MaterialTheme.typography.labelLarge,
-            )
-            Text(
-                text = name,
-                style = MaterialTheme.typography.bodySmall,
+                text = name.uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
+    }
+}
+
+@Composable
+private fun BadgeContent(
+    emoji: String,
+    name: String,
+) {
+    Row(
+        modifier =
+            Modifier.padding(
+                horizontal = AppDimensions.smallPadding,
+                vertical = AppDimensions.extraSmallPadding,
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
+    ) {
+        if (emoji.isNotEmpty()) {
+            Text(
+                text = emoji,
+                style = MaterialTheme.typography.labelSmall,
+            )
+        }
+        Text(
+            text = name.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -65,8 +105,8 @@ fun CategoryBadge(
 private fun CategoryBadgePreview() {
     MiEmpresaTheme {
         CategoryBadge(
-            emoji = "\uD83C\uDF55",
-            name = "Pizzas",
+            emoji = "☕",
+            name = "Café",
             onClick = {},
         )
     }
@@ -77,8 +117,8 @@ private fun CategoryBadgePreview() {
 private fun CategoryBadgeNoClickPreview() {
     MiEmpresaTheme {
         CategoryBadge(
-            emoji = "\uD83C\uDF55",
-            name = "Pizzas",
+            emoji = "☕",
+            name = "Café",
         )
     }
 }

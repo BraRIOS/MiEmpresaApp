@@ -34,7 +34,8 @@ object AppDimensions {
     val bottomSheetPeekHeight = 400.dp
 
     // Component-specific
-    val itemCardImageSize = 80.dp
+    val itemCardImageSize = 64.dp
+    val categoryEmojiContainerSize = 56.dp
     val quantitySelectorMinWidth = 40.dp
     val emptyStateDotSize = 6.dp
     val smallIconSize = 20.dp

@@ -1,17 +1,13 @@
 package com.brios.miempresa.products.ui
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -20,7 +16,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -36,16 +31,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
 import com.brios.miempresa.R
 import com.brios.miempresa.categories.data.Category
+import com.brios.miempresa.core.ui.components.CategoryBadge
+import com.brios.miempresa.core.ui.components.ItemCard
 import com.brios.miempresa.core.ui.components.MessageWithIcon
 import com.brios.miempresa.core.ui.components.OfflineBanner
-import com.brios.miempresa.products.data.ProductEntity
+import com.brios.miempresa.core.ui.theme.AppDimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -145,7 +139,7 @@ private fun ProductsContentInternal(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = AppDimensions.mediumPadding),
                 placeholder = { Text(stringResource(R.string.search_products)) },
             ) {}
 
@@ -187,7 +181,7 @@ private fun ProductsContentInternal(
                                     text = stringResource(R.string.no_products_match),
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
                                 TextButton(onClick = onClearFilters) {
                                     Text(stringResource(R.string.clear_filters))
                                 }
@@ -204,18 +198,36 @@ private fun ProductsContentInternal(
                     )
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding =
+                            androidx.compose.foundation.layout.PaddingValues(
+                                horizontal = AppDimensions.mediumPadding,
+                            ),
+                        verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumSmallPadding),
                     ) {
                         items(
                             uiState.products,
                             key = { it.id },
                         ) { product ->
-                            ProductCard(
-                                product = product,
-                                categoryName =
-                                    uiState.categories
-                                        .find { it.id == product.categoryId }
-                                        ?.name,
+                            val category =
+                                uiState.categories
+                                    .find { it.id == product.categoryId }
+                            ItemCard(
+                                title = product.name,
+                                subtitle = "$${product.price}",
+                                imageUrl = product.localImagePath ?: product.imageUrl,
+                                isPublic = product.isPublic,
+                                badge =
+                                    if (category != null) {
+                                        {
+                                            CategoryBadge(
+                                                emoji = category.iconEmoji,
+                                                name = category.name,
+                                            )
+                                        }
+                                    } else {
+                                        null
+                                    },
+                                onEdit = { onNavigateToProductDetail(product.id) },
                                 onClick = { onNavigateToProductDetail(product.id) },
                             )
                         }
@@ -234,8 +246,12 @@ private fun FilterChipsRow(
     onCategoryFilterChanged: (String?) -> Unit,
 ) {
     LazyRow(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier =
+            Modifier.padding(
+                horizontal = AppDimensions.mediumPadding,
+                vertical = AppDimensions.smallPadding,
+            ),
+        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
     ) {
         item {
             FilterChip(
@@ -266,73 +282,6 @@ private fun FilterChipsRow(
                     )
                 },
                 label = { Text("${category.iconEmoji} ${category.name}") },
-            )
-        }
-    }
-}
-
-@Composable
-private fun ProductCard(
-    product: ProductEntity,
-    categoryName: String?,
-    onClick: () -> Unit,
-) {
-    Card(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .clickable(onClick = onClick),
-    ) {
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (product.imageUrl != null || product.localImagePath != null) {
-                AsyncImage(
-                    model = product.localImagePath ?: product.imageUrl,
-                    contentDescription = product.name,
-                    modifier = Modifier.size(56.dp),
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = product.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = "$${product.price}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-                if (categoryName != null) {
-                    Text(
-                        text = categoryName,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            Text(
-                text =
-                    if (product.isPublic) {
-                        stringResource(R.string.public_label)
-                    } else {
-                        stringResource(R.string.private_label)
-                    },
-                style = MaterialTheme.typography.labelSmall,
-                color =
-                    if (product.isPublic) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
             )
         }
     }

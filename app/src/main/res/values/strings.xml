@@ -87,6 +87,8 @@
     <string name="do_not_delete_advice">[NO BORRAR]</string>
     <string name="switch_company">Cambiar empresa</string>
     <string name="current_company">Empresa actual</string>
+    <string name="visited_stores">Tiendas visitadas</string>
+    <string name="create_another_company">Crear otra empresa</string>
     <string name="loading_companies">Cargando empresas</string>
 
     <!-- Empty states -->
@@ -136,6 +138,7 @@
 
     <!-- Item actions -->
     <string name="delete_item">Eliminar</string>
+    <string name="edit_item">Editar</string>
     <string name="toggle_visibility">Cambiar visibilidad</string>
     <string name="dismiss">Cerrar</string>
 
@@ -232,11 +235,25 @@
     <string name="public_label">Público</string>
     <string name="private_label">Privado</string>
     <string name="product_name">Nombre del producto</string>
+    <string name="product_name_label">NOMBRE DEL PRODUCTO</string>
+    <string name="product_name_placeholder">Ej. Zapatos Deportivos</string>
     <string name="price">Precio</string>
     <string name="category">Categoría</string>
+    <string name="category_label">CATEGORÍA</string>
     <string name="description_optional">Descripción (opcional)</string>
+    <string name="description_placeholder">Detalles, materiales, tallas…</string>
     <string name="visible_public_catalog">Visible en catálogo público</string>
+    <string name="public_switch_helper">El producto aparecerá en tu tienda online</string>
+    <string name="select_category_placeholder">Seleccionar…</string>
+    <string name="save_product">Guardar producto</string>
+    <string name="photo_label">Foto</string>
     <string name="no_categories_create_first">No hay categorías. Creá una antes de agregar productos.</string>
     <string name="create_category">Crear categoría</string>
     <string name="confirm_delete_product">¿Estás seguro de que querés eliminar este producto?</string>
+    <string name="no_products_label">Sin productos</string>
+    <string name="save_category">Guardar categoría</string>
+    <string name="see_all_emojis">Ver todos</string>
+    <string name="category_name_placeholder">Ej. Hamburguesas</string>
+    <string name="category_name_helper">Este nombre será visible en el catálogo de clientes.</string>
+    <string name="emoji_info_hint">El ícono ayuda a identificar la categoría visualmente.</string>
 </resources>

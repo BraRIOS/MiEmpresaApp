@@ -92,8 +92,8 @@ private fun DrawerContent(
             ModalDrawerSheet(
                 drawerShape =
                     RoundedCornerShape(
-                        topEnd = 28.dp,
-                        bottomEnd = 28.dp,
+                        topEnd = AppDimensions.Drawer.drawerCornerRadius,
+                        bottomEnd = AppDimensions.Drawer.drawerCornerRadius,
                     ),
             ) {
                 Column(
@@ -110,14 +110,14 @@ private fun DrawerContent(
                                 .padding(
                                     start = AppDimensions.largePadding,
                                     end = AppDimensions.largePadding,
-                                    top = 48.dp,
+                                    top = AppDimensions.largeIconSize,
                                     bottom = AppDimensions.largePadding,
                                 ),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         // Company avatar
                         Surface(
-                            modifier = Modifier.size(64.dp),
+                            modifier = Modifier.size(AppDimensions.Drawer.appLogoSize),
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.surface,
                             shadowElevation = 2.dp,
@@ -246,7 +246,7 @@ private fun DrawerContent(
                                 contentDescription = stringResource(R.string.profile_picture),
                                 modifier =
                                     Modifier
-                                        .size(40.dp)
+                                        .size(AppDimensions.Drawer.userAvatarSize)
                                         .clip(CircleShape),
                                 contentScale = ContentScale.Crop,
                             )

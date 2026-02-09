@@ -48,6 +48,8 @@ object AppDimensions {
 
     object Drawer {
         val appLogoSize = 64.dp
+        val drawerCornerRadius = 28.dp
+        val userAvatarSize = 40.dp
     }
 
     object ProductDetails {
@@ -63,6 +65,9 @@ object AppDimensions {
 
     object Categories {
         val imageSize = 40.dp
+        val emojiPreviewWidth = 72.dp
+        val emojiPreviewHeight = 80.dp
+        val emojiGridItemSize = 48.dp
     }
 
     object CompanyListView {

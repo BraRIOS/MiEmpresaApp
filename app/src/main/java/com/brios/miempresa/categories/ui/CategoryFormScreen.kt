@@ -225,8 +225,8 @@ private fun IntegratedNameField(
                 Box(
                     modifier =
                         Modifier
-                            .width(72.dp)
-                            .height(80.dp)
+                            .width(AppDimensions.Categories.emojiPreviewWidth)
+                            .height(AppDimensions.Categories.emojiPreviewHeight)
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -485,13 +485,13 @@ private fun EmojiBottomSheet(
                 contentPadding = PaddingValues(AppDimensions.extraSmallPadding),
                 verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
                 horizontalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
-                modifier = Modifier.height(400.dp),
+                modifier = Modifier.height(AppDimensions.bottomSheetPeekHeight),
             ) {
                 items(EmojiData.allEmojis, key = { it }) { emoji ->
                     val isSelected = emoji == selectedEmoji
                     Surface(
                         onClick = { onEmojiSelected(emoji) },
-                        modifier = Modifier.size(48.dp),
+                        modifier = Modifier.size(AppDimensions.Categories.emojiGridItemSize),
                         shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
                         color =
                             if (isSelected) {

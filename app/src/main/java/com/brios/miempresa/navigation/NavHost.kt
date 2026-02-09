@@ -16,8 +16,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.brios.miempresa.R
 import com.brios.miempresa.auth.domain.AuthState
 import com.brios.miempresa.auth.ui.PostAuthDestination
@@ -194,7 +196,10 @@ fun NavHostComposable(
                 },
             )
         }
-        composable(route = "${MiEmpresaScreen.Product.name}/{productId}") {
+        composable(
+            route = "${MiEmpresaScreen.Product.name}/{productId}",
+            arguments = listOf(navArgument("productId") { type = NavType.StringType }),
+        ) {
             ProductFormScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToAddCategory = {
@@ -207,7 +212,10 @@ fun NavHostComposable(
                 onNavigateBack = { navController.popBackStack() },
             )
         }
-        composable(route = "${MiEmpresaScreen.Categories.name}/{categoryId}") {
+        composable(
+            route = "${MiEmpresaScreen.Categories.name}/{categoryId}",
+            arguments = listOf(navArgument("categoryId") { type = NavType.StringType }),
+        ) {
             CategoryFormScreen(
                 onNavigateBack = { navController.popBackStack() },
             )

@@ -43,7 +43,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,6 +55,7 @@ import com.brios.miempresa.R
 import com.brios.miempresa.auth.ui.SignInViewModel
 import com.brios.miempresa.core.auth.UserData
 import com.brios.miempresa.core.data.local.entities.Company
+import com.brios.miempresa.core.ui.components.CompanyAvatar
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import kotlinx.coroutines.launch
 
@@ -116,34 +116,12 @@ private fun DrawerContent(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         // Company avatar
-                        Surface(
-                            modifier = Modifier.size(AppDimensions.Drawer.appLogoSize),
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surface,
-                            shadowElevation = 2.dp,
-                        ) {
-                            selectedCompany?.logoUrl?.let { url ->
-                                Image(
-                                    painter = rememberAsyncImagePainter(model = url),
-                                    contentDescription = selectedCompany.name,
-                                    modifier =
-                                        Modifier
-                                            .fillMaxSize()
-                                            .clip(CircleShape),
-                                    contentScale = ContentScale.Crop,
-                                )
-                            } ?: run {
-                                Image(
-                                    painter = painterResource(id = R.drawable.miempresa_logo_glyph),
-                                    contentDescription = stringResource(R.string.app_logo),
-                                    modifier =
-                                        Modifier
-                                            .fillMaxSize()
-                                            .clip(CircleShape),
-                                    contentScale = ContentScale.Crop,
-                                )
-                            }
-                        }
+                        CompanyAvatar(
+                            companyName = selectedCompany?.name
+                                ?: stringResource(R.string.app_name),
+                            logoUrl = selectedCompany?.logoUrl,
+                            size = AppDimensions.Drawer.appLogoSize,
+                        )
                         Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
                         Text(
                             text =

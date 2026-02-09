@@ -1,20 +1,24 @@
 package com.brios.miempresa.categories.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -29,9 +33,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
+import com.brios.miempresa.core.ui.components.EmptyStateView
 import com.brios.miempresa.core.ui.components.ItemCard
-import com.brios.miempresa.core.ui.components.MessageWithIcon
 import com.brios.miempresa.core.ui.components.OfflineBanner
+import com.brios.miempresa.core.ui.components.SearchBar
+import com.brios.miempresa.core.ui.components.SearchBarVariant
 import com.brios.miempresa.core.ui.theme.AppDimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,7 +69,9 @@ fun CategoriesScreen(
             isOffline = viewModel.isOffline,
             onRefresh = viewModel::refresh,
             onSearchQueryChanged = viewModel::onSearchQueryChanged,
+            onDeleteCategory = viewModel::deleteCategory,
             onNavigateToCategoryDetail = onNavigateToCategoryDetail,
+            onNavigateToAddCategory = onNavigateToAddCategory,
         )
     }
 }
@@ -88,7 +96,9 @@ fun CategoriesContent(
         isOffline = viewModel.isOffline,
         onRefresh = viewModel::refresh,
         onSearchQueryChanged = viewModel::onSearchQueryChanged,
+        onDeleteCategory = viewModel::deleteCategory,
         onNavigateToCategoryDetail = onNavigateToCategoryDetail,
+        onNavigateToAddCategory = onNavigateToAddCategory,
     )
 }
 
@@ -102,31 +112,51 @@ private fun CategoriesContentInternal(
     isOffline: Boolean,
     onRefresh: () -> Unit,
     onSearchQueryChanged: (String) -> Unit,
+    onDeleteCategory: (String) -> Unit,
     onNavigateToCategoryDetail: (String) -> Unit,
+    onNavigateToAddCategory: () -> Unit,
 ) {
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
-        modifier = modifier,
+        modifier = modifier.background(MaterialTheme.colorScheme.background),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             if (isOffline) {
                 OfflineBanner()
             }
 
-            androidx.compose.material3.SearchBar(
-                query = searchQuery,
-                onQueryChange = onSearchQueryChanged,
-                onSearch = {},
-                active = false,
-                onActiveChange = {},
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = AppDimensions.mediumPadding),
-                placeholder = { Text(stringResource(R.string.search_categories)) },
-            ) {}
+            // Sticky header: SearchBar + counter
+            Column(
+                modifier = Modifier.background(MaterialTheme.colorScheme.background),
+            ) {
+                Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
 
+                SearchBar(
+                    query = searchQuery,
+                    onQueryChange = onSearchQueryChanged,
+                    placeholderText = stringResource(R.string.search_categories),
+                    variant = SearchBarVariant.Filled,
+                )
+
+                if (uiState is CategoriesUiState.Success && uiState.categories.isNotEmpty()) {
+                    Text(
+                        text = "${uiState.categories.size} CATEGORÍAS ACTIVAS",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier =
+                            Modifier.padding(
+                                horizontal = AppDimensions.largePadding,
+                                vertical = AppDimensions.smallPadding,
+                            ),
+                    )
+                }
+
+                HorizontalDivider()
+            }
+
+            // Body content
             when (val state = uiState) {
                 is CategoriesUiState.Loading -> {
                     Box(
@@ -137,42 +167,35 @@ private fun CategoriesContentInternal(
                     }
                 }
                 is CategoriesUiState.Empty -> {
-                    MessageWithIcon(
-                        message = stringResource(R.string.no_categories_yet),
-                        icon = Icons.Outlined.Category,
+                    EmptyStateView(
+                        icon = Icons.Outlined.FolderOpen,
+                        title = stringResource(R.string.empty_state_categories),
+                        subtitle = stringResource(R.string.empty_state_categories_subtitle),
+                        actionLabel = stringResource(R.string.empty_state_categories_action),
+                        onAction = onNavigateToAddCategory,
                     )
                 }
                 is CategoriesUiState.Error -> {
-                    MessageWithIcon(
-                        message = state.message,
+                    EmptyStateView(
                         icon = Icons.Outlined.SearchOff,
+                        title = state.message,
+                        subtitle = "",
                     )
                 }
                 is CategoriesUiState.Success -> {
                     if (state.categories.isEmpty()) {
-                        MessageWithIcon(
-                            message = stringResource(R.string.no_categories_match),
+                        EmptyStateView(
                             icon = Icons.Outlined.SearchOff,
+                            title = stringResource(R.string.no_categories_match),
+                            subtitle = "",
                         )
                     } else {
-                        // Counter header
-                        Text(
-                            text = "${state.categories.size} CATEGORÍAS ACTIVAS",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier =
-                                Modifier.padding(
-                                    horizontal = AppDimensions.largePadding,
-                                    vertical = AppDimensions.smallPadding,
-                                ),
-                        )
-
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding =
                                 androidx.compose.foundation.layout.PaddingValues(
                                     horizontal = AppDimensions.mediumPadding,
+                                    vertical = AppDimensions.smallPadding,
                                 ),
                             verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
                         ) {
@@ -188,7 +211,9 @@ private fun CategoriesContentInternal(
                                     }
                                 ItemCard(
                                     title = item.category.name,
-                                    subtitle = "${item.category.iconEmoji}  $subtitle",
+                                    subtitle = subtitle,
+                                    emojiIcon = item.category.iconEmoji,
+                                    onDelete = { onDeleteCategory(item.category.id) },
                                     onClick = {
                                         onNavigateToCategoryDetail(item.category.id)
                                     },

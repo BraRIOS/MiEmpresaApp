@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material3.FilledTonalButton
@@ -56,8 +57,8 @@ fun EmptyStateView(
                 Modifier
                     .size(AppDimensions.emptyStateIconSize)
                     .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(AppDimensions.largeCornerRadius),
                     ),
             contentAlignment = Alignment.Center,
         ) {
@@ -65,7 +66,7 @@ fun EmptyStateView(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(AppDimensions.largeIconSize),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
             )
         }
 

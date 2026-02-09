@@ -17,6 +17,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
+import com.brios.miempresa.core.ui.theme.SlateGray700
 
 @Composable
 fun CategoryBadge(
@@ -61,7 +62,7 @@ fun CategoryBadge(
                 text = name.uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = SlateGray700,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -93,7 +94,7 @@ private fun BadgeContent(
             text = name.uppercase(),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = SlateGray700,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )

@@ -1,5 +1,6 @@
 package com.brios.miempresa.core.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
@@ -36,10 +38,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
+import com.brios.miempresa.core.ui.theme.SlateGray200
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,13 +52,14 @@ fun ItemCard(
     subtitle: String,
     modifier: Modifier = Modifier,
     imageUrl: String? = null,
+    emojiIcon: String? = null,
     isPublic: Boolean? = null,
     badge: (@Composable () -> Unit)? = null,
     onToggleVisibility: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
     onClick: () -> Unit = {},
 ) {
-    val cardShape = remember { RoundedCornerShape(AppDimensions.smallCornerRadius) }
+    val cardShape = remember { RoundedCornerShape(AppDimensions.mediumCornerRadius) }
     val imageShape = remember { RoundedCornerShape(AppDimensions.smallCornerRadius) }
 
     Card(
@@ -63,8 +68,10 @@ fun ItemCard(
         shape = cardShape,
         colors =
             CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
             ),
+        border = BorderStroke(1.dp, SlateGray200),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Row(
             modifier =
@@ -86,6 +93,20 @@ fun ItemCard(
                     placeholder = painterResource(R.drawable.miempresa_logo_glyph),
                     error = painterResource(R.drawable.miempresa_logo_glyph),
                 )
+            } else if (!emojiIcon.isNullOrEmpty()) {
+                Box(
+                    modifier =
+                        Modifier
+                            .size(AppDimensions.categoryEmojiContainerSize)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = emojiIcon,
+                        fontSize = 24.sp,
+                    )
+                }
             } else {
                 Box(
                     modifier =

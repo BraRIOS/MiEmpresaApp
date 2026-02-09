@@ -93,9 +93,11 @@
 
     <!-- Empty states -->
     <string name="empty_state_products">Aún no tenés productos</string>
-    <string name="empty_state_products_subtitle">Agregá tu primer producto para comenzar</string>
+    <string name="empty_state_products_subtitle">Empezá agregando tu primer producto al catálogo</string>
+    <string name="empty_state_products_action">Agregar primer producto</string>
     <string name="empty_state_categories">Aún no tenés categorías</string>
-    <string name="empty_state_categories_subtitle">Creá categorías para organizar tus productos</string>
+    <string name="empty_state_categories_subtitle">Organizá tus productos creando categorías</string>
+    <string name="empty_state_categories_action">Crear primera categoría</string>
     <string name="empty_state_orders">No hay pedidos todavía</string>
     <string name="empty_state_orders_subtitle">Los pedidos de tus clientes aparecerán aquí</string>
     <string name="empty_state_stores">No tenés tiendas guardadas</string>

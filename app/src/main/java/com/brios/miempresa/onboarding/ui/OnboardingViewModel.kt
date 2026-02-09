@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.core.auth.GoogleAuthClient
 import com.brios.miempresa.core.data.local.entities.Company
+import com.brios.miempresa.core.sync.SyncManager
 import com.brios.miempresa.onboarding.domain.OnboardingRepository
 import com.brios.miempresa.onboarding.domain.WorkspaceCreationResult
 import com.brios.miempresa.onboarding.domain.WorkspaceIssueType
@@ -32,6 +33,7 @@ class OnboardingViewModel
         @ApplicationContext private val appContext: Context,
         private val repository: OnboardingRepository,
         private val googleAuthClient: GoogleAuthClient,
+        private val syncManager: SyncManager,
     ) : ViewModel() {
         companion object {
             const val MAX_COMPANY_NAME = 50
@@ -64,7 +66,8 @@ class OnboardingViewModel
                         selectedCompany.privateSheetId != null &&
                         selectedCompany.publicSheetId != null
                     ) {
-                        // Fast path: Room has valid company → go home immediately
+                        // Fast path: Room has valid company → trigger sync and go home
+                        syncManager.syncNow()
                         _events.emit(OnboardingEvent.NavigateToHome)
                         return@launch
                     }
@@ -100,8 +103,10 @@ class OnboardingViewModel
                     // Validate workspace for selected company
                     _uiState.value = OnboardingUiState.DiscoveringWorkspace("Verificando base de datos...")
                     when (val result = repository.validateExistingWorkspace()) {
-                        is WorkspaceValidationResult.Valid ->
+                        is WorkspaceValidationResult.Valid -> {
+                            syncManager.syncNow()
                             _events.emit(OnboardingEvent.NavigateToHome)
+                        }
                         is WorkspaceValidationResult.MissingSheets ->
                             _uiState.value =
                                 OnboardingUiState.WorkspaceIssue(
@@ -282,6 +287,7 @@ class OnboardingViewModel
 
         fun navigateToHome() {
             viewModelScope.launch {
+                syncManager.schedulePeriodic()
                 _events.emit(OnboardingEvent.NavigateToHome)
             }
         }
@@ -293,13 +299,16 @@ class OnboardingViewModel
 
                 // Offline-fast: if company already has sheet IDs, go home
                 if (company.privateSheetId != null && company.publicSheetId != null) {
+                    syncManager.syncNow()
                     _events.emit(OnboardingEvent.NavigateToHome)
                     return@launch
                 }
 
                 when (val result = repository.validateExistingWorkspace()) {
-                    is WorkspaceValidationResult.Valid ->
+                    is WorkspaceValidationResult.Valid -> {
+                        syncManager.syncNow()
                         _events.emit(OnboardingEvent.NavigateToHome)
+                    }
                     is WorkspaceValidationResult.MissingSheets ->
                         _uiState.value =
                             OnboardingUiState.WorkspaceIssue(
@@ -318,8 +327,10 @@ class OnboardingViewModel
             viewModelScope.launch {
                 _uiState.value = OnboardingUiState.DiscoveringWorkspace("Reintentando búsqueda...")
                 when (val result = repository.validateExistingWorkspace()) {
-                    is WorkspaceValidationResult.Valid ->
+                    is WorkspaceValidationResult.Valid -> {
+                        syncManager.syncNow()
                         _events.emit(OnboardingEvent.NavigateToHome)
+                    }
                     is WorkspaceValidationResult.MissingSheets ->
                         _uiState.value =
                             OnboardingUiState.WorkspaceIssue(

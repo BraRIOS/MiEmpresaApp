@@ -8,7 +8,9 @@ import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
 import com.brios.miempresa.auth.domain.AuthRepository
 import com.brios.miempresa.auth.domain.AuthState
+import com.brios.miempresa.core.data.local.MiEmpresaDatabase
 import com.brios.miempresa.core.data.local.daos.CompanyDao
+import com.brios.miempresa.core.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +36,8 @@ class SignInViewModel
         @ApplicationContext private val context: Context,
         private val authRepository: AuthRepository,
         private val companyDao: CompanyDao,
+        private val database: MiEmpresaDatabase,
+        private val syncManager: SyncManager,
     ) : ViewModel() {
         private val _signInState = MutableStateFlow(SignInState())
         val signInStateFlow = _signInState.asStateFlow()
@@ -61,8 +65,9 @@ class SignInViewModel
 
         fun signOut(activity: Activity) =
             viewModelScope.launch {
+                syncManager.cancelAll()
                 withContext(Dispatchers.IO) {
-                    companyDao.clear()
+                    database.clearAllTables()
                     _postAuthDestination.value = null
                     _authState.update { AuthState.Unauthorized }
                     authRepository.signOut(activity)

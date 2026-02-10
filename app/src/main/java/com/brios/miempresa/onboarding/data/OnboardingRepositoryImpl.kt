@@ -58,7 +58,7 @@ class OnboardingRepositoryImpl
                             fileName = "logo.${request.logoFile.extension}",
                         ) ?: return WorkspaceCreationResult.Error(currentStep, "Failed to upload logo")
                     driveApi.makeFilePublic(fileId)
-                    logoUrl = "https://drive.google.com/uc?id=$fileId"
+                    logoUrl = "https://lh3.googleusercontent.com/d/$fileId"
                 }
 
                 // Step 3: Create private spreadsheet (tabs: Info, Products, Categories, Pedidos)

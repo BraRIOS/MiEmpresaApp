@@ -14,7 +14,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
@@ -26,8 +26,15 @@ fun CompanyAvatar(
     logoUrl: String? = null,
     size: Dp = AppDimensions.largeIconSize,
 ) {
+    val initials = companyName
+        .split(" ")
+        .filter { it.isNotBlank() }
+        .take(2)
+        .joinToString("") { it.first().uppercase() }
+        .ifEmpty { "?" }
+
     if (!logoUrl.isNullOrEmpty()) {
-        AsyncImage(
+        SubcomposeAsyncImage(
             model = logoUrl,
             contentDescription = stringResource(R.string.company_logo, companyName),
             modifier =
@@ -35,28 +42,33 @@ fun CompanyAvatar(
                     .size(size)
                     .clip(CircleShape),
             contentScale = ContentScale.Crop,
+            loading = { InitialsAvatar(initials, size) },
+            error = { InitialsAvatar(initials, size) },
         )
     } else {
-        Box(
-            modifier =
-                modifier
-                    .size(size)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text =
-                    companyName
-                        .split(" ")
-                        .filter { it.isNotBlank() }
-                        .take(2)
-                        .joinToString("") { it.first().uppercase() }
-                        .ifEmpty { "?" },
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        InitialsAvatar(initials, size, modifier)
+    }
+}
+
+@Composable
+private fun InitialsAvatar(
+    initials: String,
+    size: Dp,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+            modifier
+                .size(size)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = initials,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
     }
 }
 

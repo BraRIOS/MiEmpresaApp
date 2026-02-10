@@ -41,6 +41,7 @@ import com.brios.miempresa.core.ui.components.OfflineBanner
 import com.brios.miempresa.core.ui.components.SearchBar
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
+import com.brios.miempresa.core.ui.theme.SlateGray400
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,10 +107,10 @@ private fun CategoriesContentInternal(
 
                 if (uiState is CategoriesUiState.Success && uiState.categories.isNotEmpty()) {
                     Text(
-                        text = "${uiState.categories.size} CATEGORÍAS ACTIVAS",
+                        text = stringResource(R.string.active_categories_count_label, uiState.categories.size),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = SlateGray400,
                         modifier =
                             Modifier.padding(
                                 horizontal = AppDimensions.largePadding,
@@ -117,8 +118,6 @@ private fun CategoriesContentInternal(
                             ),
                     )
                 }
-
-                HorizontalDivider()
             }
 
             // Body content
@@ -168,16 +167,11 @@ private fun CategoriesContentInternal(
                                 state.categories,
                                 key = { it.category.id },
                             ) { item ->
-                                val subtitle =
-                                    if (item.productCount > 0) {
-                                        "${item.productCount} productos"
-                                    } else {
-                                        stringResource(R.string.no_products_label)
-                                    }
                                 ItemCard(
                                     title = item.category.name,
-                                    subtitle = subtitle,
+                                    subtitle = "",
                                     emojiIcon = item.category.iconEmoji,
+                                    productCount = item.productCount,
                                     onDelete = { onDeleteCategory(item.category.id) },
                                     onClick = {
                                         onNavigateToCategoryDetail(item.category.id)

@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "com.brios.miempresa"
-    compileSdk = 35
+    compileSdk = 36
 
     signingConfigs {
         create("UnifiedDebugKeystore") {
@@ -74,8 +74,8 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.google.googleid)
     implementation(libs.google.play.services.auth)
-    implementation(libs.firebase.auth.ktx)
     implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx)

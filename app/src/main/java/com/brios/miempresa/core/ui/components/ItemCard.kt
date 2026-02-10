@@ -2,6 +2,7 @@ package com.brios.miempresa.core.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -45,6 +47,7 @@ import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray200
 import com.brios.miempresa.core.ui.theme.SlateGray400
+import com.brios.miempresa.core.ui.theme.SlateGray700
 import com.brios.miempresa.core.ui.theme.VisibilityActiveBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,6 +58,7 @@ fun ItemCard(
     modifier: Modifier = Modifier,
     imageUrl: String? = null,
     emojiIcon: String? = null,
+    productCount: Int? = null,
     isPublic: Boolean? = null,
     badge: (@Composable () -> Unit)? = null,
     onToggleVisibility: (() -> Unit)? = null,
@@ -101,7 +105,8 @@ fun ItemCard(
                         Modifier
                             .size(AppDimensions.categoryEmojiContainerSize)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer),
+                            .background(MaterialTheme.colorScheme.background)
+                            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
@@ -137,14 +142,18 @@ fun ItemCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                if (productCount != null) {
+                    ProductCountBadge(count = productCount)
+                } else {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -199,7 +208,6 @@ fun ItemCard(
                 if (onDelete != null) {
                     IconButton(
                         onClick = onDelete,
-                        modifier = Modifier.padding(start = AppDimensions.extraSmallPadding),
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Delete,
@@ -211,6 +219,27 @@ fun ItemCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ProductCountBadge(count: Int) {
+    val isZero = count == 0
+    val backgroundColor = if (isZero) SlateGray200 else MaterialTheme.colorScheme.surface
+    val contentColor = if (isZero) SlateGray700 else MaterialTheme.colorScheme.onSurface
+    val text = if (isZero) stringResource(R.string.no_products_label) else "$count productos"
+    Surface(
+        modifier = Modifier.padding(top = AppDimensions.smallPadding),
+        color = backgroundColor,
+        shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = contentColor,
+            modifier = Modifier.padding(horizontal = AppDimensions.smallPadding, vertical = AppDimensions.extraSmallPadding)
+        )
     }
 }
 
@@ -265,8 +294,24 @@ private fun ItemCardEmojiPreview() {
     MiEmpresaTheme {
         ItemCard(
             title = "Bebidas",
-            subtitle = "10 productos",
+            subtitle = "",
+            productCount = 10,
             emojiIcon = "🥤",
+            onDelete = {},
+            onClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ItemCardEmojiZeroPreview() {
+    MiEmpresaTheme {
+        ItemCard(
+            title = "Snacks",
+            subtitle = "",
+            productCount = 0,
+            emojiIcon = "🍿",
             onDelete = {},
             onClick = {},
         )

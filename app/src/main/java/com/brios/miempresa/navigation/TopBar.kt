@@ -16,11 +16,15 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,11 +67,18 @@ fun TopBar(
             Text(text = title)
         },
         colors =
-            TopAppBarDefaults.largeTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent,
+                navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             ),
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewTopBar(){
+    MiEmpresaTheme {
+        TopBar(navController = NavHostController(LocalContext.current), title = "Home")
+    }
 }

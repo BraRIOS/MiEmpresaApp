@@ -3,6 +3,7 @@ package com.brios.miempresa.navigation
 import android.app.Activity
 import android.content.Context
 import android.widget.Toast
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -108,7 +109,7 @@ fun NavHostComposable(
         composable(route = MiEmpresaScreen.SignIn.name) {
             val signInState by signInViewModel.signInStateFlow.collectAsStateWithLifecycle()
             val authState by signInViewModel.authStateFlow.collectAsStateWithLifecycle()
-            val activity = LocalContext.current as Activity
+            val activity = LocalActivity.current as Activity
 
             val signInSuccess = stringResource(R.string.sign_in_success)
             val authorizationSuccess = stringResource(R.string.authorization_success)
@@ -156,7 +157,7 @@ fun NavHostComposable(
             )
         }
         composable(route = MiEmpresaScreen.Onboarding.name) {
-            val activity = LocalContext.current as Activity
+            val activity = LocalActivity.current as Activity
             OnboardingScreen(
                 onNavigateToHome = {
                     navController.navigate(MiEmpresaScreen.Home.name) {

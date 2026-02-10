@@ -105,12 +105,11 @@ fun WelcomeScreen(
             icon = Icons.Outlined.Search,
             title = stringResource(R.string.welcome_client_button),
             subtitle = stringResource(R.string.welcome_client_subtitle),
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
             contentColor = MaterialTheme.colorScheme.onSurface,
             iconCircleColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             iconTint = MaterialTheme.colorScheme.primary,
             arrowTint = MaterialTheme.colorScheme.outlineVariant,
-            subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
             hasBorder = true,
             onClick = onNavigateToMyStores,
         )

@@ -13,6 +13,7 @@ object AppDimensions {
     val extraLargePadding = 32.dp
 
     // Icon sizes
+    val smallIconSize = 20.dp
     val defaultIconSize = 24.dp
     val mediumIconSize = 32.dp
     val largeIconSize = 48.dp
@@ -38,7 +39,6 @@ object AppDimensions {
     val categoryEmojiContainerSize = 56.dp
     val quantitySelectorMinWidth = 40.dp
     val emptyStateDotSize = 6.dp
-    val smallIconSize = 20.dp
 
     // Screen-specific
     object SignInScreen {

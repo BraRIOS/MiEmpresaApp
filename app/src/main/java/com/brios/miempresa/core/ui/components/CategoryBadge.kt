@@ -1,5 +1,6 @@
 package com.brios.miempresa.core.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -12,9 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray700
@@ -33,39 +36,18 @@ fun CategoryBadge(
             onClick = onClick,
             modifier = modifier,
             shape = shape,
-            color = MaterialTheme.colorScheme.surfaceVariant,
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
         ) {
-            BadgeContent(emoji = emoji, name = name)
+            BadgeContent(emoji = emoji, name = name, textColor = MaterialTheme.colorScheme.primary)
         }
     } else {
-        Row(
-            modifier =
-                modifier
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = shape,
-                    )
-                    .padding(
-                        horizontal = AppDimensions.smallPadding,
-                        vertical = AppDimensions.extraSmallPadding,
-                    ),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
+        Surface(
+            modifier = modifier,
+            shape = shape,
+            color = MaterialTheme.colorScheme.surface,
         ) {
-            if (emoji.isNotEmpty()) {
-                Text(
-                    text = emoji,
-                    style = MaterialTheme.typography.labelSmall,
-                )
-            }
-            Text(
-                text = name.uppercase(),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = SlateGray700,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            BadgeContent(emoji = emoji, name = name, textColor = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
@@ -74,6 +56,7 @@ fun CategoryBadge(
 private fun BadgeContent(
     emoji: String,
     name: String,
+    textColor: Color
 ) {
     Row(
         modifier =
@@ -94,7 +77,7 @@ private fun BadgeContent(
             text = name.uppercase(),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
-            color = SlateGray700,
+            color = textColor,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -105,11 +88,16 @@ private fun BadgeContent(
 @Composable
 private fun CategoryBadgePreview() {
     MiEmpresaTheme {
-        CategoryBadge(
-            emoji = "☕",
-            name = "Café",
-            onClick = {},
-        )
+        Surface(
+            modifier = Modifier.background(Color.White),
+            color = MaterialTheme.colorScheme.background,
+        ) {
+            CategoryBadge(
+                emoji = "☕",
+                name = "Café",
+                onClick = {},
+            )
+        }
     }
 }
 
@@ -117,9 +105,13 @@ private fun CategoryBadgePreview() {
 @Composable
 private fun CategoryBadgeNoClickPreview() {
     MiEmpresaTheme {
-        CategoryBadge(
-            emoji = "☕",
-            name = "Café",
-        )
+        Surface(
+            color = MaterialTheme.colorScheme.background,
+        ) {
+            CategoryBadge(
+                emoji = "☕",
+                name = "Café",
+            )
+        }
     }
 }

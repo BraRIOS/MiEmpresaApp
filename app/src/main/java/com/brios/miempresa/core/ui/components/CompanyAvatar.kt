@@ -26,7 +26,7 @@ fun CompanyAvatar(
     logoUrl: String? = null,
     size: Dp = AppDimensions.largeIconSize,
 ) {
-    if (logoUrl != null) {
+    if (!logoUrl.isNullOrEmpty()) {
         AsyncImage(
             model = logoUrl,
             contentDescription = stringResource(R.string.company_logo, companyName),
@@ -66,7 +66,7 @@ private fun CompanyAvatarWithLogoPreview() {
     MiEmpresaTheme {
         CompanyAvatar(
             companyName = "Mi Empresa",
-            logoUrl = "https://example.com/logo.png",
+            logoUrl = "https://avatars.githubusercontent.com/u/81847?v=4",
         )
     }
 }

@@ -1,28 +1,38 @@
 package com.brios.miempresa.products.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,6 +42,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
@@ -42,8 +54,9 @@ import com.brios.miempresa.core.ui.components.EmptyStateView
 import com.brios.miempresa.core.ui.components.ItemCard
 import com.brios.miempresa.core.ui.components.OfflineBanner
 import com.brios.miempresa.core.ui.components.SearchBar
-import com.brios.miempresa.core.ui.components.SearchBarVariant
 import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
+import com.brios.miempresa.products.data.ProductEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -121,7 +134,6 @@ private fun ProductsContentInternal(
                     query = filters.searchQuery,
                     onQueryChange = onSearchQueryChanged,
                     placeholderText = stringResource(R.string.search_products),
-                    variant = SearchBarVariant.Outlined,
                 )
 
                 when (uiState) {
@@ -138,8 +150,6 @@ private fun ProductsContentInternal(
                     }
                     else -> {}
                 }
-
-                HorizontalDivider()
             }
 
             // Body content
@@ -253,54 +263,138 @@ private fun FilterChipsRow(
     onShowCategorySelector: () -> Unit,
     onClearCategoryFilter: () -> Unit,
 ) {
-    LazyRow(
+    Row(
         modifier =
-            Modifier.padding(
-                horizontal = AppDimensions.mediumPadding,
-                vertical = AppDimensions.smallPadding,
-            ),
+            Modifier
+                .padding(
+                    horizontal = AppDimensions.mediumPadding,
+                    vertical = AppDimensions.smallPadding,
+                )
+                .height(IntrinsicSize.Min)
+                .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
     ) {
-        item {
-            AssistChip(
-                onClick = {
-                    if (filters.categoryId != null) {
-                        onClearCategoryFilter()
-                    } else {
-                        onShowCategorySelector()
-                    }
-                },
-                label = {
-                    Text(
-                        text = if (selectedCategoryName != null) {
-                            "Categoría: $selectedCategoryName"
-                        } else {
-                            "Categoría: Todas"
-                        },
-                    )
-                },
-            )
-        }
-        item {
-            FilterChip(
-                selected = filters.publicFilter == PublicFilter.ALL,
-                onClick = { onPublicFilterChanged(PublicFilter.ALL) },
-                label = { Text(stringResource(R.string.filter_all)) },
-            )
-        }
-        item {
-            FilterChip(
-                selected = filters.publicFilter == PublicFilter.PUBLIC,
-                onClick = { onPublicFilterChanged(PublicFilter.PUBLIC) },
-                label = { Text(stringResource(R.string.filter_public)) },
-            )
-        }
-        item {
-            FilterChip(
-                selected = filters.publicFilter == PublicFilter.PRIVATE,
-                onClick = { onPublicFilterChanged(PublicFilter.PRIVATE) },
-                label = { Text(stringResource(R.string.filter_private)) },
-            )
-        }
+        AssistChip(
+            onClick = {
+                if (filters.categoryId != null) {
+                    onClearCategoryFilter()
+                } else {
+                    onShowCategorySelector()
+                }
+            },
+            label = {
+                Text(
+                    text = selectedCategoryName ?: "Categoría",
+                )
+            },
+            trailingIcon = {
+                Icon(
+                    Icons.Filled.ArrowDropDown,
+                    stringResource(R.string.category_filter_description),
+                )
+            },
+            colors = AssistChipDefaults.assistChipColors().copy(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                trailingIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+            border = AssistChipDefaults.assistChipBorder(
+                enabled = true,
+                borderColor = MaterialTheme.colorScheme.outline
+            ),
+            shape = ShapeDefaults.Large
+        )
+
+        VerticalDivider(
+            modifier = Modifier.fillMaxHeight().padding(vertical = AppDimensions.mediumSmallPadding),
+            thickness = 2.dp,
+        )
+
+        VisibilityFilterChip(
+            selected = filters.publicFilter == PublicFilter.ALL,
+            onClick = { onPublicFilterChanged(PublicFilter.ALL) },
+            label = { Text(stringResource(R.string.filter_all)) },
+        )
+
+        VisibilityFilterChip(
+            selected = filters.publicFilter == PublicFilter.PUBLIC,
+            onClick = { onPublicFilterChanged(PublicFilter.PUBLIC) },
+            label = { Text(stringResource(R.string.filter_public)) },
+        )
+
+        VisibilityFilterChip(
+            selected = filters.publicFilter == PublicFilter.PRIVATE,
+            onClick = { onPublicFilterChanged(PublicFilter.PRIVATE) },
+            label = { Text(stringResource(R.string.filter_private)) },
+        )
+    }
+}
+
+@Composable
+private fun VisibilityFilterChip(
+    selected: Boolean,
+    onClick: () -> Unit,
+    label: @Composable () -> Unit,
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = label,
+        colors = FilterChipDefaults.filterChipColors().copy(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+            selectedContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            selectedLabelColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        ),
+        shape = ShapeDefaults.Large
+    )
+}
+
+
+@Preview(showBackground = true)
+@Composable
+private fun ProductsContentInternalPreview() {
+    val sampleCategories = listOf(
+        Category(id = "1", name = "Bebidas", iconEmoji = "🥤", companyId = "1"),
+        Category(id = "2", name = "Comida", iconEmoji = "🍔", companyId = "1"),
+    )
+
+    val sampleProducts = listOf(
+        ProductEntity(
+            id = "1",
+            name = "Coca Cola",
+            price = 1500.0,
+            companyId = "1",
+            categoryId = "1",
+            isPublic = true,
+        ),
+        ProductEntity(
+            id = "2",
+            name = "Hamburguesa",
+            price = 5500.0,
+            companyId = "1",
+            categoryId = "2",
+            isPublic = false,
+        ),
+    )
+
+    MiEmpresaTheme {
+        ProductsContentInternal(
+            uiState = ProductsUiState.Success(
+                products = sampleProducts,
+                categories = sampleCategories,
+            ),
+            filters = ProductFilters(),
+            isRefreshing = false,
+            isOffline = false,
+            onRefresh = {},
+            onSearchQueryChanged = {},
+            onPublicFilterChanged = {},
+            onCategoryFilterChanged = {},
+            onClearFilters = {},
+            onDeleteProduct = {},
+            onToggleVisibility = { _, _ -> },
+            onNavigateToProductDetail = {},
+            onNavigateToAddProduct = {},
+        )
     }
 }

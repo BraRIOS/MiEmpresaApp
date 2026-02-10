@@ -30,51 +30,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
+import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.core.ui.components.EmptyStateView
 import com.brios.miempresa.core.ui.components.ItemCard
 import com.brios.miempresa.core.ui.components.OfflineBanner
 import com.brios.miempresa.core.ui.components.SearchBar
-import com.brios.miempresa.core.ui.components.SearchBarVariant
 import com.brios.miempresa.core.ui.theme.AppDimensions
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CategoriesScreen(
-    onNavigateToAddCategory: () -> Unit,
-    onNavigateToCategoryDetail: (String) -> Unit,
-    viewModel: CategoriesViewModel = hiltViewModel(),
-) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
-    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToAddCategory) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_category))
-            }
-        },
-    ) { paddingValues ->
-        CategoriesContentInternal(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-            uiState = uiState,
-            searchQuery = searchQuery,
-            isRefreshing = isRefreshing,
-            isOffline = viewModel.isOffline,
-            onRefresh = viewModel::refresh,
-            onSearchQueryChanged = viewModel::onSearchQueryChanged,
-            onDeleteCategory = viewModel::deleteCategory,
-            onNavigateToCategoryDetail = onNavigateToCategoryDetail,
-            onNavigateToAddCategory = onNavigateToAddCategory,
-        )
-    }
-}
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -136,7 +102,6 @@ private fun CategoriesContentInternal(
                     query = searchQuery,
                     onQueryChange = onSearchQueryChanged,
                     placeholderText = stringResource(R.string.search_categories),
-                    variant = SearchBarVariant.Filled,
                 )
 
                 if (uiState is CategoriesUiState.Success && uiState.categories.isNotEmpty()) {
@@ -224,5 +189,48 @@ private fun CategoriesContentInternal(
                 }
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun CategoriesContentInternalPreview() {
+    MiEmpresaTheme {
+        CategoriesContentInternal(
+            uiState =
+                CategoriesUiState.Success(
+                    categories =
+                        listOf(
+                            CategoryWithCount(
+                                category =
+                                    Category(
+                                        id = "1",
+                                        name = "Bebidas",
+                                        iconEmoji = "🥤",
+                                        companyId = "1",
+                                    ),
+                                productCount = 10,
+                            ),
+                            CategoryWithCount(
+                                category =
+                                    Category(
+                                        id = "2",
+                                        name = "Snacks",
+                                        iconEmoji = "🍿",
+                                        companyId = "1",
+                                    ),
+                                productCount = 5,
+                            ),
+                        ),
+                ),
+            searchQuery = "",
+            isRefreshing = false,
+            isOffline = false,
+            onRefresh = {},
+            onSearchQueryChanged = {},
+            onDeleteCategory = {},
+            onNavigateToCategoryDetail = {},
+            onNavigateToAddCategory = {},
+        )
     }
 }

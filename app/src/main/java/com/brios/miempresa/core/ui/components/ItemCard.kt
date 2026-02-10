@@ -2,7 +2,6 @@ package com.brios.miempresa.core.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,7 +45,7 @@ import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray200
 import com.brios.miempresa.core.ui.theme.SlateGray400
-import com.brios.miempresa.core.ui.theme.SuccessGreen
+import com.brios.miempresa.core.ui.theme.VisibilityActiveBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -146,6 +145,7 @@ fun ItemCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
@@ -154,63 +154,60 @@ fun ItemCard(
                     if (badge != null) {
                         badge()
                     }
-                    // Visibility indicator inline (tappable to toggle)
-                    if (isPublic != null && onToggleVisibility != null) {
-                        Icon(
-                            imageVector =
-                                if (isPublic) {
-                                    Icons.Outlined.Visibility
-                                } else {
-                                    Icons.Outlined.VisibilityOff
-                                },
-                            contentDescription = stringResource(R.string.toggle_visibility),
-                            modifier =
-                                Modifier
-                                    .size(16.dp)
-                                    .clickable(onClick = onToggleVisibility),
-                            tint = if (isPublic) SuccessGreen else SlateGray400,
-                        )
-                    } else if (isPublic != null) {
-                        Icon(
-                            imageVector =
-                                if (isPublic) {
-                                    Icons.Outlined.Visibility
-                                } else {
-                                    Icons.Outlined.VisibilityOff
-                                },
-                            contentDescription =
-                                if (isPublic) {
-                                    stringResource(R.string.filter_public)
-                                } else {
-                                    stringResource(R.string.filter_private)
-                                },
-                            modifier = Modifier.size(16.dp),
-                            tint = if (isPublic) SuccessGreen else SlateGray400,
-                        )
-                    }
                 }
             }
 
-            // Trailing actions — only trash
-            if (onDelete != null) {
+            // Trailing actions
+            if (onToggleVisibility != null || onDelete != null || isPublic != null) {
                 Box(
                     modifier =
                         Modifier
                             .padding(start = AppDimensions.smallPadding)
-                            .width(1.dp)
                             .size(width = 1.dp, height = 40.dp)
                             .background(MaterialTheme.colorScheme.outlineVariant),
                 )
-                IconButton(
-                    onClick = onDelete,
-                    modifier = Modifier.padding(start = AppDimensions.extraSmallPadding),
-                ) {
+                // Interactive visibility toggle
+                if (isPublic != null && onToggleVisibility != null) {
+                    IconButton(
+                        onClick = onToggleVisibility,
+                        modifier = Modifier.padding(start = AppDimensions.extraSmallPadding),
+                    ) {
+                        Icon(
+                            imageVector =
+                                if (isPublic) Icons.Outlined.Visibility
+                                else Icons.Outlined.VisibilityOff,
+                            contentDescription = stringResource(R.string.toggle_visibility),
+                            modifier = Modifier.size(AppDimensions.smallIconSize),
+                            tint = if (isPublic) VisibilityActiveBlue else SlateGray400,
+                        )
+                    }
+                } else if (isPublic != null) {
+                    // Read-only visibility indicator
                     Icon(
-                        imageVector = Icons.Outlined.Delete,
-                        contentDescription = stringResource(R.string.delete_item),
-                        modifier = Modifier.size(AppDimensions.smallIconSize),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        imageVector =
+                            if (isPublic) Icons.Outlined.Visibility
+                            else Icons.Outlined.VisibilityOff,
+                        contentDescription =
+                            if (isPublic) stringResource(R.string.filter_public)
+                            else stringResource(R.string.filter_private),
+                        modifier = Modifier
+                            .padding(start = AppDimensions.extraSmallPadding)
+                            .size(AppDimensions.smallIconSize),
+                        tint = if (isPublic) VisibilityActiveBlue else SlateGray400,
                     )
+                }
+                if (onDelete != null) {
+                    IconButton(
+                        onClick = onDelete,
+                        modifier = Modifier.padding(start = AppDimensions.extraSmallPadding),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = stringResource(R.string.delete_item),
+                            modifier = Modifier.size(AppDimensions.smallIconSize),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
@@ -258,6 +255,20 @@ private fun ItemCardNoActionsPreview() {
         ItemCard(
             title = "Producto de ejemplo",
             subtitle = "$1.500,00",
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ItemCardEmojiPreview() {
+    MiEmpresaTheme {
+        ItemCard(
+            title = "Bebidas",
+            subtitle = "10 productos",
+            emojiIcon = "🥤",
+            onDelete = {},
+            onClick = {},
         )
     }
 }

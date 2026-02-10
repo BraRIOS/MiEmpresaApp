@@ -1,6 +1,7 @@
 package com.brios.miempresa.navigation
 
 import android.app.Activity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,6 +41,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -57,6 +60,7 @@ import com.brios.miempresa.core.auth.UserData
 import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.core.ui.components.CompanyAvatar
 import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import kotlinx.coroutines.launch
 
 @Composable
@@ -70,7 +74,7 @@ fun DrawerComposable(
     val user = viewModel?.getSignedInUser()
     val selectedCompanyState = viewModel?.getSelectedCompany()?.observeAsState()
     val selectedCompany: Company? by selectedCompanyState ?: remember { mutableStateOf(null) }
-    val context = LocalContext.current as? Activity
+    val context = LocalActivity.current
     DrawerContent(drawerState, user, selectedCompany, context, viewModel, navController, content)
 }
 
@@ -90,11 +94,13 @@ private fun DrawerContent(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
+                modifier = Modifier.fillMaxWidth(0.7f),
                 drawerShape =
                     RoundedCornerShape(
                         topEnd = AppDimensions.Drawer.drawerCornerRadius,
                         bottomEnd = AppDimensions.Drawer.drawerCornerRadius,
                     ),
+                drawerContainerColor = MaterialTheme.colorScheme.background
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -105,7 +111,12 @@ private fun DrawerContent(
                             Modifier
                                 .fillMaxWidth()
                                 .background(
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                    Brush.verticalGradient(
+                                        colors = listOf(
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                            Color.Transparent,
+                                        ),
+                                    ),
                                 )
                                 .padding(
                                     start = AppDimensions.largePadding,
@@ -133,7 +144,7 @@ private fun DrawerContent(
                         )
                     }
 
-                    HorizontalDivider()
+                    HorizontalDivider(color= MaterialTheme.colorScheme.outline)
 
                     // Menu items
                     Column(
@@ -150,7 +161,6 @@ private fun DrawerContent(
                         DrawerMenuItem(
                             icon = Icons.Filled.Storefront,
                             label = stringResource(R.string.visited_stores),
-                            isSelected = true,
                             onClick = {
                                 scope.launch { drawerState.close() }
                             },
@@ -308,8 +318,9 @@ private fun DrawerMenuItem(
 @Preview
 @Composable
 fun DrawerContentPreview() {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Open)
     val scope = rememberCoroutineScope()
+    MiEmpresaTheme {
     DrawerContent(
         drawerState = drawerState,
         UserData("Test", "Test username", "test@test.com", "url"),
@@ -331,4 +342,5 @@ fun DrawerContentPreview() {
             }
         }
     }
+        }
 }

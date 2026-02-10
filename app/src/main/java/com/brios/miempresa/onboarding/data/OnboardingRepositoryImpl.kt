@@ -185,12 +185,15 @@ class OnboardingRepositoryImpl
                 val publicSheet = driveApi.findSpreadsheetInFolder(folderId, "Público")
 
                 return if (privateSheet != null && publicSheet != null) {
-                    companyDao.update(
-                        company.copy(
-                            privateSheetId = privateSheet.id,
-                            publicSheetId = publicSheet.id,
-                        ),
+                    val updated = company.copy(
+                        privateSheetId = privateSheet.id,
+                        publicSheetId = publicSheet.id,
                     )
+                    companyDao.update(updated)
+                    // Also populate missing metadata (logoUrl, etc.)
+                    if (company.logoUrl == null) {
+                        enrichCompanyFromSheets(updated)
+                    }
                     WorkspaceValidationResult.Valid(company.id)
                 } else {
                     WorkspaceValidationResult.MissingSheets(company)
@@ -215,25 +218,59 @@ class OnboardingRepositoryImpl
             driveFolders.forEach { folder ->
                 val existing = existingCompanies.find { it.driveFolderId == folder.id }
                 if (existing != null) {
-                    // Update name only if selected (avoid multi-device conflicts)
                     if (existing.selected && existing.name != folder.name) {
                         companyDao.update(existing.copy(name = folder.name))
                     }
+                    // Fill missing metadata from sheets
+                    if (existing.privateSheetId == null || existing.logoUrl == null) {
+                        enrichCompanyFromSheets(existing)
+                    }
                 } else {
-                    // New company from Drive — insert as owned, not selected
-                    companyDao.insertCompany(
+                    val newCompany =
                         Company(
                             id = folder.id,
                             name = folder.name,
                             isOwned = true,
                             selected = false,
                             driveFolderId = folder.id,
-                        ),
-                    )
+                        )
+                    companyDao.insertCompany(newCompany)
+                    enrichCompanyFromSheets(newCompany)
                 }
             }
 
             return companyDao.getOwnedCompaniesList()
+        }
+
+        private suspend fun enrichCompanyFromSheets(company: Company) {
+            val folderId = company.driveFolderId ?: return
+            val privateSheet = driveApi.findSpreadsheetInFolder(folderId, "Privado")
+            val publicSheet = driveApi.findSpreadsheetInFolder(folderId, "Público")
+
+            var updated = company.copy(
+                privateSheetId = privateSheet?.id ?: company.privateSheetId,
+                publicSheetId = publicSheet?.id ?: company.publicSheetId,
+            )
+
+            if (privateSheet != null) {
+                val infoRows = sheetsApi.readRange(privateSheet.id, "Info!A:B")
+                if (infoRows != null) {
+                    val infoMap = infoRows.associate { row ->
+                        val key = row.getOrNull(0)?.toString() ?: ""
+                        val value = row.getOrNull(1)?.toString() ?: ""
+                        key to value
+                    }
+                    updated = updated.copy(
+                        logoUrl = infoMap["logo_url"]?.takeIf { it.isNotBlank() } ?: updated.logoUrl,
+                        whatsappNumber = infoMap["whatsapp_number"]?.takeIf { it.isNotBlank() } ?: updated.whatsappNumber,
+                        address = infoMap["address"]?.takeIf { it.isNotBlank() } ?: updated.address,
+                        businessHours = infoMap["business_hours"]?.takeIf { it.isNotBlank() } ?: updated.businessHours,
+                        specialization = infoMap["specialization"]?.takeIf { it.isNotBlank() } ?: updated.specialization,
+                    )
+                }
+            }
+
+            companyDao.update(updated)
         }
 
         override suspend fun selectCompany(company: Company) {

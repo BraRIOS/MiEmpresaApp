@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 @HiltViewModel
 class OnboardingViewModel
@@ -172,7 +173,7 @@ class OnboardingViewModel
 
         fun updateLogoUri(uri: String?) {
             if (uri != null) {
-                val file = resolveUriToFile(Uri.parse(uri))
+                val file = resolveUriToFile(uri.toUri())
                 formState = formState.copy(logoUri = uri, logoFile = file)
             } else {
                 formState = formState.copy(logoUri = null, logoFile = null)
@@ -196,7 +197,7 @@ class OnboardingViewModel
                     }
                 }
                 tempFile
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
         }

@@ -115,6 +115,7 @@ class CategoriesViewModel
             val companyId = _companyId.value ?: return
             viewModelScope.launch {
                 categoriesRepository.delete(categoryId, companyId)
+                syncManager.syncNow(SyncType.CATEGORIES)
             }
         }
 

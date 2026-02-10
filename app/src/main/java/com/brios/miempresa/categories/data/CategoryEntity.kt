@@ -13,6 +13,7 @@ data class Category(
     val name: String,
     val iconEmoji: String,
     val companyId: String,
+    val deleted: Boolean = false,
     // Modified offline, pending upload
     val dirty: Boolean = false,
     // Timestamp of last successful sync

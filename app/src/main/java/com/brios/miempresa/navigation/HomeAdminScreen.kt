@@ -23,14 +23,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.brios.miempresa.R
 import com.brios.miempresa.categories.ui.CategoriesContent
+import com.brios.miempresa.categories.ui.CategoriesUiState
+import com.brios.miempresa.categories.ui.CategoriesViewModel
 import com.brios.miempresa.config.ui.ConfigScreen
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.products.ui.ProductsContent
+import com.brios.miempresa.products.ui.ProductsUiState
+import com.brios.miempresa.products.ui.ProductsViewModel
 import kotlinx.coroutines.launch
 
 @Composable
@@ -40,11 +46,14 @@ fun HomeAdminScreen(
     onNavigateToProductDetail: (String) -> Unit,
     onNavigateToAddCategory: () -> Unit,
     onNavigateToCategoryDetail: (String) -> Unit,
+    productsViewModel: ProductsViewModel = hiltViewModel(),
+    categoriesViewModel: CategoriesViewModel = hiltViewModel(),
     productsContent: @Composable (Modifier) -> Unit = { modifier ->
         ProductsContent(
             modifier = modifier,
             onNavigateToAddProduct = onNavigateToAddProduct,
             onNavigateToProductDetail = onNavigateToProductDetail,
+            viewModel = productsViewModel,
         )
     },
     categoriesContent: @Composable (Modifier) -> Unit = { modifier ->
@@ -52,6 +61,7 @@ fun HomeAdminScreen(
             modifier = modifier,
             onNavigateToAddCategory = onNavigateToAddCategory,
             onNavigateToCategoryDetail = onNavigateToCategoryDetail,
+            viewModel = categoriesViewModel,
         )
     },
     configContent: @Composable (Modifier) -> Unit = { modifier ->
@@ -61,6 +71,15 @@ fun HomeAdminScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+
+    val productsUiState by productsViewModel.uiState.collectAsStateWithLifecycle()
+    val categoriesUiState by categoriesViewModel.uiState.collectAsStateWithLifecycle()
+
+    val showFab = when (selectedTab) {
+        0 -> productsUiState !is ProductsUiState.Empty
+        1 -> categoriesUiState !is CategoriesUiState.Empty
+        else -> false
+    }
 
     val tabTitles =
         listOf(
@@ -88,13 +107,15 @@ fun HomeAdminScreen(
                 )
             },
             floatingActionButton = {
-                when (selectedTab) {
-                    0 -> {
-                        FABPaddingBottom(onNavigateToAddProduct,contentDescription = stringResource(R.string.add_product))
-                    }
+                if (showFab) {
+                    when (selectedTab) {
+                        0 -> {
+                            FABPaddingBottom(onNavigateToAddProduct, contentDescription = stringResource(R.string.add_product))
+                        }
 
-                    1 -> {
-                        FABPaddingBottom(onNavigateToAddCategory, contentDescription = stringResource(R.string.add_category))
+                        1 -> {
+                            FABPaddingBottom(onNavigateToAddCategory, contentDescription = stringResource(R.string.add_category))
+                        }
                     }
                 }
             },

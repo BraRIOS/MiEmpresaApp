@@ -7,10 +7,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CategoryDao {
-    @Query("SELECT * FROM categories WHERE companyId = :companyId")
+    @Query("SELECT * FROM categories WHERE companyId = :companyId AND deleted = 0")
     suspend fun getAll(companyId: String): List<Category>
 
-    @Query("SELECT * FROM categories WHERE companyId = :companyId")
+    @Query("SELECT * FROM categories WHERE companyId = :companyId AND deleted = 0")
     fun getAllFlow(companyId: String): Flow<List<Category>>
 
     @Query("SELECT * FROM categories WHERE id = :id AND companyId = :companyId")

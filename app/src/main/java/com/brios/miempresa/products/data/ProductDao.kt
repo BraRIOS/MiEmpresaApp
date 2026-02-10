@@ -70,4 +70,13 @@ interface ProductDao {
         id: String,
         companyId: String,
     )
+
+    @Query(
+        "UPDATE products SET categoryId = NULL, dirty = 1 " +
+            "WHERE categoryId = :categoryId AND companyId = :companyId",
+    )
+    suspend fun clearCategoryId(
+        categoryId: String,
+        companyId: String,
+    )
 }

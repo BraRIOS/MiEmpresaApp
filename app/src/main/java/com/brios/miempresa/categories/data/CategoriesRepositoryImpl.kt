@@ -45,7 +45,7 @@ class CategoriesRepositoryImpl
             companyId: String,
         ) {
             val existing = categoryDao.getById(id, companyId) ?: return
-            categoryDao.upsert(existing.copy(dirty = true))
+            categoryDao.upsert(existing.copy(deleted = true, dirty = true))
         }
 
         override suspend fun getProductCount(
@@ -74,10 +74,19 @@ class CategoriesRepositoryImpl
                 )
                 sheetsApi.hideColumns(privateSheetId, CATEGORIES_TAB, listOf(0))
 
-                val dirtyIds = categoryDao.getDirty(companyId).map { it.id }
-                if (dirtyIds.isNotEmpty()) {
+                val dirtyCategories = categoryDao.getDirty(companyId)
+                val deletedIds = dirtyCategories.filter { it.deleted }.map { it.id }
+                val syncedIds = dirtyCategories.filter { !it.deleted }.map { it.id }
+
+                if (deletedIds.isNotEmpty()) {
+                    deletedIds.forEach { id ->
+                        productDao.clearCategoryId(id, companyId)
+                        categoryDao.deleteById(id, companyId)
+                    }
+                }
+                if (syncedIds.isNotEmpty()) {
                     categoryDao.markSynced(
-                        ids = dirtyIds,
+                        ids = syncedIds,
                         timestamp = System.currentTimeMillis(),
                         companyId = companyId,
                     )

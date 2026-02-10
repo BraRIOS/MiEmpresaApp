@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,7 @@ import com.brios.miempresa.core.ui.components.EmptyStateView
 import com.brios.miempresa.core.ui.components.ItemCard
 import com.brios.miempresa.core.ui.components.OfflineBanner
 import com.brios.miempresa.core.ui.components.SearchBar
+import com.brios.miempresa.core.ui.components.TriangleArrowRefreshIndicator
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray400
@@ -88,11 +90,20 @@ private fun CategoriesContentInternal(
     onNavigateToAddCategory: () -> Unit,
 ) {
     var itemToDelete by remember { mutableStateOf<Pair<String, String>?>(null) }
+    val pullToRefreshState = rememberPullToRefreshState()
 
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
         modifier = modifier.background(MaterialTheme.colorScheme.background),
+        state = pullToRefreshState,
+        indicator = {
+            TriangleArrowRefreshIndicator(
+                state = pullToRefreshState,
+                isRefreshing = isRefreshing,
+                modifier = Modifier.align(Alignment.TopCenter),
+            )
+        },
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             if (isOffline) {
@@ -194,6 +205,7 @@ private fun CategoriesContentInternal(
     itemToDelete?.let { (id, name) ->
         DeleteDialog(
             itemName = name,
+            title = stringResource(R.string.delete_category),
             onDismiss = { itemToDelete = null },
             onConfirm = {
                 onDeleteCategory(id)

@@ -211,7 +211,7 @@ fun ItemCard(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Delete,
-                            contentDescription = stringResource(R.string.delete_item),
+                            contentDescription = stringResource(R.string.delete),
                             modifier = Modifier.size(AppDimensions.smallIconSize),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

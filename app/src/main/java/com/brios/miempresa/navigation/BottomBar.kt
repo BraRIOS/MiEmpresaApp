@@ -87,15 +87,15 @@ fun BottomBar(
                     },
                     label = {
                         Text(
-                            tabBarItem.title,
-                            style = MaterialTheme.typography.labelLarge,
+                            tabBarItem.title.uppercase(),
+                            style = MaterialTheme.typography.labelMedium,
                         )
                     },
                     colors =
                     NavigationBarItemDefaults.colors(
                         selectedIconColor = tabBarItem.selectedColor,
                         selectedTextColor = tabBarItem.selectedColor,
-                        indicatorColor = MaterialTheme.colorScheme.surfaceContainer,
+                        indicatorColor = Color.Transparent,
                         unselectedIconColor = tabBarItem.unselectedColor,
                         unselectedTextColor = tabBarItem.unselectedColor,
                     ),

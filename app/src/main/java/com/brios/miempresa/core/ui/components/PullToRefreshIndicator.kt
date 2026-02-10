@@ -2,29 +2,27 @@ package com.brios.miempresa.core.ui.components
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
-import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 
 private const val CROSSFADE_DURATION_MILLIS = 100
@@ -42,15 +40,29 @@ fun TriangleArrowRefreshIndicator(
 
     Box(
         modifier = modifier
+            .size(40.dp)
             .graphicsLayer {
                 translationY = fraction * 80f
                 scaleX = fraction.coerceIn(0.5f, 1f)
                 scaleY = fraction.coerceIn(0.5f, 1f)
                 alpha = if (isRefreshing) 1f else fraction
                 clip = false
+                compositingStrategy = CompositingStrategy.ModulateAlpha
             }
-            .shadow(elevation = 6.dp, shape = CircleShape, clip = false)
-            .size(40.dp)
+            .drawBehind {
+                drawIntoCanvas { canvas ->
+                    val paint = Paint()
+                    val frameworkPaint = paint.asFrameworkPaint()
+                    frameworkPaint.color = Color.Black.copy(alpha = 0.2f).toArgb()
+                    frameworkPaint.setShadowLayer(
+                        6.dp.toPx(),
+                        0f,
+                        0f,
+                        Color.Black.copy(alpha = 0.2f).toArgb()
+                    )
+                    canvas.drawCircle(center, size.minDimension / 2, paint)
+                }
+            }
             .background(containerColor, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
@@ -60,7 +72,6 @@ fun TriangleArrowRefreshIndicator(
             label = "refreshIndicator",
         ) { refreshing ->
             Box(
-                modifier = Modifier.size(40.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 if (refreshing) {

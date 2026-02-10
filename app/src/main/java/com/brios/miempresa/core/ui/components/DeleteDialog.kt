@@ -1,10 +1,13 @@
 package com.brios.miempresa.core.ui.components
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.TextAutoSizeDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -21,6 +24,7 @@ import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 @Composable
 fun DeleteDialog(
     itemName: String,
+    title: String?=null,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
@@ -36,26 +40,34 @@ fun DeleteDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                stringResource(R.string.delete_dialog_title) + "\n\"$itemName\"?",
+                title ?: stringResource(R.string.delete),
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 textAlign = TextAlign.Center,
             )
+        },
+        text = {
+            Text(
+                stringResource(R.string.delete_dialog_title) + "\"$itemName\"?",
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                textAlign = TextAlign.Center,
+                )
         },
         confirmButton = {
             Button(onClick = {
                 onConfirm()
             }) {
-                Text(stringResource(R.string.confirm))
+                Text(stringResource(R.string.delete))
             }
         },
         dismissButton = {
             OutlinedButton(
                 onClick = onDismiss,
+                colors = ButtonDefaults.outlinedButtonColors().copy(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest)
             ) {
                 Text(stringResource(R.string.cancel))
             }
         },
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.background,
     )
 }
 
@@ -65,6 +77,7 @@ fun DeleteDialogPreview() {
     MiEmpresaTheme {
         DeleteDialog(
             itemName = "Producto re loco",
+            title = stringResource(R.string.delete_product),
             onDismiss = {},
             onConfirm = {},
         )

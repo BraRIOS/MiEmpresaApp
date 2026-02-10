@@ -18,7 +18,8 @@ object AppDimensions {
     val mediumIconSize = 32.dp
     val largeIconSize = 48.dp
     val extraLargeIconSize = 64.dp
-    val emptyStateIconSize = 120.dp
+    val emptyStateIconSize = 160.dp
+    val emptyStateInnerIconSize = 88.dp
     val errorStateIconSize = 160.dp
 
     // Corners

@@ -1,33 +1,37 @@
 package com.brios.miempresa.core.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
-import com.brios.miempresa.core.ui.theme.SlateGray200
+import com.brios.miempresa.core.ui.theme.SlateGray300
 
 @Composable
 fun SearchBar(
@@ -39,42 +43,51 @@ fun SearchBar(
     val shape = remember { RoundedCornerShape(AppDimensions.mediumCornerRadius) }
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    val borderColor = if (isFocused) MaterialTheme.colorScheme.primary else SlateGray200
+    val borderColor = if (isFocused) MaterialTheme.colorScheme.primary else SlateGray300
 
-    TextField(
+    BasicTextField(
         value = query,
         onValueChange = onQueryChange,
-        interactionSource = interactionSource,
         modifier =
             modifier
                 .fillMaxWidth()
                 .padding(horizontal = AppDimensions.mediumPadding)
                 .height(48.dp)
                 .shadow(1.dp, shape)
-                .border(1.dp, borderColor, shape)
-                .clip(shape),
-        placeholder = {
-            Text(placeholderText, style = MaterialTheme.typography.bodyMedium)
-        },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = null,
-                tint = if (isFocused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        },
-        colors =
-            TextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                cursorColor = MaterialTheme.colorScheme.primary,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            ),
+                .background(MaterialTheme.colorScheme.surfaceContainerLowest, shape)
+                .border(1.dp, borderColor, shape),
+        textStyle = MaterialTheme.typography.bodyMedium,
         singleLine = true,
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
+        interactionSource = interactionSource,
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+        decorationBox = { innerTextField ->
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = AppDimensions.mediumPadding),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null,
+                    tint = borderColor,
+                )
+
+                Box(modifier = Modifier.weight(1f)) {
+                    if (query.isEmpty()) {
+                        Text(
+                            text = placeholderText,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    innerTextField()
+                }
+            }
+        },
     )
 }
 

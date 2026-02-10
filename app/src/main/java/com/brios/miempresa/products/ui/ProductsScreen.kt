@@ -49,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.core.ui.components.CategoryBadge
+import com.brios.miempresa.core.ui.components.DeleteDialog
 import com.brios.miempresa.core.ui.components.CategorySelectorBottomSheet
 import com.brios.miempresa.core.ui.components.EmptyStateView
 import com.brios.miempresa.core.ui.components.ItemCard
@@ -107,6 +108,7 @@ private fun ProductsContentInternal(
     onNavigateToAddProduct: () -> Unit,
 ) {
     var showCategorySelector by remember { mutableStateOf(false) }
+    var itemToDelete by remember { mutableStateOf<Pair<String, String>?>(null) }
     val allCategories =
         when (uiState) {
             is ProductsUiState.Success -> uiState.categories
@@ -231,7 +233,7 @@ private fun ProductsContentInternal(
                                 onToggleVisibility = {
                                     onToggleVisibility(product.id, !product.isPublic)
                                 },
-                                onDelete = { onDeleteProduct(product.id) },
+                                onDelete = { itemToDelete = product.id to product.name },
                                 onClick = { onNavigateToProductDetail(product.id) },
                             )
                         }
@@ -239,6 +241,17 @@ private fun ProductsContentInternal(
                 }
             }
         }
+    }
+
+    itemToDelete?.let { (id, name) ->
+        DeleteDialog(
+            itemName = name,
+            onDismiss = { itemToDelete = null },
+            onConfirm = {
+                onDeleteProduct(id)
+                itemToDelete = null
+            },
+        )
     }
 
     // CategorySelector bottom sheet

@@ -26,6 +26,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -35,6 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.categories.data.Category
+import com.brios.miempresa.core.ui.components.DeleteDialog
 import com.brios.miempresa.core.ui.components.EmptyStateView
 import com.brios.miempresa.core.ui.components.ItemCard
 import com.brios.miempresa.core.ui.components.OfflineBanner
@@ -83,6 +87,8 @@ private fun CategoriesContentInternal(
     onNavigateToCategoryDetail: (String) -> Unit,
     onNavigateToAddCategory: () -> Unit,
 ) {
+    var itemToDelete by remember { mutableStateOf<Pair<String, String>?>(null) }
+
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
@@ -172,7 +178,7 @@ private fun CategoriesContentInternal(
                                     subtitle = "",
                                     emojiIcon = item.category.iconEmoji,
                                     productCount = item.productCount,
-                                    onDelete = { onDeleteCategory(item.category.id) },
+                                    onDelete = { itemToDelete = item.category.id to item.category.name },
                                     onClick = {
                                         onNavigateToCategoryDetail(item.category.id)
                                     },
@@ -183,6 +189,17 @@ private fun CategoriesContentInternal(
                 }
             }
         }
+    }
+
+    itemToDelete?.let { (id, name) ->
+        DeleteDialog(
+            itemName = name,
+            onDismiss = { itemToDelete = null },
+            onConfirm = {
+                onDeleteCategory(id)
+                itemToDelete = null
+            },
+        )
     }
 }
 

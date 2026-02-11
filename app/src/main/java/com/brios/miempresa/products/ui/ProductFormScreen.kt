@@ -3,12 +3,15 @@ package com.brios.miempresa.products.ui
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,24 +21,30 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.AddAPhoto
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
@@ -45,6 +54,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,22 +63,34 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.SubcomposeAsyncImage
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.brios.miempresa.R
+import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.core.ui.components.CategorySelectorBottomSheet
 import com.brios.miempresa.core.ui.components.DeleteDialog
 import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
+import com.brios.miempresa.core.ui.theme.SlateGray200
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun ProductFormScreen(
     onNavigateBack: () -> Unit,
@@ -85,8 +107,6 @@ fun ProductFormScreen(
     val priceError by viewModel.priceError.collectAsStateWithLifecycle()
     val categoryError by viewModel.categoryError.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var showCategorySheet by remember { mutableStateOf(false) }
 
     val localImagePath by viewModel.localImagePath.collectAsStateWithLifecycle()
     val imageUrl = when {
@@ -105,26 +125,91 @@ fun ProductFormScreen(
         viewModel.saveComplete.collect { onNavigateBack() }
     }
 
+    ProductFormContent(
+        name = name,
+        onNameChanged = viewModel::onNameChanged,
+        price = price,
+        onPriceChanged = viewModel::onPriceChanged,
+        description = description,
+        onDescriptionChanged = viewModel::onDescriptionChanged,
+        selectedCategoryId = selectedCategoryId,
+        onCategorySelected = viewModel::onCategorySelected,
+        isPublic = isPublic,
+        onPublicChanged = viewModel::onPublicChanged,
+        categories = categories,
+        imageUrl = imageUrl,
+        onImageClick = { imagePickerLauncher.launch("image/*") },
+        onImageRemoved = viewModel::onImageRemoved,
+        isEditMode = viewModel.isEditMode,
+        isSaving = isSaving,
+        onSave = viewModel::save,
+        onNavigateBack = onNavigateBack,
+        onNavigateToAddCategory = onNavigateToAddCategory,
+        onDelete = viewModel::delete,
+        nameError = nameError,
+        priceError = priceError,
+        categoryError = categoryError
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProductFormContent(
+    name: String,
+    onNameChanged: (String) -> Unit,
+    price: String,
+    onPriceChanged: (String) -> Unit,
+    description: String,
+    onDescriptionChanged: (String) -> Unit,
+    selectedCategoryId: String?,
+    onCategorySelected: (String) -> Unit,
+    isPublic: Boolean,
+    onPublicChanged: (Boolean) -> Unit,
+    categories: List<Category>,
+    imageUrl: String?,
+    onImageClick: () -> Unit,
+    onImageRemoved: () -> Unit,
+    isEditMode: Boolean,
+    isSaving: Boolean,
+    onSave: () -> Unit,
+    onNavigateBack: () -> Unit,
+    onNavigateToAddCategory: () -> Unit,
+    onDelete: () -> Unit,
+    nameError: String? = null,
+    priceError: String? = null,
+    categoryError: String? = null,
+) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showCategorySheet by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        if (viewModel.isEditMode) {
-                            stringResource(R.string.edit_product)
-                        } else {
-                            stringResource(R.string.add_product)
-                        },
-                        fontWeight = FontWeight.Bold,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back))
-                    }
-                },
-                actions = {},
-            )
+            Column {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            if (isEditMode) {
+                                stringResource(R.string.edit_product)
+                            } else {
+                                stringResource(R.string.add_product)
+                            },
+                            fontWeight = FontWeight.Bold,
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back))
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                    ),
+                )
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = SlateGray200,
+                )
+            }
         },
         bottomBar = {
             Surface(
@@ -139,18 +224,27 @@ fun ProductFormScreen(
                     horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumSmallPadding),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    if (viewModel.isEditMode) {
-                        FloatingActionButton(
+                    if (isEditMode) {
+                        OutlinedButton(
                             onClick = { showDeleteDialog = true },
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(56.dp),
+                            shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                            contentPadding = PaddingValues(0.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color(0xFFFEF2F2), // red-50
+                                contentColor = Color(0xFFDC2626),   // red-600
+                            ),
+                            border = BorderStroke(2.dp, Color(0xFFFEE2E2)), // red-100
                         ) {
-                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete))
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = stringResource(R.string.delete),
+                                modifier = Modifier.size(26.dp),
+                            )
                         }
                     }
                     Button(
-                        onClick = viewModel::save,
+                        onClick = onSave,
                         enabled = !isSaving,
                         modifier = Modifier
                             .weight(1f)
@@ -175,55 +269,102 @@ fun ProductFormScreen(
     ) { paddingValues ->
         Column(
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-                    .padding(AppDimensions.mediumPadding),
+            Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(AppDimensions.mediumPadding),
             verticalArrangement = Arrangement.spacedBy(AppDimensions.largePadding),
         ) {
             // Image picker
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(220.dp)
                     .clip(RoundedCornerShape(AppDimensions.mediumCornerRadius))
                     .then(
                         if (imageUrl != null) {
                             Modifier
                         } else {
+                            val primaryColor = MaterialTheme.colorScheme.primary
                             Modifier
                                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.06f))
-                                .border(
-                                    width = AppDimensions.mediumBorderWidth,
-                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                                    shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
-                                )
+                                .drawBehind {
+                                    val stroke = Stroke(
+                                        width = 2.dp.toPx(),
+                                        pathEffect = PathEffect.dashPathEffect(
+                                            floatArrayOf(10.dp.toPx(), 6.dp.toPx()),
+                                            0f,
+                                        ),
+                                    )
+                                    drawRoundRect(
+                                        color = primaryColor.copy(alpha = 0.4f),
+                                        style = stroke,
+                                        cornerRadius = CornerRadius(AppDimensions.mediumCornerRadius.toPx()),
+                                    )
+                                }
                         },
                     )
-                    .clickable { imagePickerLauncher.launch("image/*") },
+                    .clickable { onImageClick() },
                 contentAlignment = Alignment.Center,
             ) {
                 if (imageUrl != null) {
-                    SubcomposeAsyncImage(
-                        model = imageUrl,
-                        contentDescription = stringResource(R.string.photo_label),
+                    val painter = rememberAsyncImagePainter(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(imageUrl)
+                            .crossfade(true)
+                            .build()
+                    )
+
+                    // Blurred background
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
                         contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .blur(radius = 20.dp)
+                            .alpha(0.6f)
+                    )
+
+                    Image(
+                        painter = painter,
+                        contentDescription = stringResource(R.string.photo_label),
+                        contentScale = ContentScale.Fit,
                         modifier = Modifier.fillMaxSize(),
                     )
-                    SmallFloatingActionButton(
-                        onClick = { imagePickerLauncher.launch("image/*") },
+                    Row(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
                             .padding(AppDimensions.smallPadding),
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                            .copy(alpha = 0.9f),
+                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
                     ) {
-                        Icon(
-                            Icons.Default.Edit,
-                            contentDescription = stringResource(R.string.edit_photo),
-                            modifier = Modifier.size(AppDimensions.smallIconSize),
-                        )
+                        // Remove button
+                        SmallFloatingActionButton(
+                            onClick = onImageRemoved,
+                            containerColor = Color.Black.copy(alpha = 0.3f),
+                            contentColor = Color.White,
+                            shape = CircleShape,
+                        ) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = stringResource(R.string.remove_photo),
+                                modifier = Modifier.size(AppDimensions.smallIconSize),
+                            )
+                        }
+                        // Edit button
+                        SmallFloatingActionButton(
+                            onClick = { onImageClick() },
+                            containerColor = Color.Black.copy(alpha = 0.3f),
+                            contentColor = Color.White,
+                            shape = CircleShape,
+                        ) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = stringResource(R.string.edit_photo),
+                                modifier = Modifier.size(AppDimensions.smallIconSize),
+                            )
+                        }
                     }
                 } else {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -245,15 +386,19 @@ fun ProductFormScreen(
 
             // Card 1: Name + Price
             Card(
-                shape = RoundedCornerShape(AppDimensions.inputCornerRadius),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     // Name field
                     FormField(
                         label = stringResource(R.string.product_name_label),
                         value = name,
-                        onValueChange = viewModel::onNameChanged,
+                        onValueChange = onNameChanged,
                         placeholder = stringResource(R.string.product_name_placeholder),
                         isError = nameError != null,
                         errorText = nameError,
@@ -263,7 +408,7 @@ fun ProductFormScreen(
                     FormField(
                         label = stringResource(R.string.price_label),
                         value = price,
-                        onValueChange = viewModel::onPriceChanged,
+                        onValueChange = onPriceChanged,
                         placeholder = "0.00",
                         prefix = "$",
                         isError = priceError != null,
@@ -275,15 +420,19 @@ fun ProductFormScreen(
 
             // Card 2: Description + Category
             Card(
-                shape = RoundedCornerShape(AppDimensions.inputCornerRadius),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     // Description
                     FormField(
                         label = stringResource(R.string.description_label),
                         value = description,
-                        onValueChange = viewModel::onDescriptionChanged,
+                        onValueChange = onDescriptionChanged,
                         placeholder = stringResource(R.string.description_placeholder),
                         singleLine = false,
                         minLines = 3,
@@ -292,10 +441,10 @@ fun ProductFormScreen(
                     // Category dropdown
                     Column(
                         modifier =
-                            Modifier.padding(
-                                horizontal = AppDimensions.mediumPadding,
-                                vertical = AppDimensions.mediumSmallPadding,
-                            ),
+                        Modifier.padding(
+                            horizontal = AppDimensions.mediumPadding,
+                            vertical = AppDimensions.mediumSmallPadding,
+                        ),
                     ) {
                         Text(
                             text = stringResource(R.string.category_label),
@@ -347,7 +496,7 @@ fun ProductFormScreen(
                             }
                             if (categoryError != null) {
                                 Text(
-                                    text = categoryError!!,
+                                    text = categoryError,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.error,
                                     modifier = Modifier.padding(top = AppDimensions.extraSmallPadding),
@@ -360,14 +509,18 @@ fun ProductFormScreen(
 
             // Card 3: Public visibility switch
             Card(
-                shape = RoundedCornerShape(AppDimensions.inputCornerRadius),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
             ) {
                 Row(
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(AppDimensions.mediumPadding),
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(AppDimensions.mediumPadding),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
@@ -384,7 +537,7 @@ fun ProductFormScreen(
                     }
                     Switch(
                         checked = isPublic,
-                        onCheckedChange = viewModel::onPublicChanged,
+                        onCheckedChange = onPublicChanged,
                     )
                 }
             }
@@ -398,7 +551,7 @@ fun ProductFormScreen(
             onDismiss = { showDeleteDialog = false },
             onConfirm = {
                 showDeleteDialog = false
-                viewModel.delete()
+                onDelete()
             },
         )
     }
@@ -408,7 +561,7 @@ fun ProductFormScreen(
             categories = categories,
             selectedCategoryId = selectedCategoryId,
             onCategorySelected = { id ->
-                if (id != null) viewModel.onCategorySelected(id)
+                if (id != null) onCategorySelected(id)
                 showCategorySheet = false
             },
             onDismiss = { showCategorySheet = false },
@@ -504,5 +657,71 @@ private fun FormField(
                 modifier = Modifier.padding(top = AppDimensions.extraSmallPadding),
             )
         }
+    }
+}
+
+private val sampleCategories =
+    listOf(
+        Category(id = "1", name = "Café", iconEmoji = "☕", companyId = "c1"),
+        Category(id = "2", name = "Panadería", iconEmoji = "🍞", companyId = "c1"),
+        Category(id = "3", name = "Postres", iconEmoji = "🍰", companyId = "c1"),
+        Category(id = "4", name = "Bebidas", iconEmoji = "🥤", companyId = "c1"),
+    )
+
+@Preview(showBackground = true)
+@Composable
+private fun ProductFormPreview() {
+    MiEmpresaTheme {
+        ProductFormContent(
+            name = "Café Latte",
+            onNameChanged = {},
+            price = "4.50",
+            onPriceChanged = {},
+            description = "Un delicioso café con leche",
+            onDescriptionChanged = {},
+            selectedCategoryId = "1",
+            onCategorySelected = {},
+            isPublic = true,
+            onPublicChanged = {},
+            categories = sampleCategories,
+            imageUrl = "",
+            onImageClick = {},
+            onImageRemoved = {},
+            isEditMode = true,
+            isSaving = false,
+            onSave = {},
+            onNavigateBack = {},
+            onNavigateToAddCategory = {},
+            onDelete = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ProductFormNewPreview() {
+    MiEmpresaTheme {
+        ProductFormContent(
+            name = "",
+            onNameChanged = {},
+            price = "",
+            onPriceChanged = {},
+            description = "",
+            onDescriptionChanged = {},
+            selectedCategoryId = null,
+            onCategorySelected = {},
+            isPublic = true,
+            onPublicChanged = {},
+            categories = sampleCategories,
+            imageUrl = null,
+            onImageClick = {},
+            onImageRemoved = {},
+            isEditMode = false,
+            isSaving = false,
+            onSave = {},
+            onNavigateBack = {},
+            onNavigateToAddCategory = {},
+            onDelete = {}
+        )
     }
 }

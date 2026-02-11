@@ -128,6 +128,10 @@ class ProductFormViewModel
             _localImagePath.value = path
         }
 
+        fun onImageRemoved() {
+            _localImagePath.value = null
+        }
+
         fun save() {
             val currentCompanyId = companyId ?: return
             val currentName = _name.value.trim()

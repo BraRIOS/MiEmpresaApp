@@ -10,20 +10,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -38,13 +31,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -53,33 +44,38 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.emoji2.emojipicker.EmojiPickerView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
-import com.brios.miempresa.categories.domain.EmojiData
-import com.brios.miempresa.core.ui.components.SearchBar
-import com.brios.miempresa.core.ui.components.SearchBarVariant
 import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
+import com.brios.miempresa.core.ui.theme.SlateGray400
 
 private val QuickPickEmojis = listOf("🍔", "🥤", "👕", "🏠", "📦", "📱")
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryFormScreen(
     onNavigateBack: () -> Unit,
@@ -90,19 +86,50 @@ fun CategoryFormScreen(
     val nameError by viewModel.nameError.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
     val productCount by viewModel.productCount.collectAsStateWithLifecycle()
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var showEmojiBottomSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.saveComplete.collect { onNavigateBack() }
     }
 
+    CategoryFormContent(
+        name = name,
+        selectedEmoji = selectedEmoji,
+        nameError = nameError,
+        isSaving = isSaving,
+        isEditMode = viewModel.isEditMode,
+        productCount = productCount,
+        onNameChanged = viewModel::onNameChanged,
+        onEmojiSelected = viewModel::onEmojiSelected,
+        onSave = viewModel::save,
+        onDelete = viewModel::delete,
+        onNavigateBack = onNavigateBack
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CategoryFormContent(
+    name: String,
+    selectedEmoji: String,
+    nameError: String?,
+    isSaving: Boolean,
+    isEditMode: Boolean,
+    productCount: Int,
+    onNameChanged: (String) -> Unit,
+    onEmojiSelected: (String) -> Unit,
+    onSave: () -> Unit,
+    onDelete: () -> Unit,
+    onNavigateBack: () -> Unit
+) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showEmojiBottomSheet by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        if (viewModel.isEditMode) {
+                        if (isEditMode) {
                             stringResource(R.string.edit_category)
                         } else {
                             stringResource(R.string.add_category)
@@ -112,33 +139,43 @@ fun CategoryFormScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.go_back)
+                        )
                     }
                 },
                 actions = {
-                    if (viewModel.isEditMode) {
+                    if (isEditMode) {
                         IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete))
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = stringResource(R.string.delete)
+                            )
                         }
                     }
                 },
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
             )
         },
         bottomBar = {
-            // Sticky footer CTA
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+                color = MaterialTheme.colorScheme.surfaceContainerLowest,
                 shadowElevation = 8.dp,
             ) {
                 Button(
-                    onClick = viewModel::save,
+                    onClick = onSave,
                     enabled = name.isNotBlank() && !isSaving,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(AppDimensions.mediumLargePadding)
-                            .height(56.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(AppDimensions.mediumLargePadding)
+                        .height(56.dp),
                     shape = RoundedCornerShape(50),
                 ) {
                     Icon(
@@ -157,56 +194,50 @@ fun CategoryFormScreen(
         },
     ) { paddingValues ->
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = AppDimensions.mediumLargePadding),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = AppDimensions.mediumLargePadding),
             verticalArrangement = Arrangement.spacedBy(AppDimensions.largePadding),
         ) {
             Spacer(modifier = Modifier.height(AppDimensions.extraSmallPadding))
 
-            // Integrated icon + TextField container
             IntegratedNameField(
                 name = name,
                 selectedEmoji = selectedEmoji,
                 nameError = nameError,
-                onNameChanged = viewModel::onNameChanged,
+                onNameChanged = onNameChanged,
             )
 
-            // Emoji quick picks section
             EmojiQuickPickSection(
                 selectedEmoji = selectedEmoji,
-                onEmojiSelected = viewModel::onEmojiSelected,
+                onEmojiSelected = onEmojiSelected,
                 onShowAllEmojis = { showEmojiBottomSheet = true },
             )
 
-            // Info card
             InfoCard()
         }
-    }
 
-    // Emoji bottom sheet
-    if (showEmojiBottomSheet) {
-        EmojiBottomSheet(
-            selectedEmoji = selectedEmoji,
-            onEmojiSelected = { emoji ->
-                viewModel.onEmojiSelected(emoji)
-                showEmojiBottomSheet = false
-            },
-            onDismiss = { showEmojiBottomSheet = false },
-        )
-    }
+        if (showEmojiBottomSheet) {
+            EmojiDialog(
+                onEmojiSelected = { emoji ->
+                    onEmojiSelected(emoji)
+                    showEmojiBottomSheet = false
+                },
+                onDismiss = { showEmojiBottomSheet = false },
+            )
+        }
 
-    if (showDeleteDialog) {
-        DeleteCategoryDialog(
-            productCount = productCount,
-            onConfirm = {
-                showDeleteDialog = false
-                viewModel.delete()
-            },
-            onDismiss = { showDeleteDialog = false },
-        )
+        if (showDeleteDialog) {
+            DeleteCategoryDialog(
+                productCount = productCount,
+                onConfirm = {
+                    showDeleteDialog = false
+                    onDelete()
+                },
+                onDismiss = { showDeleteDialog = false },
+            )
+        }
     }
 }
 
@@ -220,12 +251,12 @@ private fun IntegratedNameField(
     Column {
         Card(
             shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
             border =
                 if (nameError != null) {
                     BorderStroke(AppDimensions.mediumBorderWidth, MaterialTheme.colorScheme.error)
                 } else {
-                    BorderStroke(AppDimensions.smallBorderWidth, MaterialTheme.colorScheme.outlineVariant)
+                    BorderStroke(AppDimensions.smallBorderWidth, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 },
         ) {
             Row(
@@ -238,7 +269,7 @@ private fun IntegratedNameField(
                         Modifier
                             .width(AppDimensions.Categories.emojiPreviewWidth)
                             .height(AppDimensions.Categories.emojiPreviewHeight)
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                            .background(MaterialTheme.colorScheme.background),
                     contentAlignment = Alignment.Center,
                 ) {
                     if (selectedEmoji.isNotEmpty()) {
@@ -291,6 +322,8 @@ private fun IntegratedNameField(
                                 unfocusedContainerColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
+                                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
                             ),
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -301,17 +334,13 @@ private fun IntegratedNameField(
         // Helper text
         Text(
             text =
-                if (nameError != null) {
-                    nameError
-                } else {
-                    stringResource(R.string.category_name_helper)
-                },
+                nameError ?: stringResource(R.string.category_name_helper),
             style = MaterialTheme.typography.bodySmall,
             color =
                 if (nameError != null) {
                     MaterialTheme.colorScheme.error
                 } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
+                    SlateGray400
                 },
             modifier =
                 Modifier.padding(
@@ -338,7 +367,7 @@ private fun EmojiQuickPickSection(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = stringResource(R.string.select_emoji),
+                text = stringResource(R.string.icon_label),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
             )
@@ -353,7 +382,8 @@ private fun EmojiQuickPickSection(
 
         Card(
             shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
         ) {
             Row(
                 modifier =
@@ -375,7 +405,7 @@ private fun EmojiQuickPickSection(
                             if (isSelected) {
                                 MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                             } else {
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                             },
                         border =
                             if (isSelected) {
@@ -400,19 +430,34 @@ private fun EmojiQuickPickSection(
                 }
 
                 // "+" button to open all emojis
+                val borderColor = MaterialTheme.colorScheme.outlineVariant
+                val borderWidth = AppDimensions.mediumBorderWidth
+                val dashWidth = 4.dp
+                val dashGap = 2.dp
+
                 OutlinedButton(
                     onClick = onShowAllEmojis,
-                    modifier = Modifier.size(AppDimensions.categoryEmojiContainerSize),
+                    modifier = Modifier
+                        .size(AppDimensions.categoryEmojiContainerSize)
+                        .drawWithContent {
+                            drawContent()
+                            drawOutline(
+                                outline = RoundedCornerShape(AppDimensions.mediumCornerRadius).createOutline(size, layoutDirection, this),
+                                style = Stroke(
+                                    width = borderWidth.toPx(),
+                                    pathEffect = PathEffect.dashPathEffect(
+                                        floatArrayOf(dashWidth.toPx(), dashGap.toPx())
+                                    )
+                                ),
+                                brush = SolidColor(borderColor)
+                            )
+                        },
                     shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                     contentPadding = PaddingValues(0.dp),
-                    border =
-                        BorderStroke(
-                            AppDimensions.mediumBorderWidth,
-                            MaterialTheme.colorScheme.outlineVariant,
-                        ),
+                    border = null,
                     colors =
                         ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            contentColor = SlateGray400,
                         ),
                 ) {
                     Icon(
@@ -467,174 +512,52 @@ private fun InfoCard() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EmojiBottomSheet(
-    selectedEmoji: String,
+private fun EmojiDialog(
     onEmojiSelected: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var searchQuery by rememberSaveable { mutableStateOf("") }
-    var selectedCategoryIndex by rememberSaveable { mutableIntStateOf(0) }
-
-    val emojiCategories = remember { EmojiData.categories }
-
-    val categoryIcons = remember {
-        listOf("🍔", "🏆", "❤️", "👕", "🌿", "✈️")
-    }
-
-    ModalBottomSheet(
+    Dialog(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.85f),
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.surface,
         ) {
-            // Header
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = AppDimensions.mediumPadding),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+            Column(
+                modifier = Modifier.fillMaxSize(),
             ) {
-                Text(
-                    text = stringResource(R.string.select_emoji_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                )
-                IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.dismiss))
-                }
-            }
-
-            // SearchBar filled
-            SearchBar(
-                query = searchQuery,
-                onQueryChange = { searchQuery = it },
-                placeholderText = stringResource(R.string.search_emojis),
-                variant = SearchBarVariant.Filled,
-                modifier = Modifier.padding(
-                    horizontal = AppDimensions.mediumPadding,
-                    vertical = AppDimensions.smallPadding,
-                ),
-            )
-
-            // Category chips (only when not searching)
-            if (searchQuery.isBlank()) {
-                LazyRow(
-                    modifier = Modifier.padding(
-                        horizontal = AppDimensions.mediumPadding,
-                        vertical = AppDimensions.smallPadding,
-                    ),
-                    horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
-                ) {
-                    itemsIndexed(emojiCategories) { index, category ->
-                        FilterChip(
-                            selected = index == selectedCategoryIndex,
-                            onClick = { selectedCategoryIndex = index },
-                            label = { Text(category.name) },
-                            leadingIcon = {
-                                Text(categoryIcons.getOrElse(index) { "📂" })
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            ),
-                            shape = RoundedCornerShape(50),
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(R.string.select_emoji_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
                         )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onDismiss) {
+                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.dismiss))
+                        }
                     }
-                }
-            }
-
-            // Content: either search results or category grid
-            if (searchQuery.isNotBlank()) {
-                val searchResults = remember(searchQuery) {
-                    EmojiData.allEmojis.filter { emoji ->
-                        emoji.contains(searchQuery, ignoreCase = true)
-                    }
-                }
-                EmojiGrid(
-                    emojis = searchResults,
-                    selectedEmoji = selectedEmoji,
-                    onEmojiSelected = onEmojiSelected,
                 )
-            } else {
-                val displayCategory = emojiCategories.getOrNull(selectedCategoryIndex)
-                if (displayCategory != null) {
-                    Text(
-                        text = displayCategory.name.uppercase(),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(
-                            horizontal = AppDimensions.mediumLargePadding,
-                            vertical = AppDimensions.smallPadding,
-                        ),
-                    )
-                    EmojiGrid(
-                        emojis = displayCategory.emojis,
-                        selectedEmoji = selectedEmoji,
-                        onEmojiSelected = onEmojiSelected,
-                    )
-                }
+
+                AndroidView(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    factory = { context ->
+                        EmojiPickerView(context).apply {
+                            setOnEmojiPickedListener { emojiViewItem ->
+                                onEmojiSelected(emojiViewItem.emoji)
+                            }
+                        }
+                    }
+                )
             }
         }
     }
 }
-
-@Composable
-private fun EmojiGrid(
-    emojis: List<String>,
-    selectedEmoji: String,
-    onEmojiSelected: (String) -> Unit,
-) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(EMOJI_GRID_COLUMNS),
-        modifier = Modifier.padding(horizontal = AppDimensions.mediumPadding),
-        contentPadding = PaddingValues(AppDimensions.extraSmallPadding),
-        verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
-        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
-    ) {
-        items(emojis, key = { it }) { emoji ->
-            val isSelected = emoji == selectedEmoji
-            Surface(
-                onClick = { onEmojiSelected(emoji) },
-                modifier = Modifier.size(AppDimensions.Categories.emojiGridItemSize),
-                shape = CircleShape,
-                color = if (isSelected) {
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                } else {
-                    Color.Transparent
-                },
-                border = if (isSelected) {
-                    BorderStroke(
-                        AppDimensions.mediumBorderWidth,
-                        MaterialTheme.colorScheme.primary,
-                    )
-                } else {
-                    null
-                },
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    Text(
-                        text = emoji,
-                        style = MaterialTheme.typography.titleLarge,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-            }
-        }
-    }
-}
-
-private const val EMOJI_GRID_COLUMNS = 6
 
 @Composable
 private fun DeleteCategoryDialog(
@@ -668,3 +591,62 @@ private fun DeleteCategoryDialog(
     )
 }
 
+@Preview(showBackground = true, name = "Edit Category")
+@Composable
+private fun CategoryFormScreenPreview() {
+    MiEmpresaTheme {
+        CategoryFormContent(
+            name = "Bebidas",
+            selectedEmoji = "🥤",
+            nameError = null,
+            isSaving = false,
+            isEditMode = true,
+            productCount = 5,
+            onNameChanged = {},
+            onEmojiSelected = {},
+            onSave = {},
+            onDelete = {},
+            onNavigateBack = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "New Category")
+@Composable
+private fun NewCategoryPreview() {
+    MiEmpresaTheme {
+        CategoryFormContent(
+            name = "",
+            selectedEmoji = "",
+            nameError = null,
+            isSaving = false,
+            isEditMode = false,
+            productCount = 0,
+            onNameChanged = {},
+            onEmojiSelected = {},
+            onSave = {},
+            onDelete = {},
+            onNavigateBack = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Edit Category No Emoji")
+@Composable
+private fun EditCategoryNoEmojiPreview() {
+    MiEmpresaTheme {
+        CategoryFormContent(
+            name = "Sin Emoji",
+            selectedEmoji = "",
+            nameError = null,
+            isSaving = false,
+            isEditMode = true,
+            productCount = 0,
+            onNameChanged = {},
+            onEmojiSelected = {},
+            onSave = {},
+            onDelete = {},
+            onNavigateBack = {}
+        )
+    }
+}

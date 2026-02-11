@@ -4,6 +4,7 @@ agp = "9.0.0"
 coilCompose = "2.7.0"
 core = "3.5.4"
 credentials = "1.5.0"
+emoji2Emojipicker = "1.6.0"
 firebaseBom = "34.9.0"
 kotlinxCoroutinesTest = "1.10.2"
 ktlint = "14.0.1"
@@ -39,6 +40,7 @@ accompanist-flowlayout = { module = "com.google.accompanist:accompanist-flowlayo
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
 androidx-credentials-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentials" }
+androidx-emoji2-emojipicker = { module = "androidx.emoji2:emoji2-emojipicker", version.ref = "emoji2Emojipicker" }
 androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hiltNavigationCompose" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "hiltNavigationCompose" }

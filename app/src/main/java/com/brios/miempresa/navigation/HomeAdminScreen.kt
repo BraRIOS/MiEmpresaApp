@@ -176,6 +176,7 @@ private fun FABPaddingBottom(
         FloatingActionButton(
             modifier = Modifier.size(AppDimensions.mainFABSize),
             onClick = onClick,
+//            containerColor = MaterialTheme.colorScheme.primary
         ) {
             Icon(
                 icon,

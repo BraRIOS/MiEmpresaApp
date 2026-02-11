@@ -100,6 +100,7 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.hilt.work)
     ksp(libs.androidx.hilt.compiler)
+    implementation(libs.androidx.emoji2.emojipicker)
 
     // ZXing for QR code generation (core only - no camera/scanning)
     implementation(libs.zxing.core)

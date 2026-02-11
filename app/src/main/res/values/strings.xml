@@ -220,7 +220,7 @@
     <string name="no_categories_yet">Aún no tenés categorías</string>
     <string name="no_categories_match">No se encontraron categorías</string>
     <string name="category_name">Nombre de la categoría</string>
-    <string name="select_emoji">Seleccionar emoji</string>
+    <string name="icon_label">Icono</string>
     <string name="select_emoji_title">Seleccionar ícono</string>
     <string name="search_emojis">Buscar emojis…</string>
     <string name="delete_category">Eliminar categoría</string>
@@ -251,6 +251,7 @@
     <string name="save_product">Guardar producto</string>
     <string name="photo_label">Foto</string>
     <string name="edit_photo">Cambiar foto</string>
+    <string name="remove_photo">Quitar foto</string>
     <string name="no_categories_create_first">No hay categorías. Creá una antes de agregar productos.</string>
     <string name="create_category">Crear categoría</string>
     <string name="confirm_delete_product">¿Estás seguro de que querés eliminar este producto?</string>

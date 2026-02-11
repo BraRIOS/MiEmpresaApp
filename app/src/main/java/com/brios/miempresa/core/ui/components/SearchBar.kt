@@ -33,29 +33,63 @@ import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray300
 
+enum class SearchBarVariant { Outlined, Filled }
+
 @Composable
 fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     placeholderText: String = "",
+    variant: SearchBarVariant = SearchBarVariant.Outlined,
 ) {
-    val shape = remember { RoundedCornerShape(AppDimensions.mediumCornerRadius) }
+    val shape = remember {
+        RoundedCornerShape(
+            if (variant == SearchBarVariant.Filled) {
+                AppDimensions.largeCornerRadius
+            } else {
+                AppDimensions.mediumCornerRadius
+            },
+        )
+    }
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    val borderColor = if (isFocused) MaterialTheme.colorScheme.primary else SlateGray300
+
+    val backgroundColor = when (variant) {
+        SearchBarVariant.Outlined -> MaterialTheme.colorScheme.surfaceContainerLowest
+        SearchBarVariant.Filled -> MaterialTheme.colorScheme.surfaceContainerHigh
+    }
+    val iconTint = when (variant) {
+        SearchBarVariant.Outlined -> if (isFocused) MaterialTheme.colorScheme.primary else SlateGray300
+        SearchBarVariant.Filled -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
 
     BasicTextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(horizontal = AppDimensions.mediumPadding)
-                .height(48.dp)
-                .shadow(1.dp, shape)
-                .background(MaterialTheme.colorScheme.surfaceContainerLowest, shape)
-                .border(1.dp, borderColor, shape),
+        modifier = modifier
+            .fillMaxWidth()
+            .then(
+                if (variant == SearchBarVariant.Outlined) {
+                    Modifier.padding(horizontal = AppDimensions.mediumPadding)
+                } else {
+                    Modifier
+                },
+            )
+            .height(48.dp)
+            .then(
+                when (variant) {
+                    SearchBarVariant.Outlined -> {
+                        val borderColor =
+                            if (isFocused) MaterialTheme.colorScheme.primary else SlateGray300
+                        Modifier
+                            .shadow(1.dp, shape)
+                            .border(1.dp, borderColor, shape)
+                    }
+                    SearchBarVariant.Filled -> Modifier
+                },
+            )
+            .background(backgroundColor, shape),
         textStyle = MaterialTheme.typography.bodyMedium,
         singleLine = true,
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
@@ -63,19 +97,17 @@ fun SearchBar(
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         decorationBox = { innerTextField ->
             Row(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = AppDimensions.mediumPadding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = AppDimensions.mediumPadding),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
             ) {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = null,
-                    tint = borderColor,
+                    tint = iconTint,
                 )
-
                 Box(modifier = Modifier.weight(1f)) {
                     if (query.isEmpty()) {
                         Text(
@@ -93,12 +125,25 @@ fun SearchBar(
 
 @Preview(showBackground = true)
 @Composable
-private fun SearchBarPreview() {
+private fun SearchBarOutlinedPreview() {
     MiEmpresaTheme {
         SearchBar(
             query = "",
             onQueryChange = {},
             placeholderText = "Buscar productos...",
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SearchBarFilledPreview() {
+    MiEmpresaTheme {
+        SearchBar(
+            query = "",
+            onQueryChange = {},
+            placeholderText = "Buscar emojis...",
+            variant = SearchBarVariant.Filled,
         )
     }
 }

@@ -10,20 +10,25 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Info
@@ -34,6 +39,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,8 +57,10 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,6 +73,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.categories.domain.EmojiData
+import com.brios.miempresa.core.ui.components.SearchBar
+import com.brios.miempresa.core.ui.components.SearchBarVariant
 import com.brios.miempresa.core.ui.theme.AppDimensions
 
 private val QuickPickEmojis = listOf("🍔", "🥤", "👕", "🏠", "📦", "📱")
@@ -462,71 +473,168 @@ private fun EmojiBottomSheet(
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var selectedCategoryIndex by rememberSaveable { mutableIntStateOf(0) }
+
+    val emojiCategories = remember { EmojiData.categories }
+
+    val categoryIcons = remember {
+        listOf("🍔", "🏆", "❤️", "👕", "🌿", "✈️")
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
     ) {
         Column(
-            modifier =
-                Modifier
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f),
+        ) {
+            // Header
+            Row(
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = AppDimensions.mediumPadding),
-        ) {
-            Text(
-                text = stringResource(R.string.select_emoji),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = AppDimensions.mediumPadding),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.select_emoji_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.dismiss))
+                }
+            }
+
+            // SearchBar filled
+            SearchBar(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it },
+                placeholderText = stringResource(R.string.search_emojis),
+                variant = SearchBarVariant.Filled,
+                modifier = Modifier.padding(
+                    horizontal = AppDimensions.mediumPadding,
+                    vertical = AppDimensions.smallPadding,
+                ),
             )
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(EMOJI_GRID_COLUMNS),
-                contentPadding = PaddingValues(AppDimensions.extraSmallPadding),
-                verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
-                horizontalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
-                modifier = Modifier.height(AppDimensions.bottomSheetPeekHeight),
-            ) {
-                items(EmojiData.allEmojis, key = { it }) { emoji ->
-                    val isSelected = emoji == selectedEmoji
-                    Surface(
-                        onClick = { onEmojiSelected(emoji) },
-                        modifier = Modifier.size(AppDimensions.Categories.emojiGridItemSize),
-                        shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
-                        color =
-                            if (isSelected) {
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                            } else {
-                                Color.Transparent
+            // Category chips (only when not searching)
+            if (searchQuery.isBlank()) {
+                LazyRow(
+                    modifier = Modifier.padding(
+                        horizontal = AppDimensions.mediumPadding,
+                        vertical = AppDimensions.smallPadding,
+                    ),
+                    horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+                ) {
+                    itemsIndexed(emojiCategories) { index, category ->
+                        FilterChip(
+                            selected = index == selectedCategoryIndex,
+                            onClick = { selectedCategoryIndex = index },
+                            label = { Text(category.name) },
+                            leadingIcon = {
+                                Text(categoryIcons.getOrElse(index) { "📂" })
                             },
-                        border =
-                            if (isSelected) {
-                                BorderStroke(
-                                    AppDimensions.mediumBorderWidth,
-                                    MaterialTheme.colorScheme.primary,
-                                )
-                            } else {
-                                null
-                            },
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.fillMaxSize(),
-                        ) {
-                            Text(
-                                text = emoji,
-                                style = MaterialTheme.typography.titleLarge,
-                                textAlign = TextAlign.Center,
-                            )
-                        }
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            ),
+                            shape = RoundedCornerShape(50),
+                        )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
+            // Content: either search results or category grid
+            if (searchQuery.isNotBlank()) {
+                val searchResults = remember(searchQuery) {
+                    EmojiData.allEmojis.filter { emoji ->
+                        emoji.contains(searchQuery, ignoreCase = true)
+                    }
+                }
+                EmojiGrid(
+                    emojis = searchResults,
+                    selectedEmoji = selectedEmoji,
+                    onEmojiSelected = onEmojiSelected,
+                )
+            } else {
+                val displayCategory = emojiCategories.getOrNull(selectedCategoryIndex)
+                if (displayCategory != null) {
+                    Text(
+                        text = displayCategory.name.uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(
+                            horizontal = AppDimensions.mediumLargePadding,
+                            vertical = AppDimensions.smallPadding,
+                        ),
+                    )
+                    EmojiGrid(
+                        emojis = displayCategory.emojis,
+                        selectedEmoji = selectedEmoji,
+                        onEmojiSelected = onEmojiSelected,
+                    )
+                }
+            }
         }
     }
 }
+
+@Composable
+private fun EmojiGrid(
+    emojis: List<String>,
+    selectedEmoji: String,
+    onEmojiSelected: (String) -> Unit,
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(EMOJI_GRID_COLUMNS),
+        modifier = Modifier.padding(horizontal = AppDimensions.mediumPadding),
+        contentPadding = PaddingValues(AppDimensions.extraSmallPadding),
+        verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+    ) {
+        items(emojis, key = { it }) { emoji ->
+            val isSelected = emoji == selectedEmoji
+            Surface(
+                onClick = { onEmojiSelected(emoji) },
+                modifier = Modifier.size(AppDimensions.Categories.emojiGridItemSize),
+                shape = CircleShape,
+                color = if (isSelected) {
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                } else {
+                    Color.Transparent
+                },
+                border = if (isSelected) {
+                    BorderStroke(
+                        AppDimensions.mediumBorderWidth,
+                        MaterialTheme.colorScheme.primary,
+                    )
+                } else {
+                    null
+                },
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    Text(
+                        text = emoji,
+                        style = MaterialTheme.typography.titleLarge,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+        }
+    }
+}
+
+private const val EMOJI_GRID_COLUMNS = 6
 
 @Composable
 private fun DeleteCategoryDialog(
@@ -560,4 +668,3 @@ private fun DeleteCategoryDialog(
     )
 }
 
-private const val EMOJI_GRID_COLUMNS = 7

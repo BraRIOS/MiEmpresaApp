@@ -1,6 +1,11 @@
 package com.brios.miempresa.products.ui
 
-import androidx.compose.foundation.BorderStroke
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,22 +24,20 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.AddAPhoto
 import androidx.compose.material.icons.outlined.Save
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -50,14 +53,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
+import com.brios.miempresa.core.ui.components.CategorySelectorBottomSheet
+import com.brios.miempresa.core.ui.components.DeleteDialog
 import com.brios.miempresa.core.ui.theme.AppDimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,7 +86,20 @@ fun ProductFormScreen(
     val categoryError by viewModel.categoryError.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var categoryExpanded by remember { mutableStateOf(false) }
+    var showCategorySheet by remember { mutableStateOf(false) }
+
+    val localImagePath by viewModel.localImagePath.collectAsStateWithLifecycle()
+    val imageUrl = when {
+        localImagePath != null -> localImagePath
+        viewModel.isEditMode -> viewModel.originalImageUrl
+        else -> null
+    }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+    ) { uri: Uri? ->
+        uri?.let { viewModel.onImageSelected(it.toString()) }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.saveComplete.collect { onNavigateBack() }
@@ -102,16 +123,7 @@ fun ProductFormScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back))
                     }
                 },
-                actions = {
-                    if (viewModel.isEditMode) {
-                        IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = stringResource(R.string.delete),
-                            )
-                        }
-                    }
-                },
+                actions = {},
             )
         },
         bottomBar = {
@@ -120,27 +132,43 @@ fun ProductFormScreen(
                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
                 shadowElevation = 8.dp,
             ) {
-                Button(
-                    onClick = viewModel::save,
-                    enabled = !isSaving,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(AppDimensions.mediumLargePadding)
-                            .height(56.dp),
-                    shape = RoundedCornerShape(50),
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(AppDimensions.mediumLargePadding),
+                    horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumSmallPadding),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        Icons.Outlined.Save,
-                        contentDescription = null,
-                        modifier = Modifier.size(22.dp),
-                    )
-                    Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
-                    Text(
-                        text = stringResource(R.string.save_product),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                    )
+                    if (viewModel.isEditMode) {
+                        FloatingActionButton(
+                            onClick = { showDeleteDialog = true },
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(56.dp),
+                        ) {
+                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete))
+                        }
+                    }
+                    Button(
+                        onClick = viewModel::save,
+                        enabled = !isSaving,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(50),
+                    ) {
+                        Icon(
+                            Icons.Outlined.Save,
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp),
+                        )
+                        Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+                        Text(
+                            text = stringResource(R.string.save_product),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
                 }
             }
         },
@@ -156,27 +184,49 @@ fun ProductFormScreen(
         ) {
             // Image picker
             Box(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(AppDimensions.mediumCornerRadius))
+                    .then(
+                        if (imageUrl != null) {
+                            Modifier
+                        } else {
+                            Modifier
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.06f))
+                                .border(
+                                    width = AppDimensions.mediumBorderWidth,
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                                    shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                                )
+                        },
+                    )
+                    .clickable { imagePickerLauncher.launch("image/*") },
                 contentAlignment = Alignment.Center,
             ) {
-                OutlinedButton(
-                    onClick = { /* TODO: ACTION_PICK */ },
-                    modifier = Modifier.size(128.dp),
-                    shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
-                    border =
-                        BorderStroke(
-                            AppDimensions.mediumBorderWidth,
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                        ),
-                    colors =
-                        androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
-                        ),
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
+                if (imageUrl != null) {
+                    SubcomposeAsyncImage(
+                        model = imageUrl,
+                        contentDescription = stringResource(R.string.photo_label),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    SmallFloatingActionButton(
+                        onClick = { imagePickerLauncher.launch("image/*") },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(AppDimensions.smallPadding),
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                            .copy(alpha = 0.9f),
                     ) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = stringResource(R.string.edit_photo),
+                            modifier = Modifier.size(AppDimensions.smallIconSize),
+                        )
+                    }
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
                             Icons.Outlined.AddAPhoto,
                             contentDescription = null,
@@ -264,52 +314,35 @@ fun ProductFormScreen(
                                 Text(stringResource(R.string.create_category))
                             }
                         } else {
-                            ExposedDropdownMenuBox(
-                                expanded = categoryExpanded,
-                                onExpandedChange = { categoryExpanded = it },
+                            Surface(
+                                onClick = { showCategorySheet = true },
+                                color = Color.Transparent,
+                                modifier = Modifier.fillMaxWidth(),
                             ) {
-                                TextField(
-                                    value =
-                                        categories.find { it.id == selectedCategoryId }?.let {
-                                            "${it.iconEmoji} ${it.name}"
-                                        } ?: "",
-                                    onValueChange = {},
-                                    readOnly = true,
-                                    placeholder = {
-                                        Text(
-                                            stringResource(R.string.select_category_placeholder),
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                        )
-                                    },
-                                    isError = categoryError != null,
-                                    trailingIcon = {
-                                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded)
-                                    },
-                                    colors =
-                                        TextFieldDefaults.colors(
-                                            focusedContainerColor = Color.Transparent,
-                                            unfocusedContainerColor = Color.Transparent,
-                                            focusedIndicatorColor = Color.Transparent,
-                                            unfocusedIndicatorColor = Color.Transparent,
-                                        ),
-                                    modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                                )
-                                ExposedDropdownMenu(
-                                    expanded = categoryExpanded,
-                                    onDismissRequest = { categoryExpanded = false },
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = AppDimensions.mediumSmallPadding),
+                                    verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    categories.forEach { category ->
-                                        DropdownMenuItem(
-                                            text = { Text("${category.iconEmoji} ${category.name}") },
-                                            onClick = {
-                                                viewModel.onCategorySelected(category.id)
-                                                categoryExpanded = false
-                                            },
-                                        )
-                                    }
+                                    Text(
+                                        text = categories.find { it.id == selectedCategoryId }?.let {
+                                            "${it.iconEmoji} ${it.name}"
+                                        } ?: stringResource(R.string.select_category_placeholder),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = if (selectedCategoryId != null) {
+                                            MaterialTheme.colorScheme.onSurface
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                                .copy(alpha = 0.5f)
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    Icon(
+                                        imageVector = Icons.Default.KeyboardArrowDown,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
                                 }
                             }
                             if (categoryError != null) {
@@ -359,25 +392,27 @@ fun ProductFormScreen(
     }
 
     if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text(stringResource(R.string.delete_product)) },
-            text = { Text(stringResource(R.string.confirm_delete_product)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        viewModel.delete()
-                    },
-                ) {
-                    Text(stringResource(R.string.delete))
-                }
+        DeleteDialog(
+            itemName = name,
+            title = stringResource(R.string.delete_product),
+            onDismiss = { showDeleteDialog = false },
+            onConfirm = {
+                showDeleteDialog = false
+                viewModel.delete()
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
+        )
+    }
+
+    if (showCategorySheet) {
+        CategorySelectorBottomSheet(
+            categories = categories,
+            selectedCategoryId = selectedCategoryId,
+            onCategorySelected = { id ->
+                if (id != null) viewModel.onCategorySelected(id)
+                showCategorySheet = false
             },
+            onDismiss = { showCategorySheet = false },
+            onCreateCategory = onNavigateToAddCategory,
         )
     }
 }

@@ -71,6 +71,8 @@ class ProductFormViewModel
         private var companyId: String? = null
         private var originalProduct: ProductEntity? = null
 
+        val originalImageUrl: String? get() = originalProduct?.imageUrl
+
         private val _companyIdFlow = MutableStateFlow<String?>(null)
 
         val categories: StateFlow<List<Category>> =

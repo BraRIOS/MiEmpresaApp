@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,23 +24,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.outlined.AddAPhoto
-import androidx.compose.material.icons.outlined.Save
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,9 +51,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -86,10 +83,10 @@ import com.brios.miempresa.R
 import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.core.ui.components.CategorySelectorBottomSheet
 import com.brios.miempresa.core.ui.components.DeleteDialog
+import com.brios.miempresa.core.ui.components.SimpleFormField
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray200
-
 
 @Composable
 fun ProductFormScreen(
@@ -148,7 +145,7 @@ fun ProductFormScreen(
         onDelete = viewModel::delete,
         nameError = nameError,
         priceError = priceError,
-        categoryError = categoryError
+        categoryError = categoryError,
     )
 }
 
@@ -201,8 +198,12 @@ fun ProductFormContent(
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back))
                         }
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background,
+                        scrolledContainerColor = Color.Unspecified,
+                        navigationIconContentColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = Color.Unspecified,
+                        actionIconContentColor = Color.Unspecified,
                     ),
                 )
                 HorizontalDivider(
@@ -214,7 +215,7 @@ fun ProductFormContent(
         bottomBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+                color = MaterialTheme.colorScheme.background,
                 shadowElevation = 8.dp,
             ) {
                 Row(
@@ -231,15 +232,15 @@ fun ProductFormContent(
                             shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                             contentPadding = PaddingValues(0.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = Color(0xFFFEF2F2), // red-50
-                                contentColor = Color(0xFFDC2626),   // red-600
+                                containerColor = Color(0xFFFFEBEE), // red-50
+                                contentColor = Color(0xFFE53935),   // red-600
                             ),
-                            border = BorderStroke(2.dp, Color(0xFFFEE2E2)), // red-100
+                            border = BorderStroke(2.dp, Color(0xFFFFCDD2)), // red-100
                         ) {
                             Icon(
-                                Icons.Default.Delete,
+                                Icons.Outlined.Delete,
                                 contentDescription = stringResource(R.string.delete),
-                                modifier = Modifier.size(26.dp),
+                                modifier = Modifier.size(AppDimensions.defaultIconSize),
                             )
                         }
                     }
@@ -252,7 +253,7 @@ fun ProductFormContent(
                         shape = RoundedCornerShape(50),
                     ) {
                         Icon(
-                            Icons.Outlined.Save,
+                            Icons.Filled.Save,
                             contentDescription = null,
                             modifier = Modifier.size(22.dp),
                         )
@@ -269,11 +270,11 @@ fun ProductFormContent(
     ) { paddingValues ->
         Column(
             modifier =
-            Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(AppDimensions.mediumPadding),
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .padding(AppDimensions.mediumPadding),
             verticalArrangement = Arrangement.spacedBy(AppDimensions.largePadding),
         ) {
             // Image picker
@@ -313,7 +314,7 @@ fun ProductFormContent(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(imageUrl)
                             .crossfade(true)
-                            .build()
+                            .build(),
                     )
 
                     // Blurred background
@@ -324,7 +325,7 @@ fun ProductFormContent(
                         modifier = Modifier
                             .fillMaxSize()
                             .blur(radius = 20.dp)
-                            .alpha(0.6f)
+                            .alpha(0.6f),
                     )
 
                     Image(
@@ -333,36 +334,49 @@ fun ProductFormContent(
                         contentScale = ContentScale.Fit,
                         modifier = Modifier.fillMaxSize(),
                     )
-                    Row(
+
+                    Column(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
+                            .fillMaxHeight()
                             .padding(AppDimensions.smallPadding),
-                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+                        verticalArrangement = Arrangement.SpaceBetween,
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         // Remove button
                         SmallFloatingActionButton(
+                            modifier = Modifier
+                                .border(1.dp, Color.White.copy(alpha = 0.6f), CircleShape)
+                                .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                                .size(AppDimensions.smallFabSize),
                             onClick = onImageRemoved,
-                            containerColor = Color.Black.copy(alpha = 0.3f),
+                            containerColor = Color.Transparent,
                             contentColor = Color.White,
                             shape = CircleShape,
+                            elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp),
                         ) {
                             Icon(
                                 Icons.Default.Close,
                                 contentDescription = stringResource(R.string.remove_photo),
-                                modifier = Modifier.size(AppDimensions.smallIconSize),
+                                modifier = Modifier.size(AppDimensions.smallFabIconSize),
                             )
                         }
                         // Edit button
                         SmallFloatingActionButton(
+                            modifier = Modifier
+                                .border(1.dp, Color.White.copy(alpha = 0.6f), CircleShape)
+                                .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                                .size(AppDimensions.smallFabSize),
                             onClick = { onImageClick() },
-                            containerColor = Color.Black.copy(alpha = 0.3f),
+                            containerColor = Color.Transparent,
                             contentColor = Color.White,
                             shape = CircleShape,
+                            elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp),
                         ) {
                             Icon(
-                                Icons.Default.Edit,
+                                Icons.Outlined.Edit,
                                 contentDescription = stringResource(R.string.edit_photo),
-                                modifier = Modifier.size(AppDimensions.smallIconSize),
+                                modifier = Modifier.size(AppDimensions.smallFabIconSize),
                             )
                         }
                     }
@@ -395,17 +409,22 @@ fun ProductFormContent(
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     // Name field
-                    FormField(
+                    SimpleFormField(
                         label = stringResource(R.string.product_name_label),
                         value = name,
                         onValueChange = onNameChanged,
                         placeholder = stringResource(R.string.product_name_placeholder),
                         isError = nameError != null,
                         errorText = nameError,
-                        showDivider = true,
                     )
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = AppDimensions.mediumPadding),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+
                     // Price field
-                    FormField(
+                    SimpleFormField(
                         label = stringResource(R.string.price_label),
                         value = price,
                         onValueChange = onPriceChanged,
@@ -429,28 +448,33 @@ fun ProductFormContent(
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     // Description
-                    FormField(
+                    SimpleFormField(
                         label = stringResource(R.string.description_label),
                         value = description,
                         onValueChange = onDescriptionChanged,
                         placeholder = stringResource(R.string.description_placeholder),
                         singleLine = false,
                         minLines = 3,
-                        showDivider = true,
                     )
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = AppDimensions.mediumPadding),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+
                     // Category dropdown
                     Column(
                         modifier =
-                        Modifier.padding(
-                            horizontal = AppDimensions.mediumPadding,
-                            vertical = AppDimensions.mediumSmallPadding,
-                        ),
+                            Modifier.padding(
+                                horizontal = AppDimensions.mediumPadding,
+                                vertical = AppDimensions.mediumPadding,
+                            ),
                     ) {
                         Text(
                             text = stringResource(R.string.category_label),
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         )
                         if (categories.isEmpty()) {
                             Text(
@@ -471,7 +495,7 @@ fun ProductFormContent(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = AppDimensions.mediumSmallPadding),
+                                        .padding(vertical = AppDimensions.smallPadding),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Text(
@@ -480,7 +504,7 @@ fun ProductFormContent(
                                         } ?: stringResource(R.string.select_category_placeholder),
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = if (selectedCategoryId != null) {
-                                            MaterialTheme.colorScheme.onSurface
+                                            MaterialTheme.colorScheme.onBackground
                                         } else {
                                             MaterialTheme.colorScheme.onSurfaceVariant
                                                 .copy(alpha = 0.5f)
@@ -518,9 +542,9 @@ fun ProductFormContent(
             ) {
                 Row(
                     modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(AppDimensions.mediumPadding),
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(AppDimensions.mediumPadding),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
@@ -528,6 +552,7 @@ fun ProductFormContent(
                             text = stringResource(R.string.visible_public_catalog),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onBackground,
                         )
                         Text(
                             text = stringResource(R.string.public_switch_helper),
@@ -570,96 +595,6 @@ fun ProductFormContent(
     }
 }
 
-@Composable
-private fun FormField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    modifier: Modifier = Modifier,
-    prefix: String? = null,
-    isError: Boolean = false,
-    errorText: String? = null,
-    singleLine: Boolean = true,
-    minLines: Int = 1,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    showDivider: Boolean = false,
-) {
-    Column(
-        modifier =
-            modifier.padding(
-                start = AppDimensions.mediumPadding,
-                end = AppDimensions.mediumPadding,
-                top = AppDimensions.mediumPadding,
-                bottom = if (showDivider) AppDimensions.extraSmallPadding else AppDimensions.mediumPadding,
-            ),
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-            color =
-                if (isError) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-        )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (prefix != null) {
-                Text(
-                    text = prefix,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(end = AppDimensions.extraSmallPadding),
-                )
-            }
-            TextField(
-                value = value,
-                onValueChange = onValueChange,
-                placeholder = {
-                    Text(
-                        text = placeholder,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                    )
-                },
-                singleLine = singleLine,
-                minLines = minLines,
-                isError = isError,
-                keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-                colors =
-                    TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor =
-                            if (showDivider) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                Color.Transparent
-                            },
-                        unfocusedIndicatorColor =
-                            if (showDivider) {
-                                MaterialTheme.colorScheme.outlineVariant
-                            } else {
-                                Color.Transparent
-                            },
-                    ),
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-        if (errorText != null) {
-            Text(
-                text = errorText,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = AppDimensions.extraSmallPadding),
-            )
-        }
-    }
-}
-
 private val sampleCategories =
     listOf(
         Category(id = "1", name = "Café", iconEmoji = "☕", companyId = "c1"),
@@ -692,7 +627,7 @@ private fun ProductFormPreview() {
             onSave = {},
             onNavigateBack = {},
             onNavigateToAddCategory = {},
-            onDelete = {}
+            onDelete = {},
         )
     }
 }
@@ -721,7 +656,7 @@ private fun ProductFormNewPreview() {
             onSave = {},
             onNavigateBack = {},
             onNavigateToAddCategory = {},
-            onDelete = {}
+            onDelete = {},
         )
     }
 }

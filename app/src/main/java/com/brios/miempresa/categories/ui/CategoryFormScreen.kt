@@ -7,9 +7,11 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,9 +25,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.outlined.Sell
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Save
+import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -54,7 +58,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
@@ -64,6 +72,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -71,10 +80,12 @@ import androidx.emoji2.emojipicker.EmojiPickerView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
+import com.brios.miempresa.core.ui.components.SimpleFormField
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray200
 import com.brios.miempresa.core.ui.theme.SlateGray400
+import java.util.Locale.getDefault
 
 private val QuickPickEmojis = listOf("🍔", "🥤", "👕", "🏠", "📦", "📱")
 
@@ -159,8 +170,12 @@ private fun CategoryFormContent(
                         }
                     },
                     colors =
-                        TopAppBarDefaults.centerAlignedTopAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.surface,
+                        TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.background,
+                            scrolledContainerColor = Color.Unspecified,
+                            navigationIconContentColor = MaterialTheme.colorScheme.primary,
+                            titleContentColor = Color.Unspecified,
+                            actionIconContentColor = MaterialTheme.colorScheme.onSurface
                         ),
                 )
                 HorizontalDivider(
@@ -172,7 +187,7 @@ private fun CategoryFormContent(
         bottomBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                color = MaterialTheme.colorScheme.background,
                 shadowElevation = 8.dp,
             ) {
                 Button(
@@ -255,104 +270,113 @@ private fun IntegratedNameField(
     nameError: String?,
     onNameChanged: (String) -> Unit,
 ) {
+    var isFocused by remember { mutableStateOf(false) }
+
+    // Colors matching the design
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val errorColor = MaterialTheme.colorScheme.error
+    val slate50 = Color(0xFFF8FAFC)
+    val slate100 = Color(0xFFF1F5F9)
+    val slate200 = SlateGray200
+    val slate300 = Color(0xFFCBD5E1)
+    val slate400 = SlateGray400
+
+    val borderColor = when {
+        nameError != null -> errorColor
+        isFocused -> primaryColor
+        else -> slate200
+    }
+
+    val borderWidth = if (isFocused || nameError != null) 2.dp else 1.dp
+
+    val leftSectionBg = if (isFocused) primaryColor.copy(alpha = 0.1f) else slate50
+    val leftBorderColor = if (isFocused) primaryColor.copy(alpha = 0.2f) else slate100
+    val iconColor = if (isFocused) primaryColor else slate300
+
+    // Shadow
+    val shadowElevation = if (isFocused) 8.dp else 2.dp
+    val shadowColor = if (isFocused) primaryColor.copy(alpha = 0.3f) else Color.Black.copy(alpha = 0.05f)
+
     Column {
-        Card(
-            shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
-            border = when {
-                nameError != null -> BorderStroke(AppDimensions.mediumBorderWidth, MaterialTheme.colorScheme.error)
-                selectedEmoji.isNotEmpty() -> BorderStroke(AppDimensions.mediumBorderWidth, MaterialTheme.colorScheme.primary)
-                else -> BorderStroke(AppDimensions.smallBorderWidth, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-            },
+        Box(
+            modifier = Modifier
+                .shadow(
+                    elevation = shadowElevation,
+                    shape = RoundedCornerShape(16.dp),
+                    spotColor = shadowColor,
+                    ambientColor = shadowColor
+                )
+                .background(MaterialTheme.colorScheme.surfaceContainerLowest, RoundedCornerShape(16.dp))
+                .border(borderWidth, borderColor, RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(16.dp))
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // Left emoji section (72dp)
+            Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+                // Left Section
                 Box(
-                    modifier =
-                        Modifier
-                            .width(AppDimensions.Categories.emojiPreviewWidth)
-                            .height(AppDimensions.Categories.emojiPreviewHeight)
-                            .background(MaterialTheme.colorScheme.background),
-                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .width(72.dp)
+                        .fillMaxHeight()
+                        .background(leftSectionBg)
+                        .drawWithContent {
+                            drawContent()
+                            drawLine(
+                                color = leftBorderColor,
+                                start = Offset(size.width, 0f),
+                                end = Offset(size.width, size.height),
+                                strokeWidth = 1.dp.toPx()
+                            )
+                        },
+                    contentAlignment = Alignment.Center
                 ) {
                     if (selectedEmoji.isNotEmpty()) {
                         Text(
                             text = selectedEmoji,
-                            style = MaterialTheme.typography.headlineSmall,
+                            style = MaterialTheme.typography.displaySmall,
                         )
                     } else {
                         Icon(
-                            imageVector = Icons.Outlined.Sell,
+                            imageVector = Icons.Outlined.Image,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(AppDimensions.mediumIconSize),
+                            tint = iconColor,
+                            modifier = Modifier.size(32.dp)
                         )
                     }
                 }
 
-                // Right TextField section
-                Column(
-                    modifier =
-                        Modifier
-                            .weight(1f)
-                            .padding(AppDimensions.mediumPadding),
-                ) {
-                    Text(
-                        text = "NOMBRE",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    TextField(
+                // Right Section
+                Box(modifier = Modifier.weight(1f)) {
+                    SimpleFormField(
+                        label = stringResource(R.string.name_label).uppercase(getDefault()),
                         value = name,
                         onValueChange = onNameChanged,
-                        placeholder = {
-                            Text(
-                                text = stringResource(R.string.category_name_placeholder),
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                            )
-                        },
-                        textStyle =
-                            MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                            ),
-                        singleLine = true,
-                        colors =
-                            TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent,
-                                focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                            ),
-                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = stringResource(R.string.category_name_placeholder),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
+                        inputModifier = Modifier.onFocusChanged { isFocused = it.isFocused },
+                        isError = nameError != null,
                     )
+
+                    // Edit Icon
+                    if (isFocused) {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = null,
+                            tint = primaryColor,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(8.dp)
+                                .size(18.dp)
+                        )
+                    }
                 }
             }
         }
 
         // Helper text
         Text(
-            text =
-                nameError ?: stringResource(R.string.category_name_helper),
+            text = nameError ?: stringResource(R.string.category_name_helper),
             style = MaterialTheme.typography.bodySmall,
-            color =
-                if (nameError != null) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    SlateGray400
-                },
-            modifier =
-                Modifier.padding(
-                    start = AppDimensions.smallPadding,
-                    top = AppDimensions.smallPadding,
-                ),
+            color = if (nameError != null) errorColor else slate400,
+            modifier = Modifier.padding(start = 8.dp, top = 8.dp)
         )
     }
 }

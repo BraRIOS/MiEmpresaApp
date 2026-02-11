@@ -52,6 +52,9 @@ object AppDimensions {
     val mainFABSize = 64.dp
     val mainFABIconSize = 32.dp
 
+    val smallFabSize = 40.0.dp
+    val smallFabIconSize = 20.0.dp
+
     // Chips
     val categoryFilterChipWidth = 120.dp
 

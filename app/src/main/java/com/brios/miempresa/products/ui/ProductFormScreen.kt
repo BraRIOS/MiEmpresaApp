@@ -476,7 +476,7 @@ fun ProductFormContent(
                                 ) {
                                     Text(
                                         text = categories.find { it.id == selectedCategoryId }?.let {
-                                            "${it.iconEmoji} ${it.name}"
+                                            if (it.iconEmoji.isNotEmpty()) "${it.iconEmoji} ${it.name}" else it.name
                                         } ?: stringResource(R.string.select_category_placeholder),
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = if (selectedCategoryId != null) {

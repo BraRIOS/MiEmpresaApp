@@ -151,7 +151,7 @@ private fun ProductsContentInternal(
                             filters = filters,
                             selectedCategoryName = allCategories
                                 .find { it.id == filters.categoryId }
-                                ?.let { "${it.iconEmoji} ${it.name}" },
+                                ?.let { if (it.iconEmoji.isNotEmpty()) "${it.iconEmoji} ${it.name}" else it.name },
                             onPublicFilterChanged = onPublicFilterChanged,
                             onShowCategorySelector = { showCategorySelector = true },
                         )

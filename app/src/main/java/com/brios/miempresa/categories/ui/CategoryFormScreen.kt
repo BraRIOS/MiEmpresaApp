@@ -23,7 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.AlertDialog
@@ -226,6 +226,7 @@ private fun CategoryFormContent(
 
         if (showEmojiBottomSheet) {
             EmojiDialog(
+                selectedEmoji = selectedEmoji,
                 onEmojiSelected = { emoji ->
                     onEmojiSelected(emoji)
                     showEmojiBottomSheet = false
@@ -284,7 +285,7 @@ private fun IntegratedNameField(
                         )
                     } else {
                         Icon(
-                            imageVector = Icons.Outlined.Image,
+                            imageVector = Icons.Outlined.Sell,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(AppDimensions.mediumIconSize),
@@ -521,6 +522,7 @@ private fun InfoCard() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EmojiDialog(
+    selectedEmoji: String,
     onEmojiSelected: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -557,7 +559,8 @@ private fun EmojiDialog(
                     factory = { context ->
                         EmojiPickerView(context).apply {
                             setOnEmojiPickedListener { emojiViewItem ->
-                                onEmojiSelected(emojiViewItem.emoji)
+                                if (emojiViewItem.emoji == selectedEmoji) onEmojiSelected("")
+                                else onEmojiSelected(emojiViewItem.emoji)
                             }
                         }
                     }

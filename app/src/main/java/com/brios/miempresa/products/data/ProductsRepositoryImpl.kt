@@ -199,7 +199,7 @@ class ProductsRepositoryImpl
                         ?: return@withContext null
 
                     // Upload to Drive
-                    val fileName = "${productName.replace(" ", "_")}_${System.currentTimeMillis()}.jpg"
+                    val fileName = "${sanitizeFilename(productName)}_${System.currentTimeMillis()}.jpg"
                     val fileId = driveApi.uploadFile(
                         file = file,
                         mimeType = "image/jpeg",
@@ -207,17 +207,18 @@ class ProductsRepositoryImpl
                         fileName = fileName,
                     )
 
-                    // Make file publicly readable
+                    // Make file publicly readable and delete local file only if both succeed
                     if (fileId != null) {
-                        driveApi.makeFilePublic(fileId)
+                        val isPublic = driveApi.makeFilePublic(fileId)
+                        if (isPublic) {
+                            file.delete()
+                            fileId
+                        } else {
+                            null // Return null so product stays dirty for retry
+                        }
+                    } else {
+                        null
                     }
-
-                    // Delete local file after successful upload
-                    if (fileId != null) {
-                        file.delete()
-                    }
-
-                    fileId
                 } catch (e: Exception) {
                     null
                 }
@@ -242,6 +243,13 @@ class ProductsRepositoryImpl
             companyDao.update(company.copy(productsFolderId = productsFolder.id))
 
             return productsFolder.id
+        }
+
+        private fun sanitizeFilename(name: String): String {
+            return name
+                .replace(Regex("[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ ]"), "")
+                .replace(" ", "_")
+                .take(50)
         }
 
         companion object {

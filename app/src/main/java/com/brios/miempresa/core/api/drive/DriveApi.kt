@@ -300,21 +300,25 @@ class DriveApi
             fileName: String,
         ): String? =
             withContext(ioDispatcher) {
-                val driveService = googleAuthClient.getGoogleDriveService() ?: return@withContext null
+                try {
+                    val driveService = googleAuthClient.getGoogleDriveService() ?: return@withContext null
 
-                val fileMetadata =
-                    File().apply {
-                        name = fileName
-                        parents = listOf(parentFolderId)
-                    }
-                val mediaContent = FileContent(mimeType, file)
+                    val fileMetadata =
+                        File().apply {
+                            name = fileName
+                            parents = listOf(parentFolderId)
+                        }
+                    val mediaContent = FileContent(mimeType, file)
 
-                val uploadedFile =
-                    driveService.files().create(fileMetadata, mediaContent)
-                        .setFields("id")
-                        .execute()
+                    val uploadedFile =
+                        driveService.files().create(fileMetadata, mediaContent)
+                            .setFields("id")
+                            .execute()
 
-                return@withContext uploadedFile.id
+                    return@withContext uploadedFile.id
+                } catch (e: Exception) {
+                    return@withContext null
+                }
             }
 
         suspend fun deleteFile(fileId: String): Boolean =

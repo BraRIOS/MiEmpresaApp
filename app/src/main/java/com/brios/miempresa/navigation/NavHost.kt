@@ -68,16 +68,14 @@ fun NavHostComposable(
         when (postAuthDest) {
             is PostAuthDestination.Onboarding,
             is PostAuthDestination.CompanySelector,
-            is PostAuthDestination.Home,
             -> {
-                val startRoute =
-                    if (isAlreadySignedIn) {
-                        MiEmpresaScreen.Onboarding.name
-                    } else {
-                        MiEmpresaScreen.Welcome.name
-                    }
                 navController.navigate(MiEmpresaScreen.Onboarding.name) {
-                    popUpTo(startRoute) { inclusive = true }
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                }
+            }
+            is PostAuthDestination.Home -> {
+                navController.navigate(MiEmpresaScreen.Home.name) {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 }
             }
             null -> {}

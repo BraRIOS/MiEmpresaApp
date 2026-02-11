@@ -9,6 +9,7 @@ import com.brios.miempresa.onboarding.domain.WorkspaceCreationResult
 import com.brios.miempresa.onboarding.domain.WorkspaceSetupRequest
 import com.brios.miempresa.onboarding.domain.WorkspaceStep
 import com.brios.miempresa.onboarding.domain.WorkspaceValidationResult
+import com.brios.miempresa.onboarding.ui.components.defaultCountryCodes
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -260,9 +261,25 @@ class OnboardingRepositoryImpl
                         val value = row.getOrNull(1)?.toString() ?: ""
                         key to value
                     }
+                    val rawWhatsapp = infoMap["whatsapp_number"]?.takeIf { it.isNotBlank() }
+                    val (parsedCountryCode, parsedNumber) =
+                        if (rawWhatsapp != null && rawWhatsapp.startsWith("+")) {
+                            val matchedCode =
+                                defaultCountryCodes
+                                    .map { it.code }
+                                    .sortedByDescending { it.length }
+                                    .firstOrNull { rawWhatsapp.startsWith(it) }
+                                    ?: "+54"
+                            matchedCode to rawWhatsapp.removePrefix(matchedCode)
+                        } else {
+                            (updated.whatsappCountryCode ?: "+54") to
+                                (rawWhatsapp ?: updated.whatsappNumber ?: "")
+                        }
+
                     updated = updated.copy(
                         logoUrl = infoMap["logo_url"]?.takeIf { it.isNotBlank() } ?: updated.logoUrl,
-                        whatsappNumber = infoMap["whatsapp_number"]?.takeIf { it.isNotBlank() } ?: updated.whatsappNumber,
+                        whatsappCountryCode = parsedCountryCode,
+                        whatsappNumber = parsedNumber,
                         address = infoMap["address"]?.takeIf { it.isNotBlank() } ?: updated.address,
                         businessHours = infoMap["business_hours"]?.takeIf { it.isNotBlank() } ?: updated.businessHours,
                         specialization = infoMap["specialization"]?.takeIf { it.isNotBlank() } ?: updated.specialization,

@@ -22,8 +22,8 @@
     <string name="product_dialog_required_fields">El Nombre y las Categorías son obligatorios</string>
     <string name="image_url_label">URL de la imagen</string>
     <string name="categories_search">Buscar categorías…</string>
-    <string name="price_label">Precio</string>
-    <string name="description_label">Descripción</string>
+    <string name="price_label">PRECIO</string>
+    <string name="description_label">DESCRIPCIÓN</string>
     <string name="name_label">Nombre</string>
     <string name="product_not_found">Producto no encontrado</string>
     <string name="error_updating_product">Error al actualizar el producto</string>

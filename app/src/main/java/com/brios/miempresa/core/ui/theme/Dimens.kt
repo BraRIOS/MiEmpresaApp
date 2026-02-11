@@ -3,6 +3,7 @@ package com.brios.miempresa.core.ui.theme
 import androidx.compose.ui.unit.dp
 
 object AppDimensions {
+
     // Grid system (4dp base)
     val extraSmallPadding = 4.dp
     val smallPadding = 8.dp
@@ -46,6 +47,14 @@ object AppDimensions {
         val logoSize = 120.dp
         val googleButtonHeight = 56.dp
     }
+
+    // Buttons
+    val mainFABSize = 64.dp
+    val mainFABIconSize = 32.dp
+
+    // Chips
+    val categoryFilterChipWidth = 120.dp
+
 
     object Drawer {
         val appLogoSize = 64.dp

@@ -10,10 +10,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -31,7 +30,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -43,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -53,6 +52,7 @@ import com.brios.miempresa.core.ui.components.CategoryBadge
 import com.brios.miempresa.core.ui.components.DeleteDialog
 import com.brios.miempresa.core.ui.components.CategorySelectorBottomSheet
 import com.brios.miempresa.core.ui.components.EmptyStateView
+import com.brios.miempresa.core.ui.components.NotFoundView
 import com.brios.miempresa.core.ui.components.ItemCard
 import com.brios.miempresa.core.ui.components.OfflineBanner
 import com.brios.miempresa.core.ui.components.SearchBar
@@ -193,21 +193,10 @@ private fun ProductsContentInternal(
                     )
                 }
                 is ProductsUiState.EmptyFiltered -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = stringResource(R.string.no_products_match),
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                            Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
-                            TextButton(onClick = onClearFilters) {
-                                Text(stringResource(R.string.clear_filters))
-                            }
-                        }
-                    }
+                    NotFoundView(
+                        message = stringResource(R.string.no_products_match),
+                        onAction = onClearFilters,
+                    )
                 }
                 is ProductsUiState.Success -> {
                     LazyColumn(
@@ -301,6 +290,7 @@ private fun FilterChipsRow(
         horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
     ) {
         AssistChip(
+            modifier = Modifier.width(AppDimensions.categoryFilterChipWidth),
             onClick = {
                 if (filters.categoryId != null) {
                     onClearCategoryFilter()
@@ -311,6 +301,9 @@ private fun FilterChipsRow(
             label = {
                 Text(
                     text = selectedCategoryName ?: "Categoría",
+                    softWrap = false,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             },
             trailingIcon = {
@@ -320,13 +313,13 @@ private fun FilterChipsRow(
                 )
             },
             colors = AssistChipDefaults.assistChipColors().copy(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                trailingIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                containerColor = if (selectedCategoryName != null) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainerLowest,
+                labelColor = if (selectedCategoryName != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                trailingIconContentColor = if (selectedCategoryName != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
             ),
             border = AssistChipDefaults.assistChipBorder(
                 enabled = true,
-                borderColor = MaterialTheme.colorScheme.outline
+                borderColor = if (selectedCategoryName != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
             ),
             shape = ShapeDefaults.Large
         )

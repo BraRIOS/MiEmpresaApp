@@ -35,6 +35,7 @@ import com.brios.miempresa.R
 import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.core.ui.components.DeleteDialog
 import com.brios.miempresa.core.ui.components.EmptyStateView
+import com.brios.miempresa.core.ui.components.NotFoundView
 import com.brios.miempresa.core.ui.components.ItemCard
 import com.brios.miempresa.core.ui.components.OfflineBanner
 import com.brios.miempresa.core.ui.components.SearchBar
@@ -159,10 +160,8 @@ private fun CategoriesContentInternal(
                 }
                 is CategoriesUiState.Success -> {
                     if (state.categories.isEmpty()) {
-                        EmptyStateView(
-                            icon = Icons.Outlined.SearchOff,
-                            title = stringResource(R.string.no_categories_match),
-                            subtitle = "",
+                        NotFoundView(
+                            message = stringResource(R.string.no_categories_match),
                         )
                     } else {
                         LazyColumn(

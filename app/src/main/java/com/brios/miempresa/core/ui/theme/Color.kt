@@ -15,7 +15,7 @@ val RequiredRed = Color(0xFFEF4444) // text-red-500: required asterisks
 // M3 Light Scheme (generated from primary #F18622FF)
 val primaryLight = Color(0xFFF18622)
 val onPrimaryLight = Color(0xFFFFFFFF)
-val primaryContainerLight = Color(0xFFFFDCC4)
+val primaryContainerLight = Color(0xFFFFE2BE)
 val onPrimaryContainerLight = Color(0xFF6C3A08)
 val secondaryLight = Color(0xFF745944)
 val onSecondaryLight = Color(0xFFFFFFFF)

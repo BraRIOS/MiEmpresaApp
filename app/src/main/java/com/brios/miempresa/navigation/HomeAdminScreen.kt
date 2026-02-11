@@ -3,6 +3,7 @@ package com.brios.miempresa.navigation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.DrawerValue
@@ -68,12 +69,39 @@ fun HomeAdminScreen(
         ConfigScreen(modifier = modifier)
     },
 ) {
+    val productsUiState by productsViewModel.uiState.collectAsStateWithLifecycle()
+    val categoriesUiState by categoriesViewModel.uiState.collectAsStateWithLifecycle()
+
+    HomeAdminScreenContent(
+        navController = navController,
+        onNavigateToAddProduct = onNavigateToAddProduct,
+        onNavigateToProductDetail = onNavigateToProductDetail,
+        onNavigateToAddCategory = onNavigateToAddCategory,
+        onNavigateToCategoryDetail = onNavigateToCategoryDetail,
+        productsUiState = productsUiState,
+        categoriesUiState = categoriesUiState,
+        productsContent = productsContent,
+        categoriesContent = categoriesContent,
+        configContent = configContent,
+    )
+}
+
+@Composable
+fun HomeAdminScreenContent(
+    navController: NavHostController,
+    onNavigateToAddProduct: () -> Unit,
+    onNavigateToProductDetail: (String) -> Unit,
+    onNavigateToAddCategory: () -> Unit,
+    onNavigateToCategoryDetail: (String) -> Unit,
+    productsUiState: ProductsUiState,
+    categoriesUiState: CategoriesUiState,
+    productsContent: @Composable (Modifier) -> Unit,
+    categoriesContent: @Composable (Modifier) -> Unit,
+    configContent: @Composable (Modifier) -> Unit,
+) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
-
-    val productsUiState by productsViewModel.uiState.collectAsStateWithLifecycle()
-    val categoriesUiState by categoriesViewModel.uiState.collectAsStateWithLifecycle()
 
     val showFab = when (selectedTab) {
         0 -> productsUiState !is ProductsUiState.Empty
@@ -110,11 +138,17 @@ fun HomeAdminScreen(
                 if (showFab) {
                     when (selectedTab) {
                         0 -> {
-                            FABPaddingBottom(onNavigateToAddProduct, contentDescription = stringResource(R.string.add_product))
+                            FABPaddingBottom(
+                                onClick = onNavigateToAddProduct,
+                                contentDescription = stringResource(R.string.add_product)
+                            )
                         }
 
                         1 -> {
-                            FABPaddingBottom(onNavigateToAddCategory, contentDescription = stringResource(R.string.add_category))
+                            FABPaddingBottom(
+                                onClick = onNavigateToAddCategory,
+                                contentDescription = stringResource(R.string.add_category)
+                            )
                         }
                     }
                 }
@@ -136,14 +170,18 @@ private fun FABPaddingBottom(
     contentDescription: String) {
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier.padding(bottom = AppDimensions.mediumPadding),
-    ) {
-        FloatingActionButton(
-            onClick = onClick,
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
+        modifier = Modifier
+            .padding(bottom = AppDimensions.mediumPadding)
         ) {
-            Icon(icon, contentDescription)
+        FloatingActionButton(
+            modifier = Modifier.size(AppDimensions.mainFABSize),
+            onClick = onClick,
+        ) {
+            Icon(
+                icon,
+                contentDescription,
+                Modifier.size(AppDimensions.mainFABIconSize)
+            )
         }
     }
 }
@@ -152,12 +190,45 @@ private fun FABPaddingBottom(
 @Composable
 private fun HomeAdminScreenPreview() {
     MiEmpresaTheme {
-        HomeAdminScreen(
+        HomeAdminScreenContent(
             navController = rememberNavController(),
             onNavigateToAddProduct = {},
             onNavigateToProductDetail = {},
             onNavigateToAddCategory = {},
             onNavigateToCategoryDetail = {},
+            productsUiState = ProductsUiState.Empty,
+            categoriesUiState = CategoriesUiState.Empty,
+            productsContent = { modifier ->
+                Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Products Content")
+                }
+            },
+            categoriesContent = { modifier ->
+                Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Categories Content")
+                }
+            },
+            configContent = { modifier ->
+                Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Config Content")
+                }
+            },
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun HomeAdminScreenWithFABPreview() {
+    MiEmpresaTheme {
+        HomeAdminScreenContent(
+            navController = rememberNavController(),
+            onNavigateToAddProduct = {},
+            onNavigateToProductDetail = {},
+            onNavigateToAddCategory = {},
+            onNavigateToCategoryDetail = {},
+            productsUiState = ProductsUiState.Loading,
+            categoriesUiState = CategoriesUiState.Empty,
             productsContent = { modifier ->
                 Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Products Content")

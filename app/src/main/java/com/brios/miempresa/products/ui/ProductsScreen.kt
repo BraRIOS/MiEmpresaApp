@@ -12,21 +12,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material.icons.outlined.SearchOff
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
@@ -41,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -49,11 +43,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.core.ui.components.CategoryBadge
-import com.brios.miempresa.core.ui.components.DeleteDialog
+import com.brios.miempresa.core.ui.components.CategoryFilterChip
 import com.brios.miempresa.core.ui.components.CategorySelectorBottomSheet
+import com.brios.miempresa.core.ui.components.DeleteDialog
 import com.brios.miempresa.core.ui.components.EmptyStateView
-import com.brios.miempresa.core.ui.components.NotFoundView
 import com.brios.miempresa.core.ui.components.ItemCard
+import com.brios.miempresa.core.ui.components.NotFoundView
 import com.brios.miempresa.core.ui.components.OfflineBanner
 import com.brios.miempresa.core.ui.components.SearchBar
 import com.brios.miempresa.core.ui.components.TriangleArrowRefreshIndicator
@@ -159,7 +154,6 @@ private fun ProductsContentInternal(
                                 ?.let { "${it.iconEmoji} ${it.name}" },
                             onPublicFilterChanged = onPublicFilterChanged,
                             onShowCategorySelector = { showCategorySelector = true },
-                            onClearCategoryFilter = { onCategoryFilterChanged(null) },
                         )
                     }
                     else -> {}
@@ -258,6 +252,17 @@ private fun ProductsContentInternal(
 
     // CategorySelector bottom sheet
     if (showCategorySelector) {
+        val productCountByCategory = when (uiState) {
+            is ProductsUiState.Success ->
+                uiState.products.groupBy { it.categoryId }
+                    .mapNotNull { (key, value) -> key?.let { it to value.size } }
+                    .toMap()
+            else -> emptyMap()
+        }
+        val totalItemCount = when (uiState) {
+            is ProductsUiState.Success -> uiState.products.size
+            else -> 0
+        }
         CategorySelectorBottomSheet(
             categories = allCategories,
             selectedCategoryId = filters.categoryId,
@@ -266,6 +271,9 @@ private fun ProductsContentInternal(
                 showCategorySelector = false
             },
             onDismiss = { showCategorySelector = false },
+            showItemCount = true,
+            productCountByCategory = productCountByCategory,
+            totalItemCount = totalItemCount,
         )
     }
 }
@@ -276,7 +284,6 @@ private fun FilterChipsRow(
     selectedCategoryName: String?,
     onPublicFilterChanged: (PublicFilter) -> Unit,
     onShowCategorySelector: () -> Unit,
-    onClearCategoryFilter: () -> Unit,
 ) {
     Row(
         modifier =
@@ -289,39 +296,9 @@ private fun FilterChipsRow(
                 .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
     ) {
-        AssistChip(
-            modifier = Modifier.width(AppDimensions.categoryFilterChipWidth),
-            onClick = {
-                if (filters.categoryId != null) {
-                    onClearCategoryFilter()
-                } else {
-                    onShowCategorySelector()
-                }
-            },
-            label = {
-                Text(
-                    text = selectedCategoryName ?: "Categoría",
-                    softWrap = false,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            },
-            trailingIcon = {
-                Icon(
-                    Icons.Filled.ArrowDropDown,
-                    stringResource(R.string.category_filter_description),
-                )
-            },
-            colors = AssistChipDefaults.assistChipColors().copy(
-                containerColor = if (selectedCategoryName != null) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainerLowest,
-                labelColor = if (selectedCategoryName != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-                trailingIconContentColor = if (selectedCategoryName != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-            ),
-            border = AssistChipDefaults.assistChipBorder(
-                enabled = true,
-                borderColor = if (selectedCategoryName != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-            ),
-            shape = ShapeDefaults.Large
+        CategoryFilterChip(
+            selectedCategoryName = selectedCategoryName,
+            onClick = onShowCategorySelector,
         )
 
         VerticalDivider(

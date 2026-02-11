@@ -259,4 +259,7 @@
     <string name="emoji_info_hint">El ícono ayuda a identificar la categoría visualmente.</string>
     <string name="category_filter_description">Abrir selector de categoría para filtrar</string>
     <string name="categories_count_label">%1$d CATEGORÍAS</string>
+    <string name="categories_count_header">Categorías (%1$d)</string>
+    <string name="all_categories_option">Todas</string>
+    <string name="items_count">%1$d items</string>
 </resources>

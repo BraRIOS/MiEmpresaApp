@@ -20,5 +20,6 @@ data class Company(
     val publicSheetId: String? = null,
     val privateSheetId: String? = null,
     val driveFolderId: String? = null,
+    val productsFolderId: String? = null,
     val specialization: String? = null,
 )

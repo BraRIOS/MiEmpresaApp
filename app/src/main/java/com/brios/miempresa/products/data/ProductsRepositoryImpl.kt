@@ -1,6 +1,7 @@
 package com.brios.miempresa.products.data
 
 import com.brios.miempresa.categories.data.CategoryDao
+import com.brios.miempresa.core.api.drive.DriveApi
 import com.brios.miempresa.core.api.sheets.SpreadsheetsApi
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.core.di.IoDispatcher
@@ -8,6 +9,7 @@ import com.brios.miempresa.products.domain.ProductsRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 
@@ -18,6 +20,7 @@ class ProductsRepositoryImpl
         private val categoryDao: CategoryDao,
         private val companyDao: CompanyDao,
         private val sheetsApi: SpreadsheetsApi,
+        private val driveApi: DriveApi,
         @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) : ProductsRepository {
         override fun getAll(companyId: String): Flow<List<ProductEntity>> = productDao.getAllByCompanyFlow(companyId)
@@ -180,6 +183,66 @@ class ProductsRepositoryImpl
                     }
                 }
             }
+
+        override suspend fun uploadProductImage(
+            companyId: String,
+            localImagePath: String,
+            productName: String,
+        ): String? =
+            withContext(ioDispatcher) {
+                try {
+                    val file = File(localImagePath)
+                    if (!file.exists()) return@withContext null
+
+                    // Get or create Productos folder
+                    val productsFolderId = getOrCreateProductsFolder(companyId)
+                        ?: return@withContext null
+
+                    // Upload to Drive
+                    val fileName = "${productName.replace(" ", "_")}_${System.currentTimeMillis()}.jpg"
+                    val fileId = driveApi.uploadFile(
+                        file = file,
+                        mimeType = "image/jpeg",
+                        parentFolderId = productsFolderId,
+                        fileName = fileName,
+                    )
+
+                    // Make file publicly readable
+                    if (fileId != null) {
+                        driveApi.makeFilePublic(fileId)
+                    }
+
+                    // Delete local file after successful upload
+                    if (fileId != null) {
+                        file.delete()
+                    }
+
+                    fileId
+                } catch (e: Exception) {
+                    null
+                }
+            }
+
+        private suspend fun getOrCreateProductsFolder(companyId: String): String? {
+            val company = companyDao.getCompanyById(companyId) ?: return null
+
+            // Return cached folder ID if exists
+            if (company.productsFolderId != null) {
+                return company.productsFolderId
+            }
+
+            // Create folder if doesn't exist
+            val driveFolderId = company.driveFolderId ?: return null
+            val productsFolder = driveApi.createCompanyFolder(
+                parentFolderId = driveFolderId,
+                companyName = "Productos",
+            ) ?: return null
+
+            // Cache folder ID in Company entity
+            companyDao.update(company.copy(productsFolderId = productsFolder.id))
+
+            return productsFolder.id
+        }
 
         companion object {
             private const val PRODUCTS_TAB = "Products"

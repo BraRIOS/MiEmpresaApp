@@ -29,4 +29,10 @@ interface ProductsRepository {
     suspend fun syncPendingChanges(companyId: String)
 
     suspend fun downloadFromSheets(companyId: String)
+
+    suspend fun uploadProductImage(
+        companyId: String,
+        localImagePath: String,
+        productName: String,
+    ): String?
 }

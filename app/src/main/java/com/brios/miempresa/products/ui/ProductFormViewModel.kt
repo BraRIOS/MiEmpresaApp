@@ -1,5 +1,7 @@
 package com.brios.miempresa.products.ui
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +11,8 @@ import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.products.data.ProductEntity
 import com.brios.miempresa.products.domain.ProductsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +24,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,6 +35,7 @@ class ProductFormViewModel
         private val productsRepository: ProductsRepository,
         private val categoriesRepository: CategoriesRepository,
         private val companyDao: CompanyDao,
+        @ApplicationContext private val appContext: Context,
         savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
         private val productId: String? = savedStateHandle["productId"]
@@ -124,12 +130,39 @@ class ProductFormViewModel
             _isPublic.value = isPublic
         }
 
-        fun onImageSelected(path: String) {
-            _localImagePath.value = path
+        fun onImageSelected(uriString: String) {
+            viewModelScope.launch(Dispatchers.IO) {
+                val uri = Uri.parse(uriString)
+                val localFile = copyUriToInternalStorage(uri)
+                _localImagePath.value = localFile?.absolutePath
+            }
         }
 
         fun onImageRemoved() {
+            val currentPath = _localImagePath.value
+            if (currentPath != null) {
+                viewModelScope.launch(Dispatchers.IO) {
+                    File(currentPath).delete()
+                }
+            }
             _localImagePath.value = null
+        }
+
+        private fun copyUriToInternalStorage(uri: Uri): File? {
+            return try {
+                val inputStream = appContext.contentResolver.openInputStream(uri) ?: return null
+                val imagesDir = File(appContext.filesDir, "product_images").apply { mkdirs() }
+                val fileName = "product_${System.currentTimeMillis()}.jpg"
+                val outputFile = File(imagesDir, fileName)
+                inputStream.use { input ->
+                    outputFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                outputFile
+            } catch (e: Exception) {
+                null
+            }
         }
 
         fun save() {
@@ -155,6 +188,31 @@ class ProductFormViewModel
 
             viewModelScope.launch {
                 _isSaving.value = true
+                
+                // Upload image if localImagePath exists
+                var finalImageUrl: String? = null
+                var finalDriveImageId: String? = null
+                var uploadFailed = false
+                
+                if (_localImagePath.value != null) {
+                    val uploadResult = productsRepository.uploadProductImage(
+                        companyId = currentCompanyId,
+                        localImagePath = _localImagePath.value!!,
+                        productName = currentName,
+                    )
+                    
+                    if (uploadResult != null) {
+                        finalDriveImageId = uploadResult
+                        finalImageUrl = "https://lh3.googleusercontent.com/d/$uploadResult"
+                    } else {
+                        uploadFailed = true
+                    }
+                } else if (isEditMode) {
+                    // Keep existing URLs if no image change in edit mode
+                    finalImageUrl = originalProduct?.imageUrl
+                    finalDriveImageId = originalProduct?.driveImageId
+                }
+                
                 if (isEditMode && productId != null) {
                     val existing = originalProduct ?: return@launch
                     productsRepository.update(
@@ -164,7 +222,10 @@ class ProductFormViewModel
                             description = _description.value.ifBlank { null },
                             categoryId = currentCategoryId,
                             isPublic = _isPublic.value,
-                            localImagePath = _localImagePath.value,
+                            imageUrl = finalImageUrl,
+                            driveImageId = finalDriveImageId,
+                            localImagePath = if (uploadFailed) _localImagePath.value else null,
+                            dirty = uploadFailed || existing.dirty,
                         ),
                     )
                 } else {
@@ -177,7 +238,10 @@ class ProductFormViewModel
                             description = _description.value.ifBlank { null },
                             categoryId = currentCategoryId,
                             isPublic = _isPublic.value,
-                            localImagePath = _localImagePath.value,
+                            imageUrl = finalImageUrl,
+                            driveImageId = finalDriveImageId,
+                            localImagePath = if (uploadFailed) _localImagePath.value else null,
+                            dirty = uploadFailed,
                         ),
                     )
                 }

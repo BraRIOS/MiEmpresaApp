@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.brios.miempresa.cart.data.CartItemDao
 import com.brios.miempresa.cart.data.CartItemEntity
 import com.brios.miempresa.categories.data.Category
@@ -20,7 +22,7 @@ import com.brios.miempresa.products.data.ProductEntity
         CartItemEntity::class,
         ProductEntity::class,
     ],
-    version = 10,
+    version = 11,
     exportSchema = false,
 )
 abstract class MiEmpresaDatabase : RoomDatabase() {
@@ -36,6 +38,12 @@ abstract class MiEmpresaDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: MiEmpresaDatabase? = null
 
+        private val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE companies ADD COLUMN productsFolderId TEXT")
+            }
+        }
+
         fun getDatabase(context: Context): MiEmpresaDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance =
@@ -43,7 +51,8 @@ abstract class MiEmpresaDatabase : RoomDatabase() {
                         context.applicationContext,
                         MiEmpresaDatabase::class.java,
                         "miempresa_database",
-                    ).fallbackToDestructiveMigration()
+                    ).addMigrations(MIGRATION_10_11)
+                        .fallbackToDestructiveMigration()
                         .build()
                 INSTANCE = instance
                 instance

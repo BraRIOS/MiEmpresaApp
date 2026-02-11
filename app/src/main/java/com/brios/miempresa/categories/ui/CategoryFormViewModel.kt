@@ -30,7 +30,7 @@ class CategoryFormViewModel
         private val _name = MutableStateFlow("")
         val name: StateFlow<String> = _name
 
-        private val _selectedEmoji = MutableStateFlow(EmojiData.allEmojis.first())
+        private val _selectedEmoji = MutableStateFlow("")
         val selectedEmoji: StateFlow<String> = _selectedEmoji
 
         private val _nameError = MutableStateFlow<String?>(null)

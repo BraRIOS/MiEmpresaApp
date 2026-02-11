@@ -33,6 +33,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -72,6 +73,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
+import com.brios.miempresa.core.ui.theme.SlateGray200
 import com.brios.miempresa.core.ui.theme.SlateGray400
 
 private val QuickPickEmojis = listOf("🍔", "🥤", "👕", "🏠", "📦", "📱")
@@ -126,42 +128,46 @@ private fun CategoryFormContent(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        if (isEditMode) {
-                            stringResource(R.string.edit_category)
-                        } else {
-                            stringResource(R.string.add_category)
-                        },
-                        fontWeight = FontWeight.Bold,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.go_back)
+            Column {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            if (isEditMode) {
+                                stringResource(R.string.edit_category)
+                            } else {
+                                stringResource(R.string.add_category)
+                            },
+                            fontWeight = FontWeight.Bold,
                         )
-                    }
-                },
-                actions = {
-                    if (isEditMode) {
-                        IconButton(onClick = { showDeleteDialog = true }) {
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
                             Icon(
-                                Icons.Default.Delete,
-                                contentDescription = stringResource(R.string.delete)
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.go_back)
                             )
                         }
-                    }
-                },
-                colors =
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    ),
-            )
+                    },
+                    actions = {
+                        if (isEditMode) {
+                            IconButton(onClick = { showDeleteDialog = true }) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = stringResource(R.string.delete)
+                                )
+                            }
+                        }
+                    },
+                    colors =
+                        TopAppBarDefaults.centerAlignedTopAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                        ),
+                )
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = SlateGray200,
+                )
+            }
         },
         bottomBar = {
             Surface(
@@ -252,12 +258,11 @@ private fun IntegratedNameField(
         Card(
             shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
-            border =
-                if (nameError != null) {
-                    BorderStroke(AppDimensions.mediumBorderWidth, MaterialTheme.colorScheme.error)
-                } else {
-                    BorderStroke(AppDimensions.smallBorderWidth, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                },
+            border = when {
+                nameError != null -> BorderStroke(AppDimensions.mediumBorderWidth, MaterialTheme.colorScheme.error)
+                selectedEmoji.isNotEmpty() -> BorderStroke(AppDimensions.mediumBorderWidth, MaterialTheme.colorScheme.primary)
+                else -> BorderStroke(AppDimensions.smallBorderWidth, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            },
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -396,7 +401,10 @@ private fun EmojiQuickPickSection(
                 QuickPickEmojis.forEach { emoji ->
                     val isSelected = emoji == selectedEmoji
                     Surface(
-                        onClick = { onEmojiSelected(emoji) },
+                        onClick = {
+                            if (emoji == selectedEmoji) onEmojiSelected("")
+                            else onEmojiSelected(emoji)
+                        },
                         modifier =
                             Modifier
                                 .size(AppDimensions.categoryEmojiContainerSize),

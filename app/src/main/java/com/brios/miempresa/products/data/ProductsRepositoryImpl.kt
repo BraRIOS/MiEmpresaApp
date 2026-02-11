@@ -194,7 +194,7 @@ class ProductsRepositoryImpl
                     val file = File(localImagePath)
                     if (!file.exists()) return@withContext null
 
-                    // Get or create Productos folder
+                    // Get or create Images/Products/ folder
                     val productsFolderId = getOrCreateProductsFolder(companyId)
                         ?: return@withContext null
 
@@ -232,11 +232,16 @@ class ProductsRepositoryImpl
                 return company.productsFolderId
             }
 
-            // Create folder if doesn't exist
+            // Find or create Images/ folder, then Products/ subfolder
             val driveFolderId = company.driveFolderId ?: return null
-            val productsFolder = driveApi.createCompanyFolder(
+            val imagesFolder = driveApi.createCompanyFolder(
                 parentFolderId = driveFolderId,
-                companyName = "Productos",
+                companyName = "Images",
+            ) ?: return null
+
+            val productsFolder = driveApi.createCompanyFolder(
+                parentFolderId = imagesFolder.id,
+                companyName = "Products",
             ) ?: return null
 
             // Cache folder ID in Company entity

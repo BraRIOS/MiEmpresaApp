@@ -28,6 +28,9 @@ import com.brios.miempresa.auth.ui.SignInViewModel
 import com.brios.miempresa.auth.ui.WelcomeScreen
 import com.brios.miempresa.categories.ui.CategoryFormScreen
 import com.brios.miempresa.onboarding.ui.OnboardingScreen
+import com.brios.miempresa.pedidos.ui.PedidoDetailScreen
+import com.brios.miempresa.pedidos.ui.PedidoManualScreen
+import com.brios.miempresa.pedidos.ui.PedidosListScreen
 import com.brios.miempresa.products.ui.ProductFormScreen
 
 @Composable
@@ -198,6 +201,9 @@ fun NavHostComposable(
                         popUpTo(0) { inclusive = true }
                     }
                 },
+                onNavigateToOrders = {
+                    navController.navigate(MiEmpresaScreen.PedidosList.name)
+                },
             )
         }
         composable(route = "${MiEmpresaScreen.Product.name}/add") {
@@ -231,6 +237,28 @@ fun NavHostComposable(
             CategoryFormScreen(
                 onNavigateBack = { navController.popBackStack() },
             )
+        }
+        composable(route = MiEmpresaScreen.PedidosList.name) {
+            PedidosListScreen(
+                onNavigateToCreateOrder = {
+                    navController.navigate(MiEmpresaScreen.PedidoManual.name)
+                },
+                onNavigateToOrderDetail = { orderId ->
+                    navController.navigate("${MiEmpresaScreen.PedidoDetail.name}/$orderId")
+                },
+            )
+        }
+        composable(route = MiEmpresaScreen.PedidoManual.name) {
+            PedidoManualScreen(
+                onOrderCreated = { navController.popBackStack() },
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+        composable(
+            route = "${MiEmpresaScreen.PedidoDetail.name}/{orderId}",
+            arguments = listOf(navArgument("orderId") { type = NavType.StringType }),
+        ) {
+            PedidoDetailScreen()
         }
     }
 }

@@ -9,6 +9,9 @@ enum class MiEmpresaScreen {
     Product,
     Categories,
     Config,
+    PedidosList,
+    PedidoManual,
+    PedidoDetail,
 }
 
 val basePages =

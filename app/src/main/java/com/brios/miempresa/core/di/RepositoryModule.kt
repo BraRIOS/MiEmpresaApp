@@ -2,6 +2,8 @@ package com.brios.miempresa.core.di
 
 import com.brios.miempresa.categories.data.CategoriesRepositoryImpl
 import com.brios.miempresa.categories.domain.CategoriesRepository
+import com.brios.miempresa.config.data.ConfigRepositoryImpl
+import com.brios.miempresa.config.domain.ConfigRepository
 import com.brios.miempresa.products.data.ProductsRepositoryImpl
 import com.brios.miempresa.products.domain.ProductsRepository
 import dagger.Binds
@@ -17,4 +19,7 @@ abstract class RepositoryModule {
 
     @Binds
     abstract fun bindProductsRepository(impl: ProductsRepositoryImpl): ProductsRepository
+
+    @Binds
+    abstract fun bindConfigRepository(impl: ConfigRepositoryImpl): ConfigRepository
 }

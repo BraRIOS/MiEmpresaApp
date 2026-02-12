@@ -214,6 +214,22 @@
     <string name="validating_workspace">Validando workspace…</string>
     <string name="config_title">Configuración</string>
     <string name="config_coming_soon">Próximamente</string>
+    <string name="config_section_info">INFORMACIÓN DE LA EMPRESA</string>
+    <string name="config_section_actions">ACCIONES</string>
+    <string name="config_label_name">Nombre de la empresa</string>
+    <string name="config_label_whatsapp">WhatsApp de pedidos</string>
+    <string name="config_label_specialization">Especialización</string>
+    <string name="config_label_address">Dirección</string>
+    <string name="config_label_hours">Horarios de atención</string>
+    <string name="config_action_orders">Mis Pedidos</string>
+    <string name="config_action_share">Compartir Catálogo</string>
+    <string name="config_sync_now">Sincronizar ahora</string>
+    <string name="config_change_logo">Cambiar logo</string>
+    <string name="config_version">Versión 1.0.0</string>
+    <string name="config_logout_title">Cerrar sesión</string>
+    <string name="config_logout_message">¿Seguro que querés cerrar sesión? Tus datos locales se conservan.</string>
+    <string name="config_logout_confirm">Cerrar sesión</string>
+    <string name="config_logout_dismiss">Cancelar</string>
 
     <!-- Categories screen -->
     <string name="search_categories">Buscar categorías…</string>

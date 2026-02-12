@@ -51,6 +51,9 @@ interface CompanyDao {
     @Query("SELECT * FROM companies WHERE isOwned = 1 ORDER BY selected DESC, name")
     fun getOwnedCompanies(): Flow<List<Company>>
 
+    @Query("SELECT * FROM companies WHERE id = :id")
+    fun observeCompanyById(id: String): Flow<Company?>
+
     @Query("SELECT COUNT(*) FROM companies WHERE isOwned = 1")
     suspend fun getOwnedCompanyCount(): Int
 

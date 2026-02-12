@@ -10,7 +10,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -33,6 +32,7 @@ fun TopBar(
     navController: NavHostController,
     title: String,
     openDrawer: () -> Unit = {},
+    actions: @Composable () -> Unit = {},
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
 
@@ -67,6 +67,7 @@ fun TopBar(
         title = {
             Text(text = title)
         },
+        actions = { actions() },
         colors =
             TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.Transparent,

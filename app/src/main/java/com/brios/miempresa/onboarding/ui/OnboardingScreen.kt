@@ -23,11 +23,20 @@ import com.brios.miempresa.onboarding.ui.components.WorkspaceProgressView
 
 @Composable
 fun OnboardingScreen(
+    mode: String? = null,
     viewModel: OnboardingViewModel = hiltViewModel(),
     onNavigateToHome: () -> Unit,
     onSignOutRequested: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(mode) {
+        when (mode) {
+            "selector" -> viewModel.showSelector()
+            "create" -> viewModel.createNewCompany()
+            else -> {} // Default initialization from ViewModel
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->

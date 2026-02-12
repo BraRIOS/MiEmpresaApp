@@ -160,35 +160,35 @@ private fun DrawerContent(
                                 ),
                         verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
                     ) {
-                        // Visited stores (selected)
+                        // Visited stores (future feature - placeholder)
                         DrawerMenuItem(
                             icon = Icons.Filled.Storefront,
                             label = stringResource(R.string.visited_stores),
                             onClick = {
-                                scope.launch { drawerState.close() }
+                                // Placeholder - Future feature
                             },
                         )
 
-                        // Switch company
+                        // Switch company - goes to CompanySelector (CompanyListView)
                         DrawerMenuItem(
                             icon = Icons.Filled.Domain,
                             label = stringResource(R.string.switch_company),
                             onClick = {
                                 scope.launch {
                                     drawerState.close()
-                                    navController.navigate(MiEmpresaScreen.Onboarding.name)
+                                    navController.navigate("${MiEmpresaScreen.Onboarding.name}?mode=selector")
                                 }
                             },
                         )
 
-                        // Create another company
+                        // Create another company - goes to WizardStep1 (first step)
                         DrawerMenuItem(
                             icon = Icons.Filled.AddBusiness,
                             label = stringResource(R.string.create_another_company),
                             onClick = {
                                 scope.launch {
                                     drawerState.close()
-                                    navController.navigate(MiEmpresaScreen.Onboarding.name)
+                                    navController.navigate("${MiEmpresaScreen.Onboarding.name}?mode=create")
                                 }
                             },
                         )

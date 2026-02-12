@@ -153,9 +153,18 @@ fun NavHostComposable(
                 },
             )
         }
-        composable(route = MiEmpresaScreen.Onboarding.name) {
+        composable(
+            route = "${MiEmpresaScreen.Onboarding.name}?mode={mode}",
+            arguments = listOf(navArgument("mode") { 
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            }),
+        ) { backStackEntry ->
             val activity = LocalActivity.current as Activity
+            val mode = backStackEntry.arguments?.getString("mode")
             OnboardingScreen(
+                mode = mode,
                 onNavigateToHome = {
                     navController.navigate(MiEmpresaScreen.Home.name) {
                         popUpTo(0) { inclusive = true }
@@ -183,6 +192,11 @@ fun NavHostComposable(
                 },
                 onNavigateToCategoryDetail = { categoryId ->
                     navController.navigate("${MiEmpresaScreen.Categories.name}/$categoryId")
+                },
+                onNavigateToWelcome = {
+                    navController.navigate(MiEmpresaScreen.Welcome.name) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 },
             )
         }

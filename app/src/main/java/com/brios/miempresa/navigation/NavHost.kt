@@ -75,11 +75,13 @@ fun NavHostComposable(
                 navController.navigate(MiEmpresaScreen.Onboarding.name) {
                     popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 }
+                signInViewModel.consumePostAuthDestination()
             }
             is PostAuthDestination.Home -> {
                 navController.navigate(MiEmpresaScreen.Home.name) {
                     popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 }
+                signInViewModel.consumePostAuthDestination()
             }
             null -> {}
         }

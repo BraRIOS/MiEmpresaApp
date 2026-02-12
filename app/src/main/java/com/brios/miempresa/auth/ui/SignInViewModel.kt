@@ -81,6 +81,10 @@ class SignInViewModel
             _postAuthDestination.value = PostAuthDestination.Onboarding
         }
 
+        fun consumePostAuthDestination() {
+            _postAuthDestination.value = null
+        }
+
         suspend fun checkDriveAuthorization(): AuthState {
             return try {
                 authRepository.authorizeDriveAndSheets()

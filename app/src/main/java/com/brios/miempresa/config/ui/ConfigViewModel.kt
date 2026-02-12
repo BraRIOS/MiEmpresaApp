@@ -4,9 +4,9 @@ import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.config.domain.ConfigRepository
-import com.brios.miempresa.core.auth.GoogleAuthClient
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.core.data.local.entities.Company
+import com.brios.miempresa.core.domain.LogoutUseCase
 import com.brios.miempresa.core.sync.SyncManager
 import com.brios.miempresa.core.sync.SyncType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -62,7 +62,7 @@ class ConfigViewModel
         private val configRepository: ConfigRepository,
         private val companyDao: CompanyDao,
         private val syncManager: SyncManager,
-        private val googleAuthClient: GoogleAuthClient,
+        private val logoutUseCase: LogoutUseCase,
     ) : ViewModel() {
         private val _companyId = MutableStateFlow<String?>(null)
         private var originalCompany: Company? = null
@@ -218,7 +218,7 @@ class ConfigViewModel
 
         fun signOut(activity: Activity) {
             viewModelScope.launch {
-                googleAuthClient.signOut(activity)
+                logoutUseCase(activity)
                 _events.emit(ConfigEvent.NavigateToWelcome)
             }
         }

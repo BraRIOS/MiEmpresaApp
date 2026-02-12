@@ -9,6 +9,7 @@ enum class MiEmpresaScreen {
     Product,
     Categories,
     Config,
+    EditCompanyData,
     PedidosList,
     PedidoManual,
     PedidoDetail,

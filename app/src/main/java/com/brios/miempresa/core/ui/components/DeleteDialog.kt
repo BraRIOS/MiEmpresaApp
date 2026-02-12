@@ -48,7 +48,7 @@ fun DeleteDialog(
         text = {
             Text(
                 stringResource(R.string.delete_dialog_title) + "\"$itemName\"?",
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
                 )
         },

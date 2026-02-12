@@ -8,17 +8,15 @@ import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
 import com.brios.miempresa.auth.domain.AuthRepository
 import com.brios.miempresa.auth.domain.AuthState
-import com.brios.miempresa.core.data.local.MiEmpresaDatabase
 import com.brios.miempresa.core.data.local.daos.CompanyDao
+import com.brios.miempresa.core.domain.LogoutUseCase
 import com.brios.miempresa.core.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 sealed class PostAuthDestination {
@@ -36,7 +34,7 @@ class SignInViewModel
         @ApplicationContext private val context: Context,
         private val authRepository: AuthRepository,
         private val companyDao: CompanyDao,
-        private val database: MiEmpresaDatabase,
+        private val logoutUseCase: LogoutUseCase,
         private val syncManager: SyncManager,
     ) : ViewModel() {
         private val _signInState = MutableStateFlow(SignInState())
@@ -65,13 +63,12 @@ class SignInViewModel
 
         fun signOut(activity: Activity) =
             viewModelScope.launch {
-                syncManager.cancelAll()
-                withContext(Dispatchers.IO) {
-                    database.clearAllTables()
-                    _postAuthDestination.value = null
-                    _authState.update { AuthState.Unauthorized }
-                    authRepository.signOut(activity)
-                }
+                // Reset navigation state FIRST (synchronously) to avoid race conditions
+                _postAuthDestination.value = null
+                _authState.value = null
+                _signInState.value = SignInState()
+                // Then clean up data (can be async)
+                logoutUseCase(activity)
             }
 
         fun resetSignInState() {

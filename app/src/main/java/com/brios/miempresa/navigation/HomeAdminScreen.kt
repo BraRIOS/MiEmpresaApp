@@ -1,6 +1,5 @@
 package com.brios.miempresa.navigation
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -10,7 +9,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
@@ -33,9 +31,7 @@ import com.brios.miempresa.R
 import com.brios.miempresa.categories.ui.CategoriesContent
 import com.brios.miempresa.categories.ui.CategoriesUiState
 import com.brios.miempresa.categories.ui.CategoriesViewModel
-import com.brios.miempresa.config.ui.ConfigFormState
 import com.brios.miempresa.config.ui.ConfigScreen
-import com.brios.miempresa.config.ui.ConfigUiState
 import com.brios.miempresa.config.ui.ConfigViewModel
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
@@ -52,6 +48,7 @@ fun HomeAdminScreen(
     onNavigateToAddCategory: () -> Unit,
     onNavigateToCategoryDetail: (String) -> Unit,
     onNavigateToOrders: () -> Unit = {},
+    onNavigateToEditCompany: () -> Unit = {},
     onNavigateToWelcome: () -> Unit = {},
     productsViewModel: ProductsViewModel = hiltViewModel(),
     categoriesViewModel: CategoriesViewModel = hiltViewModel(),
@@ -76,6 +73,7 @@ fun HomeAdminScreen(
         ConfigScreen(
             modifier = modifier,
             viewModel = configViewModel,
+            onNavigateToEditCompany = onNavigateToEditCompany,
             onNavigateToOrders = onNavigateToOrders,
             onNavigateToWelcome = onNavigateToWelcome,
         )
@@ -83,8 +81,6 @@ fun HomeAdminScreen(
 ) {
     val productsUiState by productsViewModel.uiState.collectAsStateWithLifecycle()
     val categoriesUiState by categoriesViewModel.uiState.collectAsStateWithLifecycle()
-    val configUiState by configViewModel.uiState.collectAsStateWithLifecycle()
-    val configForm by configViewModel.form.collectAsStateWithLifecycle()
 
     HomeAdminScreenContent(
         navController = navController,
@@ -94,9 +90,6 @@ fun HomeAdminScreen(
         onNavigateToCategoryDetail = onNavigateToCategoryDetail,
         productsUiState = productsUiState,
         categoriesUiState = categoriesUiState,
-        configUiState = configUiState,
-        configForm = configForm,
-        onSaveConfig = configViewModel::save,
         productsContent = productsContent,
         categoriesContent = categoriesContent,
         configContent = configContent,
@@ -112,9 +105,6 @@ fun HomeAdminScreenContent(
     onNavigateToCategoryDetail: (String) -> Unit,
     productsUiState: ProductsUiState,
     categoriesUiState: CategoriesUiState,
-    configUiState: ConfigUiState = ConfigUiState.Loading,
-    configForm: ConfigFormState = ConfigFormState(),
-    onSaveConfig: () -> Unit = {},
     productsContent: @Composable (Modifier) -> Unit,
     categoriesContent: @Composable (Modifier) -> Unit,
     configContent: @Composable (Modifier) -> Unit,
@@ -146,24 +136,6 @@ fun HomeAdminScreenContent(
                     navController = navController,
                     title = tabTitles[selectedTab],
                     openDrawer = { scope.launch { drawerState.open() } },
-                    actions = {
-                        if (selectedTab == 2 && configForm.isFormValid) {
-                            val isSaving = configUiState is ConfigUiState.Saving
-                            Text(
-                                text = stringResource(R.string.save),
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                                color = if (isSaving) {
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                                } else {
-                                    MaterialTheme.colorScheme.primary
-                                },
-                                modifier = Modifier
-                                    .clickable(enabled = !isSaving) { onSaveConfig() }
-                                    .padding(horizontal = AppDimensions.mediumSmallPadding),
-                            )
-                        }
-                    },
                 )
             },
             bottomBar = {

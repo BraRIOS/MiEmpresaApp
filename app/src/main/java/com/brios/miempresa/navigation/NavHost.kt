@@ -27,6 +27,7 @@ import com.brios.miempresa.auth.ui.SignInScreen
 import com.brios.miempresa.auth.ui.SignInViewModel
 import com.brios.miempresa.auth.ui.WelcomeScreen
 import com.brios.miempresa.categories.ui.CategoryFormScreen
+import com.brios.miempresa.config.ui.EditCompanyDataScreen
 import com.brios.miempresa.onboarding.ui.OnboardingScreen
 import com.brios.miempresa.pedidos.ui.PedidoDetailScreen
 import com.brios.miempresa.pedidos.ui.PedidoManualScreen
@@ -204,6 +205,9 @@ fun NavHostComposable(
                 onNavigateToOrders = {
                     navController.navigate(MiEmpresaScreen.PedidosList.name)
                 },
+                onNavigateToEditCompany = {
+                    navController.navigate(MiEmpresaScreen.EditCompanyData.name)
+                },
             )
         }
         composable(route = "${MiEmpresaScreen.Product.name}/add") {
@@ -235,6 +239,11 @@ fun NavHostComposable(
             arguments = listOf(navArgument("categoryId") { type = NavType.StringType }),
         ) {
             CategoryFormScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+        composable(route = MiEmpresaScreen.EditCompanyData.name) {
+            EditCompanyDataScreen(
                 onNavigateBack = { navController.popBackStack() },
             )
         }

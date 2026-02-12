@@ -77,7 +77,7 @@ fun FormOutlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    leadingIcon: ImageVector,
+    leadingIcon: ImageVector? = null,
     modifier: Modifier = Modifier,
     isError: Boolean = false,
     supportingText: String? = null,
@@ -93,8 +93,8 @@ fun FormOutlinedTextField(
         placeholder = {
             Text(placeholder, color = SlateGray400, style = MaterialTheme.typography.bodyLarge)
         },
-        leadingIcon = {
-            Icon(leadingIcon, contentDescription = null, tint = iconTint)
+        leadingIcon = leadingIcon?.let { icon ->
+            { Icon(icon, contentDescription = null, tint = iconTint) }
         },
         isError = isError,
         supportingText =

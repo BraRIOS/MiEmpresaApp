@@ -23,7 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AddBusiness
 import androidx.compose.material.icons.filled.Domain
-import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
@@ -34,6 +34,7 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,6 +42,8 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -92,6 +95,7 @@ private fun DrawerContent(
     content: @Composable () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -160,15 +164,6 @@ private fun DrawerContent(
                                 ),
                         verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
                     ) {
-                        // Visited stores (future feature - placeholder)
-                        DrawerMenuItem(
-                            icon = Icons.Filled.Storefront,
-                            label = stringResource(R.string.visited_stores),
-                            onClick = {
-                                // Placeholder - Future feature
-                            },
-                        )
-
                         // Switch company - goes to CompanySelector (CompanyListView)
                         DrawerMenuItem(
                             icon = Icons.Filled.Domain,
@@ -207,16 +202,8 @@ private fun DrawerContent(
                             label = stringResource(R.string.log_out),
                             tint = MaterialTheme.colorScheme.error,
                             onClick = {
-                                scope.launch {
-                                    drawerState.close()
-                                    if (signInViewModel != null && context != null) {
-                                        signInViewModel.signOut(context).also {
-                                            navController.navigate(MiEmpresaScreen.SignIn.name) {
-                                                popUpTo(0)
-                                            }
-                                        }
-                                    }
-                                }
+                                scope.launch { drawerState.close() }
+                                showLogoutDialog = true
                             },
                         )
                     }
@@ -267,6 +254,34 @@ private fun DrawerContent(
             }
         },
     ) { content() }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text(stringResource(R.string.config_logout_title)) },
+            text = { Text(stringResource(R.string.config_logout_message)) },
+            titleContentColor = MaterialTheme.colorScheme.onBackground,
+            containerColor = MaterialTheme.colorScheme.background,
+            confirmButton = {
+                TextButton(onClick = {
+                    showLogoutDialog = false
+                    if (signInViewModel != null && context != null) {
+                        signInViewModel.signOut(context)
+                        navController.navigate(MiEmpresaScreen.Welcome.name) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                }) {
+                    Text(stringResource(R.string.config_logout_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text(stringResource(R.string.config_logout_dismiss))
+                }
+            },
+        )
+    }
 }
 
 @Composable

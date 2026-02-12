@@ -1,18 +1,12 @@
 package com.brios.miempresa.config.ui
 
 import android.app.Activity
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.net.Uri
 import androidx.activity.compose.LocalActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,7 +15,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,13 +24,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.outlined.CameraAlt
-import androidx.compose.material.icons.outlined.Category
-import androidx.compose.material.icons.outlined.ContentCopy
-import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.ReceiptLong
-import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material3.AlertDialog
@@ -47,6 +37,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -69,7 +60,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -79,8 +69,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.components.CompanyAvatar
-import com.brios.miempresa.core.ui.components.FormFieldGroup
-import com.brios.miempresa.core.ui.components.FormOutlinedTextField
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray100
@@ -90,51 +78,44 @@ import com.brios.miempresa.core.ui.theme.SlateGray400
 import com.brios.miempresa.core.ui.theme.SlateGray500
 import com.brios.miempresa.core.util.QrCodeGenerator
 import com.brios.miempresa.core.util.QrCodeResult
-import com.brios.miempresa.onboarding.ui.components.CountryCodeDropdown
 
 private val Blue50 = Color(0xFFEFF6FF)
 private val Blue500 = Color(0xFF3B82F6)
 private val avatarSize = 112.dp
-private val cameraOverlaySize = 36.dp
 private const val DEEPLINK_PREFIX = "miempresa://catalogo?sheetId="
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfigScreen(
     modifier: Modifier = Modifier,
     viewModel: ConfigViewModel = hiltViewModel(),
+    onNavigateToEditCompany: () -> Unit = {},
     onNavigateToOrders: () -> Unit = {},
     onNavigateToWelcome: () -> Unit = {},
 ) {
     val form by viewModel.form.collectAsStateWithLifecycle()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
     val publicSheetId by viewModel.publicSheetId.collectAsStateWithLifecycle()
     val activity = LocalActivity.current as Activity
 
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
-    var showShareSheet by rememberSaveable { mutableStateOf(false) }
-
-    val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-    ) { uri: Uri? ->
-        uri?.toString()?.let { viewModel.updateLocalLogoUri(it) }
-    }
+    var showQrSheet by rememberSaveable { mutableStateOf(false) }
 
     ConfigScreenContent(
         modifier = modifier,
         form = form,
-        isSaving = uiState is ConfigUiState.Saving,
+        publicSheetId = publicSheetId,
         isSyncing = isSyncing,
-        onUpdateName = viewModel::updateCompanyName,
-        onUpdateCountryCode = viewModel::updateCountryCode,
-        onUpdateWhatsapp = viewModel::updateWhatsappNumber,
-        onUpdateSpecialization = viewModel::updateSpecialization,
-        onUpdateAddress = viewModel::updateAddress,
-        onUpdateBusinessHours = viewModel::updateBusinessHours,
-        onPickLogo = { imagePickerLauncher.launch("image/*") },
+        onNavigateToEditCompany = onNavigateToEditCompany,
         onNavigateToOrders = onNavigateToOrders,
-        onShowShareSheet = { showShareSheet = true },
+        onShareCode = { sheetId ->
+            val shareText = activity.getString(R.string.config_share_code_message, sheetId)
+            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                putExtra(Intent.EXTRA_TEXT, shareText)
+                type = "text/plain"
+            }
+            activity.startActivity(Intent.createChooser(sendIntent, null))
+        },
+        onGenerateQr = { showQrSheet = true },
         onSyncNow = viewModel::syncNow,
         onLogoutClick = { showLogoutDialog = true },
     )
@@ -163,10 +144,10 @@ fun ConfigScreen(
         )
     }
 
-    if (showShareSheet && publicSheetId != null) {
-        ShareCatalogBottomSheet(
+    if (showQrSheet && publicSheetId != null) {
+        QrCodeBottomSheet(
             publicSheetId = publicSheetId!!,
-            onDismiss = { showShareSheet = false },
+            onDismiss = { showQrSheet = false },
         )
     }
 }
@@ -175,17 +156,12 @@ fun ConfigScreen(
 fun ConfigScreenContent(
     modifier: Modifier = Modifier,
     form: ConfigFormState,
-    isSaving: Boolean = false,
+    publicSheetId: String? = null,
     isSyncing: Boolean = false,
-    onUpdateName: (String) -> Unit = {},
-    onUpdateCountryCode: (String) -> Unit = {},
-    onUpdateWhatsapp: (String) -> Unit = {},
-    onUpdateSpecialization: (String) -> Unit = {},
-    onUpdateAddress: (String) -> Unit = {},
-    onUpdateBusinessHours: (String) -> Unit = {},
-    onPickLogo: () -> Unit = {},
+    onNavigateToEditCompany: () -> Unit = {},
     onNavigateToOrders: () -> Unit = {},
-    onShowShareSheet: () -> Unit = {},
+    onShareCode: (String) -> Unit = {},
+    onGenerateQr: () -> Unit = {},
     onSyncNow: () -> Unit = {},
     onLogoutClick: () -> Unit = {},
 ) {
@@ -195,97 +171,45 @@ fun ConfigScreenContent(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = AppDimensions.largePadding),
     ) {
-        Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
+        Spacer(modifier = Modifier.height(AppDimensions.largePadding))
 
-        // Avatar with camera overlay
-        AvatarSection(
-            companyName = form.companyName,
-            logoUrl = form.localLogoUri ?: form.logoUrl,
-            onPickLogo = onPickLogo,
-        )
-
-        Spacer(modifier = Modifier.height(AppDimensions.extraLargePadding))
-
-        // Company info section
-        SectionHeader(title = stringResource(R.string.config_section_info))
-
-        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
-
-        // Name (required)
-        FormFieldGroup(
-            label = stringResource(R.string.config_label_name),
-            required = true,
+        // Readonly avatar (no camera overlay)
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center,
         ) {
-            FormOutlinedTextField(
-                value = form.companyName,
-                onValueChange = onUpdateName,
-                placeholder = stringResource(R.string.placeholder_company_name),
-                leadingIcon = Icons.Outlined.Category,
+            CompanyAvatar(
+                companyName = form.companyName,
+                logoUrl = form.logoUrl,
+                size = avatarSize,
             )
         }
 
-        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
+        Spacer(modifier = Modifier.height(AppDimensions.largePadding))
 
-        // WhatsApp (required)
-        FormFieldGroup(
-            label = stringResource(R.string.config_label_whatsapp),
-            required = true,
+        // Readonly company info card
+        ReadonlyCompanyCard(form = form)
+
+        Spacer(modifier = Modifier.height(AppDimensions.largePadding))
+
+        // Edit button
+        Button(
+            onClick = onNavigateToEditCompany,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(AppDimensions.largeCornerRadius),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+            ),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
-                verticalAlignment = Alignment.Top,
-            ) {
-                CountryCodeDropdown(
-                    selectedCode = form.whatsappCountryCode,
-                    onCodeSelected = onUpdateCountryCode,
-                )
-                FormOutlinedTextField(
-                    value = form.whatsappNumber,
-                    onValueChange = { input ->
-                        val filtered = input.filter { it.isDigit() }
-                        onUpdateWhatsapp(filtered)
-                    },
-                    placeholder = stringResource(R.string.placeholder_whatsapp),
-                    leadingIcon = Icons.Outlined.Category,
-                    keyboardType = KeyboardType.Phone,
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
-
-        // Specialization
-        FormFieldGroup(label = stringResource(R.string.config_label_specialization)) {
-            FormOutlinedTextField(
-                value = form.specialization,
-                onValueChange = onUpdateSpecialization,
-                placeholder = stringResource(R.string.placeholder_specialization),
-                leadingIcon = Icons.Outlined.Category,
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
             )
-        }
-
-        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
-
-        // Address
-        FormFieldGroup(label = stringResource(R.string.config_label_address)) {
-            FormOutlinedTextField(
-                value = form.address,
-                onValueChange = onUpdateAddress,
-                placeholder = stringResource(R.string.placeholder_address),
-                leadingIcon = Icons.Outlined.LocationOn,
-            )
-        }
-
-        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
-
-        // Business hours
-        FormFieldGroup(label = stringResource(R.string.config_label_hours)) {
-            FormOutlinedTextField(
-                value = form.businessHours,
-                onValueChange = onUpdateBusinessHours,
-                placeholder = stringResource(R.string.placeholder_hours),
-                leadingIcon = Icons.Outlined.Schedule,
+            Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+            Text(
+                text = stringResource(R.string.config_edit_info_button),
+                fontWeight = FontWeight.Bold,
             )
         }
 
@@ -296,9 +220,11 @@ fun ConfigScreenContent(
 
         Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
 
+        // Mis Pedidos
         ActionCard(
             title = stringResource(R.string.config_action_orders),
-            icon = Icons.Outlined.ReceiptLong,
+            subtitle = stringResource(R.string.config_orders_subtitle),
+            icon = Icons.AutoMirrored.Outlined.ReceiptLong,
             iconBackgroundColor = Blue50,
             iconTint = Blue500,
             onClick = onNavigateToOrders,
@@ -306,12 +232,11 @@ fun ConfigScreenContent(
 
         Spacer(modifier = Modifier.height(AppDimensions.mediumSmallPadding))
 
-        ActionCard(
-            title = stringResource(R.string.config_action_share),
-            icon = Icons.Outlined.Share,
-            iconBackgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-            iconTint = MaterialTheme.colorScheme.primary,
-            onClick = onShowShareSheet,
+        // Compartir Catálogo with 2 inline buttons
+        ShareCatalogCard(
+            publicSheetId = publicSheetId,
+            onShareCode = onShareCode,
+            onGenerateQr = onGenerateQr,
         )
 
         Spacer(modifier = Modifier.height(AppDimensions.extraLargePadding))
@@ -343,38 +268,179 @@ fun ConfigScreenContent(
 }
 
 @Composable
-private fun AvatarSection(
-    companyName: String,
-    logoUrl: String?,
-    onPickLogo: () -> Unit,
-) {
-    Box(
+private fun ReadonlyCompanyCard(form: ConfigFormState) {
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        ),
+        shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+        border = BorderStroke(1.dp, SlateGray100),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
-        Box {
-            CompanyAvatar(
-                companyName = companyName,
-                logoUrl = logoUrl,
-                size = avatarSize,
+        Column(modifier = Modifier.padding(vertical = AppDimensions.smallPadding)) {
+            ReadonlyRow(
+                label = stringResource(R.string.config_label_name).uppercase(),
+                value = form.companyName.ifBlank { "—" },
             )
-            // Camera overlay
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .offset(x = (-4).dp, y = (-4).dp)
-                    .size(cameraOverlaySize)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
-                    .clickable { onPickLogo() },
-                contentAlignment = Alignment.Center,
+            HorizontalDivider(color = SlateGray100)
+            ReadonlyRow(
+                label = stringResource(R.string.config_label_whatsapp).uppercase(),
+                value = if (form.whatsappNumber.isNotBlank()) {
+                    "${form.whatsappCountryCode} ${form.whatsappNumber}"
+                } else {
+                    "—"
+                },
+            )
+            HorizontalDivider(color = SlateGray100)
+            ReadonlyRow(
+                label = stringResource(R.string.config_label_specialization).uppercase(),
+                value = form.specialization.ifBlank { "—" },
+            )
+            HorizontalDivider(color = SlateGray100)
+            ReadonlyRow(
+                label = stringResource(R.string.config_label_address).uppercase(),
+                value = form.address.ifBlank { "—" },
+            )
+            HorizontalDivider(color = SlateGray100)
+            ReadonlyRow(
+                label = stringResource(R.string.config_label_hours).uppercase(),
+                value = form.businessHours.ifBlank { "—" },
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReadonlyRow(
+    label: String,
+    value: String,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                horizontal = AppDimensions.mediumPadding,
+                vertical = AppDimensions.mediumSmallPadding,
+            ),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = SlateGray500,
+            letterSpacing = 0.5.sp,
+        )
+        Spacer(modifier = Modifier.width(AppDimensions.mediumPadding))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.End,
+            modifier = Modifier.weight(1f, fill = false),
+        )
+    }
+}
+
+@Composable
+private fun ShareCatalogCard(
+    publicSheetId: String?,
+    onShareCode: (String) -> Unit,
+    onGenerateQr: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        ),
+        shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+        border = BorderStroke(1.dp, SlateGray100),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(AppDimensions.mediumPadding),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.CameraAlt,
-                    contentDescription = stringResource(R.string.config_change_logo),
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp),
-                )
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Share,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(AppDimensions.defaultIconSize),
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.config_action_share),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = stringResource(R.string.config_share_subtitle),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = SlateGray400,
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(AppDimensions.mediumSmallPadding))
+
+            // Two inline buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+            ) {
+                OutlinedButton(
+                    onClick = { publicSheetId?.let { onShareCode(it) } },
+                    enabled = publicSheetId != null,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                    border = BorderStroke(1.dp, SlateGray200),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Share,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(modifier = Modifier.width(AppDimensions.extraSmallPadding))
+                    Text(
+                        text = stringResource(R.string.config_share_code),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                OutlinedButton(
+                    onClick = onGenerateQr,
+                    enabled = publicSheetId != null,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                    border = BorderStroke(1.dp, SlateGray200),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.QrCode,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(modifier = Modifier.width(AppDimensions.extraSmallPadding))
+                    Text(
+                        text = stringResource(R.string.config_share_qr),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
         }
     }
@@ -398,6 +464,7 @@ private fun ActionCard(
     iconBackgroundColor: Color,
     iconTint: Color,
     onClick: () -> Unit,
+    subtitle: String? = null,
 ) {
     Card(
         onClick = onClick,
@@ -406,7 +473,7 @@ private fun ActionCard(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         ),
         shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
-        border = androidx.compose.foundation.BorderStroke(1.dp, SlateGray100),
+        border = BorderStroke(1.dp, SlateGray100),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Row(
@@ -430,13 +497,21 @@ private fun ActionCard(
                     modifier = Modifier.size(AppDimensions.defaultIconSize),
                 )
             }
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                if (subtitle != null) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = SlateGray400,
+                    )
+                }
+            }
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,
@@ -502,7 +577,7 @@ private fun LogoutButton(onClick: () -> Unit) {
             containerColor = Color.Transparent,
         ),
         shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
-        border = androidx.compose.foundation.BorderStroke(1.dp, SlateGray200),
+        border = BorderStroke(1.dp, SlateGray200),
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -528,11 +603,10 @@ private fun LogoutButton(onClick: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ShareCatalogBottomSheet(
+private fun QrCodeBottomSheet(
     publicSheetId: String,
     onDismiss: () -> Unit,
 ) {
-    val context = LocalContext.current
     val deeplink = remember(publicSheetId) { "$DEEPLINK_PREFIX$publicSheetId" }
     val qrBitmap = remember(deeplink) {
         val result = QrCodeGenerator().generate(deeplink)
@@ -553,18 +627,9 @@ private fun ShareCatalogBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = stringResource(R.string.share_title),
+                text = stringResource(R.string.config_qr_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-            )
-
-            Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
-
-            Text(
-                text = stringResource(R.string.share_subtitle),
-                style = MaterialTheme.typography.bodySmall,
-                color = SlateGray400,
-                textAlign = TextAlign.Center,
             )
 
             Spacer(modifier = Modifier.height(AppDimensions.largePadding))
@@ -580,62 +645,16 @@ private fun ShareCatalogBottomSheet(
                 )
             }
 
-            Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
-
-            // Deeplink text
-            Text(
-                text = deeplink,
-                style = MaterialTheme.typography.bodySmall,
-                color = SlateGray500,
-                textAlign = TextAlign.Center,
-            )
-
             Spacer(modifier = Modifier.height(AppDimensions.largePadding))
 
-            // Copy link button
-            OutlinedButton(
-                onClick = {
-                    val clipboard =
-                        context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    clipboard.setPrimaryClip(ClipData.newPlainText("Deeplink", deeplink))
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(50),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.ContentCopy,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
-                Text(stringResource(R.string.share_copy_link))
-            }
-
-            Spacer(modifier = Modifier.height(AppDimensions.mediumSmallPadding))
-
-            // Share button
-            Button(
-                onClick = {
-                    val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                        putExtra(Intent.EXTRA_TEXT, deeplink)
-                        type = "text/plain"
-                    }
-                    context.startActivity(Intent.createChooser(sendIntent, null))
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                ),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Share,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
-                Text(stringResource(R.string.share_send))
-            }
+            // Google Lens helper text
+            Text(
+                text = stringResource(R.string.config_qr_helper),
+                style = MaterialTheme.typography.bodySmall,
+                color = SlateGray400,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = AppDimensions.mediumPadding),
+            )
         }
     }
 }
@@ -650,7 +669,10 @@ private fun ConfigScreenPreview() {
                 whatsappCountryCode = "+54",
                 whatsappNumber = "1112345678",
                 specialization = "Vinos y Licores",
+                address = "Av. Reforma 123, CDMX",
+                businessHours = "Lun-Vie 9am - 6pm",
             ),
+            publicSheetId = "abc123",
         )
     }
 }

@@ -37,7 +37,7 @@ import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 
 @Composable
-fun CompanyListView(
+fun CompanySelectionView(
     username: String,
     companies: List<Company>,
     onSelectCompany: (Company) -> Unit,
@@ -149,7 +149,7 @@ fun CompanyListView(
 
 @Preview
 @Composable
-private fun CompanyListScreenPreview() {
+private fun CompanySelectionScreenPreview() {
     val companies =
         listOf(
             Company("1", "Company 1"),
@@ -158,7 +158,7 @@ private fun CompanyListScreenPreview() {
         )
     MiEmpresaTheme {
         Surface {
-            CompanyListView(
+            CompanySelectionView(
                 username = "John Doe",
                 companies = companies,
                 onSelectCompany = {},

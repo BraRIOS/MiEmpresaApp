@@ -115,7 +115,6 @@ fun CategorySelectorBottomSheet(
                 modifier = Modifier
                     .heightIn(max = AppDimensions.bottomSheetPeekHeight)
                     .padding(horizontal = AppDimensions.smallPadding),
-                verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding)
             ) {
                 items(categories, key = { it.id }) { category ->
                     CategoryRow(

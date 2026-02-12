@@ -238,7 +238,7 @@ fun ItemCard(
 private fun ProductCountBadge(count: Int) {
     val isZero = count == 0
     val backgroundColor = if (isZero) SlateGray200 else MaterialTheme.colorScheme.surface
-    val contentColor = if (isZero) SlateGray700 else MaterialTheme.colorScheme.onSurface
+    val contentColor = if (isZero) SlateGray700 else MaterialTheme.colorScheme.onPrimaryContainer
     val text = if (isZero) stringResource(R.string.no_products_label) else "$count productos"
     Surface(
         modifier = Modifier.padding(top = AppDimensions.smallPadding),

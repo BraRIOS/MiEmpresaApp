@@ -13,7 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.brios.miempresa.core.ui.components.CompanyListView
+import com.brios.miempresa.core.ui.components.CompanySelectionView
 import com.brios.miempresa.core.ui.components.LoadingView
 import com.brios.miempresa.core.ui.components.MessageWithIcon
 import com.brios.miempresa.core.ui.components.SpreadsheetNotFoundView
@@ -79,7 +79,7 @@ fun OnboardingScreen(
             is OnboardingUiState.DiscoveringWorkspace -> LoadingView(message = state.message)
             is OnboardingUiState.ValidatingWorkspace -> LoadingView(message = "Validando workspace...")
             is OnboardingUiState.CompanySelector ->
-                CompanyListView(
+                CompanySelectionView(
                     username = state.username,
                     companies = state.companies,
                     onSelectCompany = viewModel::selectCompany,

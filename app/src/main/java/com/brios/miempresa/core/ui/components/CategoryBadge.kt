@@ -47,7 +47,7 @@ fun CategoryBadge(
             shape = shape,
             color = MaterialTheme.colorScheme.surface,
         ) {
-            BadgeContent(emoji = emoji, name = name, textColor = MaterialTheme.colorScheme.onSurface)
+            BadgeContent(emoji = emoji, name = name, textColor = MaterialTheme.colorScheme.onPrimaryContainer)
         }
     }
 }

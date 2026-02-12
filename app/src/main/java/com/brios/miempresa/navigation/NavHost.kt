@@ -200,6 +200,7 @@ fun NavHostComposable(
                     navController.navigate("${MiEmpresaScreen.Categories.name}/$categoryId")
                 },
                 onNavigateToWelcome = {
+                    signInViewModel.resetStates()
                     navController.navigate(MiEmpresaScreen.Welcome.name) {
                         popUpTo(0) { inclusive = true }
                     }

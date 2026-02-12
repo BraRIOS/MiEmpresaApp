@@ -85,6 +85,12 @@ class SignInViewModel
             _postAuthDestination.value = null
         }
 
+        fun resetStates() {
+            _postAuthDestination.value = null
+            _authState.value = null
+            _signInState.value = SignInState()
+        }
+
         suspend fun checkDriveAuthorization(): AuthState {
             return try {
                 authRepository.authorizeDriveAndSheets()

@@ -176,7 +176,7 @@ class ProductFormViewModel
                 _nameError.value = "El nombre es obligatorio"
                 hasError = true
             }
-            if (currentPrice == null || currentPrice <= 0) {
+            if (currentPrice == null || currentPrice < 0) {
                 _priceError.value = "Ingresá un precio válido"
                 hasError = true
             }
@@ -188,19 +188,19 @@ class ProductFormViewModel
 
             viewModelScope.launch {
                 _isSaving.value = true
-                
+
                 // Upload image if localImagePath exists
                 var finalImageUrl: String? = null
                 var finalDriveImageId: String? = null
                 var uploadFailed = false
-                
+
                 if (_localImagePath.value != null) {
                     val uploadResult = productsRepository.uploadProductImage(
                         companyId = currentCompanyId,
                         localImagePath = _localImagePath.value!!,
                         productName = currentName,
                     )
-                    
+
                     if (uploadResult != null) {
                         finalDriveImageId = uploadResult
                         finalImageUrl = "https://lh3.googleusercontent.com/d/$uploadResult"
@@ -212,7 +212,7 @@ class ProductFormViewModel
                     finalImageUrl = originalProduct?.imageUrl
                     finalDriveImageId = originalProduct?.driveImageId
                 }
-                
+
                 if (isEditMode && productId != null) {
                     val existing = originalProduct ?: return@launch
                     productsRepository.update(

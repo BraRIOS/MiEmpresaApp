@@ -1,6 +1,7 @@
 package com.brios.miempresa.products.ui
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -38,6 +39,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -179,6 +181,10 @@ fun ProductFormContent(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showCategorySheet by remember { mutableStateOf(false) }
 
+    BackHandler(enabled = isSaving) {
+        // Prevent back navigation while saving
+    }
+
     Scaffold(
         topBar = {
             Column {
@@ -194,7 +200,7 @@ fun ProductFormContent(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
+                        IconButton(onClick = onNavigateBack, enabled = !isSaving) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back))
                         }
                     },
@@ -229,13 +235,18 @@ fun ProductFormContent(
                         OutlinedButton(
                             onClick = { showDeleteDialog = true },
                             modifier = Modifier.size(56.dp),
+                            enabled = !isSaving,
                             shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                             contentPadding = PaddingValues(0.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 containerColor = Color(0xFFFFEBEE), // red-50
                                 contentColor = Color(0xFFE53935),   // red-600
                             ),
-                            border = BorderStroke(2.dp, Color(0xFFFFCDD2)), // red-100
+                            border = BorderStroke(
+                                2.dp,
+                                if (!isSaving) Color(0xFFFFCDD2) // red-100
+                                else Color.Gray.copy(alpha = 0.3f),
+                            ),
                         ) {
                             Icon(
                                 Icons.Outlined.Delete,
@@ -252,17 +263,25 @@ fun ProductFormContent(
                             .height(56.dp),
                         shape = RoundedCornerShape(50),
                     ) {
-                        Icon(
-                            Icons.Filled.Save,
-                            contentDescription = null,
-                            modifier = Modifier.size(22.dp),
-                        )
-                        Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
-                        Text(
-                            text = stringResource(R.string.save_product),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                        )
+                        if (isSaving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                strokeWidth = 3.dp
+                            )
+                        } else {
+                            Icon(
+                                Icons.Filled.Save,
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp),
+                            )
+                            Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+                            Text(
+                                text = stringResource(R.string.save_product),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
                     }
                 }
             }
@@ -648,6 +667,96 @@ private fun ProductFormNewPreview() {
             isPublic = true,
             onPublicChanged = {},
             categories = sampleCategories,
+            imageUrl = null,
+            onImageClick = {},
+            onImageRemoved = {},
+            isEditMode = false,
+            isSaving = false,
+            onSave = {},
+            onNavigateBack = {},
+            onNavigateToAddCategory = {},
+            onDelete = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ProductFormSavingPreview() {
+    MiEmpresaTheme {
+        ProductFormContent(
+            name = "Café Latte",
+            onNameChanged = {},
+            price = "4.50",
+            onPriceChanged = {},
+            description = "Un delicioso café con leche",
+            onDescriptionChanged = {},
+            selectedCategoryId = "1",
+            onCategorySelected = {},
+            isPublic = true,
+            onPublicChanged = {},
+            categories = sampleCategories,
+            imageUrl = null,
+            onImageClick = {},
+            onImageRemoved = {},
+            isEditMode = true,
+            isSaving = true,
+            onSave = {},
+            onNavigateBack = {},
+            onNavigateToAddCategory = {},
+            onDelete = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ProductFormErrorPreview() {
+    MiEmpresaTheme {
+        ProductFormContent(
+            name = "",
+            onNameChanged = {},
+            price = "invalid",
+            onPriceChanged = {},
+            description = "",
+            onDescriptionChanged = {},
+            selectedCategoryId = null,
+            onCategorySelected = {},
+            isPublic = true,
+            onPublicChanged = {},
+            categories = sampleCategories,
+            imageUrl = null,
+            onImageClick = {},
+            onImageRemoved = {},
+            isEditMode = false,
+            isSaving = false,
+            onSave = {},
+            onNavigateBack = {},
+            onNavigateToAddCategory = {},
+            onDelete = {},
+            nameError = "El nombre es requerido",
+            priceError = "Precio inválido",
+            categoryError = "Debes seleccionar una categoría"
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ProductFormNoCategoriesPreview() {
+    MiEmpresaTheme {
+        ProductFormContent(
+            name = "",
+            onNameChanged = {},
+            price = "",
+            onPriceChanged = {},
+            description = "",
+            onDescriptionChanged = {},
+            selectedCategoryId = null,
+            onCategorySelected = {},
+            isPublic = true,
+            onPublicChanged = {},
+            categories = emptyList(),
             imageUrl = null,
             onImageClick = {},
             onImageRemoved = {},

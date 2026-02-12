@@ -37,6 +37,7 @@ import com.brios.miempresa.core.ui.components.DeleteDialog
 import com.brios.miempresa.core.ui.components.EmptyStateView
 import com.brios.miempresa.core.ui.components.NotFoundView
 import com.brios.miempresa.core.ui.components.ItemCard
+import com.brios.miempresa.core.ui.components.ItemType
 import com.brios.miempresa.core.ui.components.OfflineBanner
 import com.brios.miempresa.core.ui.components.SearchBar
 import com.brios.miempresa.core.ui.components.TriangleArrowRefreshIndicator
@@ -182,6 +183,7 @@ private fun CategoriesContentInternal(
                                     subtitle = "",
                                     emojiIcon = item.category.iconEmoji,
                                     productCount = item.productCount,
+                                    itemType = ItemType.CATEGORY,
                                     onDelete = { itemToDelete = item.category.id to item.category.name },
                                     onClick = {
                                         onNavigateToCategoryDetail(item.category.id)
@@ -236,6 +238,16 @@ private fun CategoriesContentInternalPreview() {
                                         companyId = "1",
                                     ),
                                 productCount = 5,
+                            ),
+                            CategoryWithCount(
+                                category =
+                                    Category(
+                                        id = "3",
+                                        name = "No Icon",
+                                        iconEmoji = "",
+                                        companyId = "1",
+                                    ),
+                                productCount = 0,
                             ),
                         ),
                 ),

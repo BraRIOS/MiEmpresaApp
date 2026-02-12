@@ -34,7 +34,7 @@ object AppDimensions {
     val mediumBorderWidth = 2.dp
 
     // Bottom sheet
-    val bottomSheetPeekHeight = 400.dp
+    val bottomSheetPeekHeight = 220.dp
 
     // Component-specific
     val itemCardImageSize = 64.dp

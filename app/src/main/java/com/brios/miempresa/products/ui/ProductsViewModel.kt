@@ -89,6 +89,32 @@ class ProductsViewModel
                     initialValue = ProductsUiState.Loading,
                 )
 
+        // Product count by category, excluding category filter but applying other filters
+        val productCountByCategory: StateFlow<Map<String, Int>> =
+            _companyId
+                .flatMapLatest { companyId ->
+                    if (companyId == null) {
+                        flowOf(emptyMap())
+                    } else {
+                        combine(
+                            productsRepository.getAll(companyId),
+                            _filters,
+                        ) { products, filters ->
+                            // Apply filters EXCEPT category filter
+                            val filtersWithoutCategory = filters.copy(categoryId = null)
+                            val filtered = applyFilters(products, filtersWithoutCategory)
+                            // Group by category and count
+                            filtered.groupBy { it.categoryId }
+                                .mapNotNull { (key, value) -> key?.let { it to value.size } }
+                                .toMap()
+                        }
+                    }
+                }.stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5000),
+                    initialValue = emptyMap(),
+                )
+
         init {
             loadCompanyId()
         }

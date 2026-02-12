@@ -67,6 +67,7 @@ fun ProductsContent(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val filters by viewModel.filters.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val productCountByCategory by viewModel.productCountByCategory.collectAsStateWithLifecycle()
 
     ProductsContentInternal(
         modifier = modifier.fillMaxSize(),
@@ -74,6 +75,7 @@ fun ProductsContent(
         filters = filters,
         isRefreshing = isRefreshing,
         isOffline = viewModel.isOffline,
+        productCountByCategory = productCountByCategory,
         onRefresh = viewModel::refresh,
         onSearchQueryChanged = viewModel::onSearchQueryChanged,
         onPublicFilterChanged = viewModel::onPublicFilterChanged,
@@ -94,6 +96,7 @@ private fun ProductsContentInternal(
     filters: ProductFilters,
     isRefreshing: Boolean,
     isOffline: Boolean,
+    productCountByCategory: Map<String, Int>,
     onRefresh: () -> Unit,
     onSearchQueryChanged: (String) -> Unit,
     onPublicFilterChanged: (PublicFilter) -> Unit,
@@ -252,17 +255,6 @@ private fun ProductsContentInternal(
 
     // CategorySelector bottom sheet
     if (showCategorySelector) {
-        val productCountByCategory = when (uiState) {
-            is ProductsUiState.Success ->
-                uiState.products.groupBy { it.categoryId }
-                    .mapNotNull { (key, value) -> key?.let { it to value.size } }
-                    .toMap()
-            else -> emptyMap()
-        }
-        val totalItemCount = when (uiState) {
-            is ProductsUiState.Success -> uiState.products.size
-            else -> 0
-        }
         CategorySelectorBottomSheet(
             categories = allCategories,
             selectedCategoryId = filters.categoryId,
@@ -273,7 +265,6 @@ private fun ProductsContentInternal(
             onDismiss = { showCategorySelector = false },
             showItemCount = true,
             productCountByCategory = productCountByCategory,
-            totalItemCount = totalItemCount,
         )
     }
 }
@@ -382,6 +373,7 @@ private fun ProductsContentInternalPreview() {
             filters = ProductFilters(),
             isRefreshing = false,
             isOffline = false,
+            productCountByCategory = mapOf("1" to 1, "2" to 1),
             onRefresh = {},
             onSearchQueryChanged = {},
             onPublicFilterChanged = {},

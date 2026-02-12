@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
@@ -50,6 +51,11 @@ import com.brios.miempresa.core.ui.theme.SlateGray400
 import com.brios.miempresa.core.ui.theme.SlateGray700
 import com.brios.miempresa.core.ui.theme.VisibilityActiveBlue
 
+enum class ItemType {
+    PRODUCT,
+    CATEGORY,
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemCard(
@@ -60,6 +66,7 @@ fun ItemCard(
     emojiIcon: String? = null,
     productCount: Int? = null,
     isPublic: Boolean? = null,
+    itemType: ItemType = ItemType.PRODUCT,
     badge: (@Composable () -> Unit)? = null,
     onToggleVisibility: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
@@ -86,49 +93,54 @@ fun ItemCard(
                     .semantics(mergeDescendants = true) {},
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Thumbnail
-            if (imageUrl != null) {
-                AsyncImage(
-                    model = imageUrl,
-                    contentDescription = title,
-                    modifier =
-                        Modifier
-                            .size(AppDimensions.itemCardImageSize)
-                            .clip(imageShape),
-                    contentScale = ContentScale.Crop,
-                    placeholder = painterResource(R.drawable.miempresa_logo_glyph),
-                    error = painterResource(R.drawable.miempresa_logo_glyph),
-                )
-            } else if (!emojiIcon.isNullOrEmpty()) {
-                Box(
-                    modifier =
-                        Modifier
-                            .size(AppDimensions.categoryEmojiContainerSize)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.background)
-                            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = emojiIcon,
-                        fontSize = 24.sp,
-                    )
-                }
-            } else {
-                Box(
-                    modifier =
-                        Modifier
-                            .size(AppDimensions.itemCardImageSize)
-                            .clip(imageShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Sell,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+            when (itemType) {
+                ItemType.PRODUCT ->
+                    if (imageUrl != null)
+                        AsyncImage(
+                            model = imageUrl,
+                            contentDescription = title,
+                            modifier =
+                                Modifier
+                                    .size(AppDimensions.itemCardImageSize)
+                                    .clip(imageShape),
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(R.drawable.miempresa_logo_glyph),
+                            error = painterResource(R.drawable.miempresa_logo_glyph),
+                        )
+                    else
+                        Box(
+                            modifier =
+                                Modifier
+                                    .size(AppDimensions.itemCardImageSize)
+                                    .clip(imageShape)
+                                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Image,
+                                contentDescription = stringResource(R.string.sin_imagen),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                            )
+                        }
+
+                ItemType.CATEGORY ->
+                    Box(
+                        modifier =
+                            Modifier
+                                .size(AppDimensions.categoryEmojiContainerSize)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.background)
+                                .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (!emojiIcon.isNullOrEmpty())
+                            Text(
+                                text = emojiIcon,
+                                fontSize = 24.sp,
+                            )
+                        else
+                            Icon(Icons.Outlined.Sell, contentDescription = title, tint = SlateGray400)
+                    }
             }
 
             Spacer(modifier = Modifier.width(AppDimensions.mediumSmallPadding))
@@ -238,7 +250,7 @@ private fun ProductCountBadge(count: Int) {
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.SemiBold,
             color = contentColor,
-            modifier = Modifier.padding(horizontal = AppDimensions.smallPadding, vertical = AppDimensions.extraSmallPadding)
+            modifier = Modifier.padding(horizontal = AppDimensions.smallPadding, vertical = AppDimensions.extraSmallPadding),
         )
     }
 }
@@ -297,6 +309,7 @@ private fun ItemCardEmojiPreview() {
             subtitle = "",
             productCount = 10,
             emojiIcon = "🥤",
+            itemType = ItemType.CATEGORY,
             onDelete = {},
             onClick = {},
         )
@@ -308,10 +321,26 @@ private fun ItemCardEmojiPreview() {
 private fun ItemCardEmojiZeroPreview() {
     MiEmpresaTheme {
         ItemCard(
-            title = "Snacks",
+            title = "Sin icono",
             subtitle = "",
             productCount = 0,
             emojiIcon = "🍿",
+            itemType = ItemType.CATEGORY,
+            onDelete = {},
+            onClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ItemCardNoEmojiZeroPreview() {
+    MiEmpresaTheme {
+        ItemCard(
+            title = "Snacks",
+            subtitle = "",
+            productCount = 0,
+            itemType = ItemType.CATEGORY,
             onDelete = {},
             onClick = {},
         )

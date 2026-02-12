@@ -1,6 +1,8 @@
 package com.brios.miempresa.core.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -19,13 +22,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -34,10 +38,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.brios.miempresa.R
 import com.brios.miempresa.categories.data.Category
@@ -56,7 +62,6 @@ fun CategorySelectorBottomSheet(
     modifier: Modifier = Modifier,
     showItemCount: Boolean = false,
     productCountByCategory: Map<String, Int> = emptyMap(),
-    totalItemCount: Int = 0,
     onCreateCategory: (() -> Unit)? = null,
 ) {
     val sheetState = rememberModalBottomSheetState()
@@ -65,13 +70,16 @@ fun CategorySelectorBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
     ) {
-        Column {
+        Column(
+            modifier = Modifier.navigationBarsPadding()
+        ) {
             // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = AppDimensions.mediumLargePadding),
+                    .padding(horizontal = AppDimensions.mediumLargePadding, vertical = AppDimensions.smallPadding),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
@@ -83,33 +91,32 @@ fun CategorySelectorBottomSheet(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f),
                 )
-                IconButton(onClick = onDismiss) {
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .background(SlateGray100.copy(alpha = 0.5f), CircleShape)
+                        .size(32.dp)
+                ) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = stringResource(R.string.dismiss),
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            HorizontalDivider()
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                modifier = Modifier.padding(bottom = AppDimensions.smallPadding)
+            )
 
             LazyColumn(
-                modifier = Modifier.height(AppDimensions.bottomSheetPeekHeight),
+                modifier = Modifier
+                    .heightIn(max = AppDimensions.bottomSheetPeekHeight)
+                    .padding(horizontal = AppDimensions.smallPadding),
+                verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding)
             ) {
-                // "Todas" row (only in filter mode)
-                if (showItemCount) {
-                    item(key = "todas") {
-                        CategoryRow(
-                            emoji = "📌",
-                            name = stringResource(R.string.all_categories_option),
-                            itemCount = totalItemCount,
-                            showItemCount = true,
-                            isSelected = selectedCategoryId == null,
-                            onClick = { onCategorySelected(null) },
-                        )
-                    }
-                }
-
                 items(categories, key = { it.id }) { category ->
                     CategoryRow(
                         emoji = category.iconEmoji,
@@ -122,39 +129,47 @@ fun CategorySelectorBottomSheet(
                 }
             }
 
-            // "Limpiar filtros" (only when a category is selected in filter mode)
-            if (showItemCount && selectedCategoryId != null) {
-                TextButton(
-                    onClick = { onCategorySelected(null) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = AppDimensions.mediumLargePadding),
-                ) {
-                    Text(text = stringResource(R.string.clear_filters))
-                }
-            }
-
-            if (onCreateCategory != null) {
-                TextButton(
-                    onClick = onCreateCategory,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = AppDimensions.mediumLargePadding),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.padding(end = AppDimensions.smallPadding),
-                    )
-                    Text(text = stringResource(R.string.create_category))
-                }
-            }
-
-            Spacer(
+            // Footer actions
+            Column(
                 modifier = Modifier
-                    .navigationBarsPadding()
-                    .height(AppDimensions.mediumPadding),
-            )
+                    .fillMaxWidth()
+            ) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                if (showItemCount) {
+                    // "Limpiar filtros" button
+                    TextButton(
+                        onClick = { onCategorySelected(null) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(AppDimensions.mediumPadding)
+                            .height(48.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.clear_filters),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                } else if (onCreateCategory != null) {
+                    TextButton(
+                        onClick = onCreateCategory,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = AppDimensions.mediumLargePadding, vertical = AppDimensions.mediumPadding),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = AppDimensions.smallPadding),
+                        )
+                        Text(text = stringResource(R.string.create_category))
+                    }
+                } else {
+                     Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
+                }
+            }
         }
     }
 }
@@ -168,13 +183,20 @@ private fun CategoryRow(
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
-    val shape = remember { RoundedCornerShape(AppDimensions.smallCornerRadius) }
+    val shape = CircleShape
     val backgroundColor =
         if (isSelected) {
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+            MaterialTheme.colorScheme.secondaryContainer
         } else {
             Color.Transparent
         }
+
+    val borderColor = if (isSelected) {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+    } else {
+        Color.Transparent
+    }
+
     val textColor =
         if (isSelected) {
             MaterialTheme.colorScheme.primary
@@ -182,55 +204,67 @@ private fun CategoryRow(
             MaterialTheme.colorScheme.onSurface
         }
 
-    Surface(
-        onClick = onClick,
-        shape = shape,
-        color = backgroundColor,
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(backgroundColor)
+            .border(1.dp, borderColor, shape)
+            .clickable(onClick = onClick)
+            .padding(
+                horizontal = AppDimensions.mediumPadding,
+                vertical = AppDimensions.mediumPadding,
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
     ) {
-        Row(
+        // Icon container
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = AppDimensions.mediumLargePadding,
-                    vertical = AppDimensions.mediumSmallPadding,
+                .size(48.dp)
+                .shadow(
+                    elevation = if (isSelected) 1.dp else 0.dp,
+                    shape = CircleShape,
+                    spotColor = Color.Black.copy(alpha = 0.1f)
+                )
+                .background(
+                    if (isSelected) Color.White else SlateGray100,
+                    CircleShape
                 ),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumSmallPadding),
+            contentAlignment = Alignment.Center,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(AppDimensions.largeIconSize)
-                    .clip(CircleShape)
-                    .background(SlateGray100),
-                contentAlignment = Alignment.Center,
-            ) {
+            if (emoji.isNotEmpty() && emoji.isNotBlank())
                 Text(
                     text = emoji,
-                    fontSize = 24.sp,
+                    fontSize = 20.sp,
                 )
-            }
-            Column(modifier = Modifier.weight(1f)) {
+            else
+                Icon(Icons.Outlined.Sell, contentDescription = name, tint = SlateGray400)
+        }
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                color = if (isSelected) textColor else MaterialTheme.colorScheme.onSurface,
+            )
+            if (showItemCount) {
                 Text(
-                    text = name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor,
-                )
-                if (showItemCount) {
-                    Text(
-                        text = stringResource(R.string.items_count, itemCount),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = SlateGray400,
-                    )
-                }
-            }
-            if (isSelected) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    text = stringResource(R.string.items_count, itemCount),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isSelected) textColor.copy(alpha = 0.8f) else SlateGray400,
+                    fontWeight = FontWeight.Medium
                 )
             }
+        }
+
+        if (isSelected) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+            )
         }
     }
 }
@@ -239,7 +273,7 @@ private val previewCategories =
     listOf(
         Category(id = "1", name = "Café", iconEmoji = "☕", companyId = "c1"),
         Category(id = "2", name = "Panadería", iconEmoji = "🍞", companyId = "c1"),
-        Category(id = "3", name = "Postres", iconEmoji = "🍰", companyId = "c1"),
+        Category(id = "3", name = "Sin icono", iconEmoji = "", companyId = "c1"),
         Category(id = "4", name = "Bebidas", iconEmoji = "🥤", companyId = "c1"),
     )
 
@@ -255,7 +289,6 @@ private fun CategorySelectorWithSelectionPreview() {
             onDismiss = {},
             showItemCount = true,
             productCountByCategory = mapOf("1" to 5, "2" to 3, "3" to 8, "4" to 2),
-            totalItemCount = 18,
             onCreateCategory = {},
         )
     }
@@ -273,7 +306,6 @@ private fun CategorySelectorNoSelectionPreview() {
             onDismiss = {},
             showItemCount = true,
             productCountByCategory = mapOf("1" to 5, "2" to 3, "3" to 8, "4" to 2),
-            totalItemCount = 18,
         )
     }
 }

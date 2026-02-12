@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -135,14 +134,14 @@ fun NavHostComposable(
                     }
                 }
 
-            LaunchedEffect(key1 = authState, key2 = signInViewModel.getSignedInUser()) {
+            LaunchedEffect(key1 = authState) {
                 if (authState is AuthState.PendingAuth) {
                     (authState as AuthState.PendingAuth).intentSender?.let { intentSender ->
                         authorizationLauncher.launch(
                             IntentSenderRequest.Builder(intentSender).build(),
                         )
                     }
-                } else if (authState is AuthState.Authorized && signInViewModel.getSignedInUser() != null) {
+                } else if (authState is AuthState.Authorized) {
                     signInViewModel.determinePostAuthDestination()
                 }
             }

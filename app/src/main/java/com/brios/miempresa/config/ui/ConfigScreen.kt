@@ -1,10 +1,16 @@
 package com.brios.miempresa.config.ui
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,32 +34,43 @@ import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.ReceiptLong
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -71,27 +88,32 @@ import com.brios.miempresa.core.ui.theme.SlateGray200
 import com.brios.miempresa.core.ui.theme.SlateGray300
 import com.brios.miempresa.core.ui.theme.SlateGray400
 import com.brios.miempresa.core.ui.theme.SlateGray500
+import com.brios.miempresa.core.util.QrCodeGenerator
+import com.brios.miempresa.core.util.QrCodeResult
 import com.brios.miempresa.onboarding.ui.components.CountryCodeDropdown
 
 private val Blue50 = Color(0xFFEFF6FF)
 private val Blue500 = Color(0xFF3B82F6)
 private val avatarSize = 112.dp
 private val cameraOverlaySize = 36.dp
+private const val DEEPLINK_PREFIX = "miempresa://catalogo?sheetId="
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfigScreen(
     modifier: Modifier = Modifier,
     viewModel: ConfigViewModel = hiltViewModel(),
     onNavigateToOrders: () -> Unit = {},
-    onShowShareSheet: () -> Unit = {},
     onNavigateToWelcome: () -> Unit = {},
 ) {
     val form by viewModel.form.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
+    val publicSheetId by viewModel.publicSheetId.collectAsStateWithLifecycle()
     val activity = LocalActivity.current as Activity
 
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
+    var showShareSheet by rememberSaveable { mutableStateOf(false) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -112,7 +134,7 @@ fun ConfigScreen(
         onUpdateBusinessHours = viewModel::updateBusinessHours,
         onPickLogo = { imagePickerLauncher.launch("image/*") },
         onNavigateToOrders = onNavigateToOrders,
-        onShowShareSheet = onShowShareSheet,
+        onShowShareSheet = { showShareSheet = true },
         onSyncNow = viewModel::syncNow,
         onLogoutClick = { showLogoutDialog = true },
     )
@@ -138,6 +160,13 @@ fun ConfigScreen(
                     Text(stringResource(R.string.config_logout_dismiss))
                 }
             },
+        )
+    }
+
+    if (showShareSheet && publicSheetId != null) {
+        ShareCatalogBottomSheet(
+            publicSheetId = publicSheetId!!,
+            onDismiss = { showShareSheet = false },
         )
     }
 }
@@ -493,6 +522,120 @@ private fun LogoutButton(onClick: () -> Unit) {
                 fontWeight = FontWeight.Bold,
                 color = SlateGray500,
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ShareCatalogBottomSheet(
+    publicSheetId: String,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    val deeplink = remember(publicSheetId) { "$DEEPLINK_PREFIX$publicSheetId" }
+    val qrBitmap = remember(deeplink) {
+        val result = QrCodeGenerator().generate(deeplink)
+        (result as? QrCodeResult.Success)?.bitmap
+    }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = AppDimensions.extraLargePadding)
+                .padding(bottom = AppDimensions.extraLargePadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = stringResource(R.string.share_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
+
+            Text(
+                text = stringResource(R.string.share_subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                color = SlateGray400,
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(modifier = Modifier.height(AppDimensions.largePadding))
+
+            // QR code
+            if (qrBitmap != null) {
+                Image(
+                    bitmap = qrBitmap.asImageBitmap(),
+                    contentDescription = stringResource(R.string.share_qr_content_description),
+                    modifier = Modifier
+                        .size(200.dp)
+                        .clip(RoundedCornerShape(AppDimensions.mediumCornerRadius)),
+                )
+            }
+
+            Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
+
+            // Deeplink text
+            Text(
+                text = deeplink,
+                style = MaterialTheme.typography.bodySmall,
+                color = SlateGray500,
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(modifier = Modifier.height(AppDimensions.largePadding))
+
+            // Copy link button
+            OutlinedButton(
+                onClick = {
+                    val clipboard =
+                        context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    clipboard.setPrimaryClip(ClipData.newPlainText("Deeplink", deeplink))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(50),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.ContentCopy,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+                Text(stringResource(R.string.share_copy_link))
+            }
+
+            Spacer(modifier = Modifier.height(AppDimensions.mediumSmallPadding))
+
+            // Share button
+            Button(
+                onClick = {
+                    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                        putExtra(Intent.EXTRA_TEXT, deeplink)
+                        type = "text/plain"
+                    }
+                    context.startActivity(Intent.createChooser(sendIntent, null))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                ),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Share,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+                Text(stringResource(R.string.share_send))
+            }
         }
     }
 }

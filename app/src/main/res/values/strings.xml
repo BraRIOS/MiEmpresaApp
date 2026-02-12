@@ -230,6 +230,11 @@
     <string name="config_logout_message">¿Seguro que querés cerrar sesión? Tus datos locales se conservan.</string>
     <string name="config_logout_confirm">Cerrar sesión</string>
     <string name="config_logout_dismiss">Cancelar</string>
+    <string name="share_title">Compartir Catálogo</string>
+    <string name="share_subtitle">Escaneá el código QR o compartí el link para que tus clientes accedan a tu catálogo</string>
+    <string name="share_qr_content_description">Código QR del catálogo</string>
+    <string name="share_copy_link">Copiar link</string>
+    <string name="share_send">Compartir</string>
 
     <!-- Categories screen -->
     <string name="search_categories">Buscar categorías…</string>

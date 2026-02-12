@@ -35,6 +35,7 @@ class PeriodicSyncWorker
                         SyncType.ALL -> syncCoordinator.syncAll()
                         SyncType.PRODUCTS -> syncCoordinator.syncProducts()
                         SyncType.CATEGORIES -> syncCoordinator.syncCategories()
+                        SyncType.ORDERS -> syncCoordinator.syncOrders()
                     }
                 result.fold(
                     onSuccess = { Result.success() },

@@ -17,6 +17,7 @@ enum class SyncType {
     ALL,
     PRODUCTS,
     CATEGORIES,
+    ORDERS,
 }
 
 @Singleton

@@ -3,6 +3,7 @@ package com.brios.miempresa.core.sync.domain
 import android.util.Log
 import com.brios.miempresa.categories.domain.CategoriesRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
+import com.brios.miempresa.pedidos.domain.OrdersRepository
 import com.brios.miempresa.products.domain.ProductsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -14,6 +15,7 @@ class SyncCoordinator
     constructor(
         private val productsRepository: ProductsRepository,
         private val categoriesRepository: CategoriesRepository,
+        private val ordersRepository: OrdersRepository,
         private val companyDao: CompanyDao,
     ) {
         suspend fun syncAll(): Result<Unit> {
@@ -47,6 +49,14 @@ class SyncCoordinator
                     throw e
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to upload products", e)
+                }
+
+                try {
+                    ordersRepository.syncPendingChanges(companyId)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to upload orders", e)
                 }
 
                 companyDao.updateLastSyncedAt(companyId, System.currentTimeMillis())
@@ -88,6 +98,18 @@ class SyncCoordinator
                     Log.e(TAG, "Failed to download categories", e)
                 }
                 categoriesRepository.syncPendingChanges(companyId)
+                Result.success(Unit)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
+        suspend fun syncOrders(): Result<Unit> {
+            val companyId = getActiveCompanyId() ?: return Result.success(Unit)
+            return try {
+                ordersRepository.syncPendingChanges(companyId)
                 Result.success(Unit)
             } catch (e: CancellationException) {
                 throw e

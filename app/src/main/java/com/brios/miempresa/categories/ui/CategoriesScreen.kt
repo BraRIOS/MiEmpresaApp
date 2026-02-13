@@ -29,12 +29,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.categories.data.Category
-import com.brios.miempresa.core.ui.components.DeleteDialog
 import com.brios.miempresa.core.ui.components.EmptyStateView
+import com.brios.miempresa.core.ui.components.MiEmpresaDialog
 import com.brios.miempresa.core.ui.components.NotFoundView
 import com.brios.miempresa.core.ui.components.ItemCard
 import com.brios.miempresa.core.ui.components.ItemType
@@ -85,7 +85,7 @@ private fun CategoriesContentInternal(
     onNavigateToCategoryDetail: (String) -> Unit,
     onNavigateToAddCategory: () -> Unit,
 ) {
-    var itemToDelete by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var itemToDelete by remember { mutableStateOf<Triple<String, String, Int>?>(null) }
     val pullToRefreshState = rememberPullToRefreshState()
 
     PullToRefreshBox(
@@ -184,7 +184,7 @@ private fun CategoriesContentInternal(
                                     emojiIcon = item.category.iconEmoji,
                                     productCount = item.productCount,
                                     itemType = ItemType.CATEGORY,
-                                    onDelete = { itemToDelete = item.category.id to item.category.name },
+                                    onDelete = { itemToDelete = Triple(item.category.id, item.category.name, item.productCount) },
                                     onClick = {
                                         onNavigateToCategoryDetail(item.category.id)
                                     },
@@ -197,10 +197,17 @@ private fun CategoriesContentInternal(
         }
     }
 
-    itemToDelete?.let { (id, name) ->
-        DeleteDialog(
-            itemName = name,
+    itemToDelete?.let { (id, name, productCount) ->
+        MiEmpresaDialog(
             title = stringResource(R.string.delete_category),
+            text = if (productCount > 0) {
+                stringResource(R.string.category_has_products, productCount)
+            } else {
+                stringResource(R.string.delete_dialog_title) + "\"$name\"?"
+            },
+            confirmLabel = stringResource(R.string.delete),
+            dismissLabel = stringResource(R.string.cancel),
+            confirmEnabled = productCount == 0,
             onDismiss = { itemToDelete = null },
             onConfirm = {
                 onDeleteCategory(id)

@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -56,6 +57,8 @@ private fun InitialsAvatar(
     size: Dp,
     modifier: Modifier = Modifier,
 ) {
+    val fontSize = with(LocalDensity.current) { (size / 2.5f).toSp() }
+
     Box(
         modifier =
             modifier
@@ -66,7 +69,7 @@ private fun InitialsAvatar(
     ) {
         Text(
             text = initials,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleMedium.copy(fontSize = fontSize),
             color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
     }

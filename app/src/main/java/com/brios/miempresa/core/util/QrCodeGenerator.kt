@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
+import androidx.core.graphics.createBitmap
 
 /**
  * Domain service for generating QR codes from text content.
@@ -43,7 +44,7 @@ class QrCodeGenerator {
             val bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, sizePx, sizePx)
 
             // Convert BitMatrix to Bitmap
-            val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.RGB_565)
+            val bitmap = createBitmap(sizePx, sizePx, Bitmap.Config.RGB_565)
             val pixels = IntArray(sizePx * sizePx)
             for (y in 0 until sizePx) {
                 for (x in 0 until sizePx) {

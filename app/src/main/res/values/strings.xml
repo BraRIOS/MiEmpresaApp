@@ -1,12 +1,9 @@
 <resources>
     <string name="app_name" translatable="false">MiEmpresa</string>
-    <string name="description">Una imagen</string>
     <string name="productSearch">Buscar productos…</string>
     <string name="home_title">Productos</string>
     <string name="categories_title">Categorías</string>
-    <string name="categorySearch">Buscar categoría…</string>
     <string name="add_product">Agregar Producto</string>
-    <string name="categories_action">Añadir Categoría</string>
     <string name="sign_in_success">Inicio de sesión exitoso</string>
     <string name="sign_in_error">Inicio de sesión fallido</string>
     <string name="not_authorized">Sin autorización</string>
@@ -15,41 +12,19 @@
     <string name="show_menu">Mostrar menú</string>
     <string name="go_back">Volver</string>
     <string name="log_out">Cerrar sesión</string>
-    <string name="view_profile">Ver perfil</string>
     <string name="edit_product">Editar producto</string>
     <string name="save">Guardar</string>
     <string name="cancel">Cancelar</string>
-    <string name="product_dialog_required_fields">El Nombre y las Categorías son obligatorios</string>
-    <string name="image_url_label">URL de la imagen</string>
-    <string name="categories_search">Buscar categorías…</string>
     <string name="price_label">PRECIO</string>
     <string name="description_label">DESCRIPCIÓN</string>
     <string name="name_label">Nombre</string>
-    <string name="product_not_found">Producto no encontrado</string>
-    <string name="error_updating_product">Error al actualizar el producto</string>
-    <string name="show_category_options">Mostrar opciones de la categoría: %1$s</string>
-    <string name="product_quantity">Cantidad de productos</string>
     <string name="add_category">Agregar categoría</string>
     <string name="edit_category">Editar categoría</string>
-    <string name="category_dialog_error">El Nombre es obligatorio</string>
-    <string name="error_loading_product">No se pudo cargar el producto</string>
     <string name="warning_icon_description">Icono de alerta</string>
-    <string name="error_adding_product">No se pudo agregar el producto</string>
-    <string name="error_adding_category">No se pudo agregar la categoría</string>
-    <string name="error_updating_category">No se pudo actualizar la categoría</string>
     <string name="delete_dialog_title">"¿Quieres eliminar "</string>
-    <string name="confirm">Confirmar</string>
     <string name="info">Info</string>
     <string name="delete_product">Eliminar producto</string>
-    <string name="error_deleting_product">No se pudo eliminar el producto</string>
-    <string name="error_loading_categories">No se pudieron cargar las categorías</string>
-    <string name="checking_existing_companies">Buscando empresas existentes</string>
-    <string name="searching_database">Verificando tu espacio de trabajo...</string>
-    <string name="creating_database">Creando tu espacio de trabajo en Drive...</string>
     <string name="user">Usuario</string>
-    <string name="company_name_label">Nombre de la empresa</string>
-    <string name="create">Crear</string>
-    <string name="create_your_company">Crea tu empresa</string>
     <string name="greeting_user">Hola, %1$s</string>
     <string name="select_company_question">¿Quieres seleccionar una empresa?</string>
     <string name="create_new_company">Crear nueva empresa</string>
@@ -60,36 +35,15 @@
     <string name="select_another_company">Seleccionar otra empresa</string>
     <string name="database_not_found_for_company">Base de datos no encontrada en la empresa</string>
     <string name="or">o</string>
-    <string name="sheet_1_name">Productos</string>
     <string name="main_folder_name" translatable="false">MiEmpresa app</string>
     <string name="spreadsheet_name" translatable="false">Database %1$s</string>
-    <string name="sheet_2_name">Categorias</string>
-    <string name="name_column">Nombre</string>
-    <string name="description_column">Descripción</string>
-    <string name="price_column">Precio</string>
-    <string name="categories_column">Categorías</string>
-    <string name="image_url_column">URL Imagen</string>
-    <string name="product_amount_column">Cantidad de productos</string>
-    <string name="edit">Editar</string>
     <string name="delete">Eliminar</string>
-    <string name="error_deleting_category">No se pudo eliminar la categoría</string>
-    <string name="discard">Descartar</string>
     <string name="invalid_credential_type">Tipo de credencial inválido: %1$s</string>
     <string name="app_logo">Logo de la aplicación</string>
-    <string name="options">Opciones</string>
     <string name="profile_picture">Foto de perfil</string>
-    <string name="image">imagen de %1$s</string>
-    <string name="products_label_count">Productos: %1$s</string>
-    <string name="error_authentication">Hubo un error en la autenticación</string>
-    <string name="try_again">Vuelva a intentar</string>
-    <string name="placeholder">Placeholder</string>
     <string name="sin_imagen">Sin imagen</string>
-    <string name="do_not_delete_advice">[NO BORRAR]</string>
     <string name="switch_company">Cambiar empresa</string>
-    <string name="current_company">Empresa actual</string>
-    <string name="visited_stores">Tiendas visitadas</string>
     <string name="create_another_company">Crear otra empresa</string>
-    <string name="loading_companies">Cargando empresas</string>
 
     <!-- Empty states -->
     <string name="empty_state_products">Aún no tenés productos</string>
@@ -98,18 +52,11 @@
     <string name="empty_state_categories">Aún no tenés categorías</string>
     <string name="empty_state_categories_subtitle">Organizá tus productos creando categorías</string>
     <string name="empty_state_categories_action">Crear primera categoría</string>
-    <string name="empty_state_orders">No hay pedidos todavía</string>
-    <string name="empty_state_orders_subtitle">Los pedidos de tus clientes aparecerán aquí</string>
-    <string name="empty_state_stores">No tenés tiendas guardadas</string>
-    <string name="empty_state_stores_subtitle">Ingresá el código de una tienda para empezar</string>
-    <string name="empty_state_cart">Tu carrito está vacío</string>
-    <string name="empty_state_cart_subtitle">Agregá productos desde el catálogo</string>
 
     <!-- Sign in screen -->
     <string name="sign_in_title">Iniciar sesión\ncon Google</string>
     <string name="sign_in_subtitle">Gestiona tu catálogo y pedidos</string>
     <string name="sign_in_with_google">Continuar con Google</string>
-    <string name="privacy_info">MiEmpresa solo accede a archivos que crea en tu Drive.\nTus otros documentos permanecen privados.</string>
     <string name="privacy_first">Privacidad primero: </string>
     <string name="privacy_body">MiEmpresa solo accede a archivos que crea en tu Drive, </string>
     <string name="privacy_emphasis">no a tus otros documentos.</string>
@@ -118,7 +65,6 @@
     <string name="google_icon">Google</string>
 
     <!-- Welcome screen -->
-    <string name="welcome_title">MiEmpresa</string>
     <string name="welcome_tagline">Tu empresa, en tu bolsillo.\nGestiona pedidos y catálogos fácilmente.</string>
     <string name="welcome_admin_button">Gestionar mi empresa</string>
     <string name="welcome_client_button">Explorar catálogos</string>
@@ -136,35 +82,24 @@
     <!-- Quantity selector -->
     <string name="quantity_decrease">Disminuir cantidad</string>
     <string name="quantity_increase">Aumentar cantidad</string>
-    <string name="quantity_label">Cantidad</string>
 
     <!-- Item actions -->
-    <string name="edit_item">Editar</string>
     <string name="toggle_visibility">Cambiar visibilidad</string>
     <string name="dismiss">Cerrar</string>
 
     <!-- Onboarding wizard -->
-    <string name="onboarding_hero">Empecemos con lo básico</string>
     <string name="onboarding_cancel">Cancelar</string>
     <string name="onboarding_cancel_dialog_title">¿Salir del registro?</string>
     <string name="onboarding_cancel_dialog_message">Los datos ingresados no se guardarán.</string>
     <string name="onboarding_cancel_dialog_confirm">Salir</string>
     <string name="onboarding_cancel_dialog_dismiss">Continuar editando</string>
-    <string name="onboarding_step_indicator">Paso %1$d de %2$d</string>
     <string name="onboarding_step1_title_line1">Empecemos con</string>
     <string name="onboarding_step1_title_line2">lo básico</string>
     <string name="onboarding_step1_subtitle">Crea el perfil de tu empresa para empezar a gestionar tu catálogo</string>
-    <string name="onboarding_company_name_hint">Nombre de tu empresa</string>
-    <string name="onboarding_whatsapp_hint">Número de WhatsApp</string>
     <string name="onboarding_whatsapp_helper">Se usará para enviar confirmaciones de pedidos</string>
-    <string name="onboarding_specialization_hint">Especialización (opcional)</string>
     <string name="onboarding_specialization_helper">Ayuda a los clientes a identificar tu empresa</string>
-    <string name="onboarding_logo_title">Logo de empresa</string>
     <string name="onboarding_logo_recommended">RECOMENDADO</string>
     <string name="onboarding_logo_open_gallery">Subir logo</string>
-    <string name="onboarding_details_title">Detalles adicionales</string>
-    <string name="onboarding_address_hint">Dirección (opcional)</string>
-    <string name="onboarding_hours_hint">Horarios (opcional)</string>
     <string name="onboarding_continue">Continuar</string>
     <string name="label_company_name">NOMBRE DE LA EMPRESA</string>
     <string name="label_whatsapp">NÚMERO DE WHATSAPP</string>
@@ -181,7 +116,6 @@
     <string name="additional_details">Detalles adicionales</string>
     <string name="onboarding_name_required">El nombre es obligatorio</string>
     <string name="onboarding_whatsapp_invalid">Número de WhatsApp inválido</string>
-    <string name="workspace_title">Preparando tu Espacio de Trabajo</string>
     <string name="workspace_in_progress">EN PROGRESO</string>
     <string name="workspace_step_folder">Creando carpeta en Drive</string>
     <string name="workspace_step_logo">Subiendo logo</string>
@@ -199,7 +133,6 @@
     <string name="tab_pedidos" translatable="false">Pedidos</string>
     <string name="workspace_step_processing">Procesando…</string>
     <string name="workspace_step_completed">Completado</string>
-    <string name="workspace_step_pending">Pendiente</string>
     <string name="onboarding_step2_title_line1">Preparando tu</string>
     <string name="onboarding_step2_title_line2">Espacio de Trabajo</string>
     <string name="onboarding_step2_subtitle">Estamos configurando tu entorno automatizado en Google Drive</string>
@@ -211,16 +144,12 @@
     <string name="onboarding_success_subtitle">Ya configuramos tu catálogo.\nComienza a recibir pedidos ahora.</string>
     <string name="onboarding_success_cta">Empezar a gestionar</string>
     <string name="search">Buscar</string>
-    <string name="validating_workspace">Validando workspace…</string>
     <string name="config_title">Configuración</string>
-    <string name="config_coming_soon">Próximamente</string>
-    <string name="config_section_info">INFORMACIÓN DE LA EMPRESA</string>
     <string name="config_section_actions">ACCIONES</string>
-    <string name="config_label_name">Nombre de la empresa</string>
     <string name="config_label_whatsapp">WhatsApp de pedidos</string>
     <string name="config_label_specialization">Especialización</string>
     <string name="config_label_address">Dirección</string>
-    <string name="config_label_hours">Horarios de atención</string>
+    <string name="config_label_hours">Horarios</string>
     <string name="config_action_orders">Mis Pedidos</string>
     <string name="config_action_share">Compartir Catálogo</string>
     <string name="config_sync_now">Sincronizar ahora</string>
@@ -240,12 +169,7 @@
     <string name="config_logout_message">¿Seguro que querés cerrar sesión? Se eliminarán los datos locales del dispositivo.</string>
     <string name="config_logout_confirm">Cerrar sesión</string>
     <string name="config_logout_dismiss">Cancelar</string>
-    <string name="share_title">Compartir Catálogo</string>
-    <string name="share_subtitle">Escaneá el código QR o compartí el link para que tus clientes accedan a tu catálogo</string>
     <string name="share_qr_content_description">Código QR del catálogo</string>
-    <string name="share_copy_link">Copiar link</string>
-    <string name="share_send">Compartir</string>
-    <string name="pedidos_title">Mis Pedidos</string>
     <string name="pedidos_add">Nuevo pedido</string>
     <string name="pedidos_empty_title">Sin pedidos</string>
     <string name="pedidos_empty_subtitle">Registrá tu primer pedido con el botón +</string>
@@ -267,33 +191,24 @@
 
     <!-- Categories screen -->
     <string name="search_categories">Buscar categorías…</string>
-    <string name="no_categories_yet">Aún no tenés categorías</string>
     <string name="no_categories_match">No se encontraron categorías</string>
-    <string name="category_name">Nombre de la categoría</string>
     <string name="icon_label">Icono</string>
     <string name="select_emoji_title">Seleccionar ícono</string>
-    <string name="search_emojis">Buscar emojis…</string>
     <string name="delete_category">Eliminar categoría</string>
     <string name="category_has_products">Esta categoría tiene %1$d productos asociados. Reasigná los productos antes de eliminarla.</string>
     <string name="confirm_delete_category">¿Estás seguro de que querés eliminar esta categoría?</string>
 
     <!-- Products screen -->
     <string name="search_products">Buscar productos…</string>
-    <string name="no_products_yet">Aún no tenés productos</string>
     <string name="no_products_match">No se encontraron productos</string>
     <string name="clear_filters">Limpiar filtros</string>
     <string name="filter_all">Todos</string>
     <string name="filter_public">Públicos</string>
     <string name="filter_private">Privados</string>
-    <string name="public_label">Público</string>
-    <string name="private_label">Privado</string>
-    <string name="product_name">Nombre del producto</string>
     <string name="product_name_label">NOMBRE DEL PRODUCTO</string>
     <string name="product_name_placeholder">Ej. Zapatos Deportivos</string>
-    <string name="price">Precio</string>
     <string name="category">Categoría</string>
     <string name="category_label">CATEGORÍA</string>
-    <string name="description_optional">Descripción (opcional)</string>
     <string name="description_placeholder">Detalles, materiales, tallas…</string>
     <string name="visible_public_catalog">Visible en catálogo público</string>
     <string name="public_switch_helper">El producto aparecerá en tu tienda online</string>
@@ -304,7 +219,6 @@
     <string name="remove_photo">Quitar foto</string>
     <string name="no_categories_create_first">No hay categorías. Creá una antes de agregar productos.</string>
     <string name="create_category">Crear categoría</string>
-    <string name="confirm_delete_product">¿Estás seguro de que querés eliminar este producto?</string>
     <string name="no_products_label">Sin productos</string>
     <string name="save_category">Guardar categoría</string>
     <string name="see_all_emojis">Ver todos</string>
@@ -314,6 +228,5 @@
     <string name="category_filter_description">Abrir selector de categoría para filtrar</string>
     <string name="categories_count_label">%1$d CATEGORÍAS</string>
     <string name="categories_count_header">Categorías (%1$d)</string>
-    <string name="all_categories_option">Todas</string>
     <string name="items_count">%1$d items</string>
 </resources>

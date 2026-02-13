@@ -60,7 +60,7 @@ object AppDimensions {
 
 
     object Drawer {
-        val appLogoSize = 64.dp
+        val companyLogoSize = 64.dp
         val drawerCornerRadius = 28.dp
         val userAvatarSize = 40.dp
     }
@@ -121,5 +121,9 @@ object AppDimensions {
         val ctaCornerRadius = 16.dp
         val summaryCardPadding = 20.dp
         val summaryCardCornerRadius = 16.dp
+    }
+
+    object Config {
+        val companyLogoSize = 128.dp
     }
 }

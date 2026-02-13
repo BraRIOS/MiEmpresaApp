@@ -27,6 +27,7 @@ import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,7 +42,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.components.CompanyAvatar
@@ -52,7 +53,6 @@ import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray500
 import com.brios.miempresa.onboarding.ui.components.CountryCodeDropdown
 
-private val avatarSize = 128.dp
 private val cameraOverlaySize = 40.dp
 
 @Composable
@@ -164,7 +164,7 @@ fun EditCompanyDataContent(
                     CompanyAvatar(
                         companyName = form.companyName,
                         logoUrl = form.localLogoUri ?: form.logoUrl,
-                        size = avatarSize,
+                        size = AppDimensions.Config.companyLogoSize,
                     )
                     Box(
                         modifier = Modifier
@@ -176,11 +176,11 @@ fun EditCompanyDataContent(
                             .clickable { onPickLogo() },
                         contentAlignment = Alignment.Center,
                     ) {
-                        androidx.compose.material3.Icon(
+                        Icon(
                             imageVector = Icons.Outlined.CameraAlt,
                             contentDescription = stringResource(R.string.config_change_logo),
                             tint = Color.White,
-                            modifier = Modifier.size(18.dp),
+                            modifier = Modifier.size(AppDimensions.smallIconSize),
                         )
                     }
                 }
@@ -190,7 +190,7 @@ fun EditCompanyDataContent(
 
             // Name (required)
             FormFieldGroup(
-                label = stringResource(R.string.config_label_name),
+                label = stringResource(R.string.name_label),
                 required = true,
             ) {
                 FormOutlinedTextField(

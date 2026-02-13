@@ -13,7 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -45,8 +45,7 @@ fun NavHostComposable(
     // If already signed in, skip Welcome and check Drive authorization
     if (isAlreadySignedIn) {
         LaunchedEffect(Unit) {
-            val authState = signInViewModel.checkDriveAuthorization()
-            when (authState) {
+            when (val authState = signInViewModel.checkDriveAuthorization()) {
                 is AuthState.Authorized -> {
                     signInViewModel.determinePostAuthDestination()
                 }
@@ -161,7 +160,7 @@ fun NavHostComposable(
         }
         composable(
             route = "${MiEmpresaScreen.Onboarding.name}?mode={mode}",
-            arguments = listOf(navArgument("mode") { 
+            arguments = listOf(navArgument("mode") {
                 type = NavType.StringType
                 nullable = true
                 defaultValue = null

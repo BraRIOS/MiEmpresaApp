@@ -56,8 +56,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.brios.miempresa.R
@@ -138,7 +137,7 @@ private fun DrawerContent(
                             companyName = selectedCompany?.name
                                 ?: stringResource(R.string.app_name),
                             logoUrl = selectedCompany?.logoUrl,
-                            size = AppDimensions.Drawer.appLogoSize,
+                            size = AppDimensions.Drawer.companyLogoSize,
                         )
                         Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
                         Text(

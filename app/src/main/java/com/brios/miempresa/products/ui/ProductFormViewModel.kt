@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -132,7 +133,7 @@ class ProductFormViewModel
 
         fun onImageSelected(uriString: String) {
             viewModelScope.launch(Dispatchers.IO) {
-                val uri = Uri.parse(uriString)
+                val uri = uriString.toUri()
                 val localFile = copyUriToInternalStorage(uri)
                 _localImagePath.value = localFile?.absolutePath
             }

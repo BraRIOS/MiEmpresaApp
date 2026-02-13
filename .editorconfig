@@ -24,8 +24,5 @@ ktlint_standard_property-naming = disabled
 [*.xml]
 indent_size = 4
 
-[*.gradle.kts]
-indent_size = 4
-
 [*.{yml,yaml}]
 indent_size = 2

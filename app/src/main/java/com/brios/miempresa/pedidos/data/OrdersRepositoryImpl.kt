@@ -43,10 +43,11 @@ class OrdersRepositoryImpl
             val dirtyOrders = orderDao.getDirty(companyId)
             if (dirtyOrders.isEmpty()) return
 
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
             val rows = dirtyOrders.map { order ->
                 val items = orderDao.getItemsByOrderId(order.id)
                 val itemsJson = serializeItems(items)
-                val dateStr = DATE_FORMAT.format(Date(order.createdAt))
+                val dateStr = dateFormat.format(Date(order.createdAt))
                 listOf<Any>(
                     order.id,
                     dateStr,
@@ -87,6 +88,5 @@ class OrdersRepositoryImpl
         companion object {
             private const val TAG = "OrdersRepositoryImpl"
             private const val TAB_NAME = "Pedidos"
-            private val DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
         }
     }

@@ -2,7 +2,6 @@ package com.brios.miempresa.config.ui
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -10,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Sync
@@ -57,7 +58,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -65,11 +65,13 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.components.CompanyAvatar
 import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.Blue50
+import com.brios.miempresa.core.ui.theme.Blue500
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray100
 import com.brios.miempresa.core.ui.theme.SlateGray200
@@ -79,9 +81,6 @@ import com.brios.miempresa.core.ui.theme.SlateGray500
 import com.brios.miempresa.core.util.QrCodeGenerator
 import com.brios.miempresa.core.util.QrCodeResult
 
-private val Blue50 = Color(0xFFEFF6FF)
-private val Blue500 = Color(0xFF3B82F6)
-private val avatarSize = 112.dp
 private const val DEEPLINK_PREFIX = "miempresa://catalogo?sheetId="
 
 @Composable
@@ -169,11 +168,9 @@ fun ConfigScreenContent(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = AppDimensions.largePadding),
+            .padding(horizontal = AppDimensions.largePadding, vertical = AppDimensions.mediumPadding),
     ) {
-        Spacer(modifier = Modifier.height(AppDimensions.largePadding))
-
-        // Readonly avatar (no camera overlay)
+        // Readonly avatar
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center,
@@ -181,7 +178,7 @@ fun ConfigScreenContent(
             CompanyAvatar(
                 companyName = form.companyName,
                 logoUrl = form.logoUrl,
-                size = avatarSize,
+                size = AppDimensions.Config.companyLogoSize,
             )
         }
 
@@ -262,8 +259,6 @@ fun ConfigScreenContent(
             modifier = Modifier.align(Alignment.CenterHorizontally),
             fontSize = 10.sp,
         )
-
-        Spacer(modifier = Modifier.height(AppDimensions.extraLargePadding))
     }
 }
 
@@ -280,7 +275,7 @@ private fun ReadonlyCompanyCard(form: ConfigFormState) {
     ) {
         Column(modifier = Modifier.padding(vertical = AppDimensions.smallPadding)) {
             ReadonlyRow(
-                label = stringResource(R.string.config_label_name).uppercase(),
+                label = stringResource(R.string.name_label).uppercase(),
                 value = form.companyName.ifBlank { "—" },
             )
             HorizontalDivider(color = SlateGray100)
@@ -375,7 +370,7 @@ private fun ShareCatalogCard(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Share,
+                        imageVector = Icons.Default.Storefront,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(AppDimensions.defaultIconSize),
@@ -409,6 +404,7 @@ private fun ShareCatalogCard(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                     border = BorderStroke(1.dp, SlateGray200),
+                    contentPadding = PaddingValues(horizontal = AppDimensions.smallPadding),
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Share,
@@ -428,6 +424,7 @@ private fun ShareCatalogCard(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                     border = BorderStroke(1.dp, SlateGray200),
+                    contentPadding = PaddingValues(horizontal = AppDimensions.smallPadding),
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.QrCode,

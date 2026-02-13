@@ -12,6 +12,9 @@ val SlateGray500 = Color(0xFF64748B) // text-slate-500: labels, secondary text
 val SlateGray700 = Color(0xFF334155) // text-slate-700: card titles, button text
 val RequiredRed = Color(0xFFEF4444) // text-red-500: required asterisks
 
+val Blue50 = Color(0xFFEFF6FF)
+val Blue500 = Color(0xFF3B82F6)
+
 // M3 Light Scheme (generated from primary #F18622FF)
 val primaryLight = Color(0xFFF18622)
 val onPrimaryLight = Color(0xFFFFFFFF)

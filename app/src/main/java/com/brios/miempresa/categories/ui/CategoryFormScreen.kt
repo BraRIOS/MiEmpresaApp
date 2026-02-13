@@ -29,8 +29,6 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Save
-import androidx.compose.material.icons.outlined.Sell
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -46,8 +44,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -72,14 +68,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.emoji2.emojipicker.EmojiPickerView
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
+import com.brios.miempresa.core.ui.components.MiEmpresaDialog
 import com.brios.miempresa.core.ui.components.SimpleFormField
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
@@ -251,8 +247,16 @@ private fun CategoryFormContent(
         }
 
         if (showDeleteDialog) {
-            DeleteCategoryDialog(
-                productCount = productCount,
+            MiEmpresaDialog(
+                title = stringResource(R.string.delete_category),
+                text = if (productCount > 0) {
+                    stringResource(R.string.category_has_products, productCount)
+                } else {
+                    stringResource(R.string.confirm_delete_category)
+                },
+                confirmLabel = stringResource(R.string.delete),
+                dismissLabel = stringResource(R.string.cancel),
+                confirmEnabled = productCount == 0,
                 onConfirm = {
                     showDeleteDialog = false
                     onDelete()
@@ -592,38 +596,6 @@ private fun EmojiDialog(
             }
         }
     }
-}
-
-@Composable
-private fun DeleteCategoryDialog(
-    productCount: Int,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.delete_category)) },
-        text = {
-            if (productCount > 0) {
-                Text(stringResource(R.string.category_has_products, productCount))
-            } else {
-                Text(stringResource(R.string.confirm_delete_category))
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-                enabled = productCount == 0,
-            ) {
-                Text(stringResource(R.string.delete))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
-    )
 }
 
 @Preview(showBackground = true, name = "Edit Category")

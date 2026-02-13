@@ -34,7 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
@@ -47,6 +47,7 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.core.net.toUri
 
 @Composable
 fun PedidoDetailScreen(
@@ -199,7 +200,7 @@ private fun PedidoDetailContent(
                 val message = buildWhatsAppMessage(order, state.items, currencyFormat)
                 val phone = order.customerPhone?.replace(Regex("[^\\d+]"), "") ?: ""
                 val url = "https://wa.me/$phone?text=${Uri.encode(message)}"
-                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter)

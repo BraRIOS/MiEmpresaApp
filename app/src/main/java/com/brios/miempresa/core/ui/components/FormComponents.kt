@@ -74,11 +74,11 @@ fun FormFieldGroup(
 
 @Composable
 fun FormOutlinedTextField(
+    modifier: Modifier = Modifier,
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
     leadingIcon: ImageVector? = null,
-    modifier: Modifier = Modifier,
     isError: Boolean = false,
     supportingText: String? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
@@ -112,6 +112,8 @@ fun FormOutlinedTextField(
                 focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
                 unfocusedContainerColor = MaterialTheme.colorScheme.background,
                 focusedContainerColor = MaterialTheme.colorScheme.background,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
             ),
         modifier = modifier.fillMaxWidth(),
     )

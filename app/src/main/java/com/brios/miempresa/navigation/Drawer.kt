@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AddBusiness
 import androidx.compose.material.icons.filled.Domain
+import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerState
@@ -163,6 +164,15 @@ private fun DrawerContent(
                                 ),
                         verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
                     ) {
+                        // Tiendas visitadas (placeholder — feature not yet implemented)
+                        DrawerMenuItem(
+                            icon = Icons.Filled.Storefront,
+                            label = stringResource(R.string.visited_stores),
+                            isSelected = true,
+                            tint = MaterialTheme.colorScheme.primary,
+                            onClick = {},
+                        )
+
                         // Switch company - goes to CompanySelector (CompanyListView)
                         DrawerMenuItem(
                             icon = Icons.Filled.Domain,

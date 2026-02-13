@@ -42,6 +42,7 @@
     <string name="app_logo">Logo de la aplicación</string>
     <string name="profile_picture">Foto de perfil</string>
     <string name="sin_imagen">Sin imagen</string>
+    <string name="visited_stores">Tiendas visitadas</string>
     <string name="switch_company">Cambiar empresa</string>
     <string name="create_another_company">Crear otra empresa</string>
 

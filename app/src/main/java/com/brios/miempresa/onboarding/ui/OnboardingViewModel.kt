@@ -2,6 +2,7 @@ package com.brios.miempresa.onboarding.ui
 
 import android.content.Context
 import android.net.Uri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.core.auth.GoogleAuthClient
@@ -32,6 +33,7 @@ class OnboardingViewModel
     @Inject
     constructor(
         @ApplicationContext private val appContext: Context,
+        savedStateHandle: SavedStateHandle,
         private val repository: OnboardingRepository,
         private val googleAuthClient: GoogleAuthClient,
         private val syncManager: SyncManager,
@@ -53,7 +55,12 @@ class OnboardingViewModel
         private var formState = OnboardingFormState()
 
         init {
-            initializeOnboarding()
+            val mode: String? = savedStateHandle["mode"]
+            when (mode) {
+                "selector" -> showSelector()
+                "create" -> createNewCompany()
+                else -> initializeOnboarding()
+            }
         }
 
         private fun initializeOnboarding() {

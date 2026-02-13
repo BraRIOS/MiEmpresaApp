@@ -167,9 +167,7 @@ fun NavHostComposable(
             }),
         ) { backStackEntry ->
             val activity = LocalActivity.current as Activity
-            val mode = backStackEntry.arguments?.getString("mode")
             OnboardingScreen(
-                mode = mode,
                 onNavigateToHome = {
                     navController.navigate(MiEmpresaScreen.Home.name) {
                         popUpTo(0) { inclusive = true }

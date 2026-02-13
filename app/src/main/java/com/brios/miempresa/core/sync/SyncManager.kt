@@ -42,7 +42,7 @@ class SyncManager
 
             workManager.enqueueUniquePeriodicWork(
                 "periodic_sync",
-                ExistingPeriodicWorkPolicy.UPDATE,
+                ExistingPeriodicWorkPolicy.KEEP,
                 syncRequest,
             )
         }

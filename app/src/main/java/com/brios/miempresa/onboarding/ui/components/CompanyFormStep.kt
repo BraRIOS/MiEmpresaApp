@@ -68,6 +68,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.components.CompanyAvatar
+import com.brios.miempresa.core.ui.components.CountryCodeDropdown
 import com.brios.miempresa.core.ui.components.FormFieldGroup
 import com.brios.miempresa.core.ui.components.FormLabel
 import com.brios.miempresa.core.ui.components.FormOutlinedTextField
@@ -313,7 +314,7 @@ fun CompanyFormStep(
                         CompanyAvatar(
                             companyName = form.companyName,
                             logoUrl = form.logoUri,
-                            size = AppDimensions.itemCardImageSize,
+                            size = AppDimensions.Drawer.companyLogoSize,
                         )
 
                         val backgroundRipple =

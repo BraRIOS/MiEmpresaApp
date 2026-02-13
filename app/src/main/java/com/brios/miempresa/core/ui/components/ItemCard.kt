@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -56,7 +58,6 @@ enum class ItemType {
     CATEGORY,
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemCard(
     title: String,
@@ -72,8 +73,188 @@ fun ItemCard(
     onDelete: (() -> Unit)? = null,
     onClick: () -> Unit = {},
 ) {
-    val cardShape = remember { RoundedCornerShape(AppDimensions.mediumCornerRadius) }
+    if (itemType == ItemType.CATEGORY) {
+        CategoryItem(
+            title = title,
+            subtitle = subtitle,
+            emojiIcon = emojiIcon,
+            productCount = productCount,
+            badge = badge,
+            isPublic = isPublic,
+            onToggleVisibility = onToggleVisibility,
+            onDelete = onDelete,
+            onClick = onClick,
+            modifier = modifier
+        )
+    } else {
+        ProductItem(
+            title = title,
+            price = subtitle,
+            imageUrl = imageUrl,
+            isPublic = isPublic,
+            badge = badge,
+            onToggleVisibility = onToggleVisibility,
+            onDelete = onDelete,
+            onClick = onClick,
+            modifier = modifier
+        )
+    }
+}
+
+@Composable
+fun ProductItem(
+    title: String,
+    price: String,
+    modifier: Modifier = Modifier,
+    imageUrl: String? = null,
+    isPublic: Boolean? = null,
+    badge: (@Composable () -> Unit)? = null,
+    onToggleVisibility: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
+    onClick: () -> Unit = {},
+) {
     val imageShape = remember { RoundedCornerShape(AppDimensions.smallCornerRadius) }
+
+    Surface(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+    ) {
+        Column {
+            Row(
+                modifier =
+                    Modifier
+                        .padding(AppDimensions.mediumPadding)
+                        .fillMaxWidth()
+                        .semantics(mergeDescendants = true) {},
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (imageUrl != null)
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = title,
+                        modifier =
+                            Modifier
+                                .size(AppDimensions.productItemImageSize)
+                                .clip(imageShape),
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(R.drawable.miempresa_logo_glyph),
+                        error = painterResource(R.drawable.miempresa_logo_glyph),
+                    )
+                else
+                    Box(
+                        modifier =
+                            Modifier
+                                .size(AppDimensions.productItemImageSize)
+                                .clip(imageShape)
+                                .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Image,
+                            contentDescription = stringResource(R.string.sin_imagen),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        )
+                    }
+
+                Spacer(modifier = Modifier.width(AppDimensions.mediumPadding))
+
+                Column(modifier = Modifier.height(AppDimensions.productItemImageSize),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
+                    ) {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleSmall,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+
+                        Text(
+                            text = price,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding, Alignment.End),
+                    ) {
+                        if (badge != null) {
+                            badge()
+                        }
+
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        if (isPublic != null) {
+                            val icon = if (isPublic) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff
+                            val tint = if (isPublic) VisibilityActiveBlue else SlateGray400
+                            val description = if (isPublic) stringResource(R.string.filter_public) else stringResource(R.string.filter_private)
+
+                            if (onToggleVisibility != null) {
+                                IconButton(
+                                    onClick = onToggleVisibility,
+                                    modifier = Modifier.size(AppDimensions.mediumIconSize)
+                                ) {
+                                    Icon(
+                                        imageVector = icon,
+                                        contentDescription = stringResource(R.string.toggle_visibility),
+                                        tint = tint,
+                                    )
+                                }
+                            } else {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = description,
+                                    modifier = Modifier.size(AppDimensions.smallIconSize),
+                                    tint = tint,
+                                )
+                            }
+                        }
+
+                        if (onDelete != null) {
+                            IconButton(
+                                onClick = onDelete,
+                                modifier = Modifier.size(AppDimensions.mediumIconSize)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Delete,
+                                    contentDescription = stringResource(R.string.delete),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CategoryItem(
+    title: String,
+    subtitle: String,
+    modifier: Modifier = Modifier,
+    emojiIcon: String? = null,
+    productCount: Int? = null,
+    badge: (@Composable () -> Unit)? = null,
+    isPublic: Boolean? = null,
+    onToggleVisibility: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
+    onClick: () -> Unit = {},
+) {
+    val cardShape = remember { RoundedCornerShape(AppDimensions.mediumCornerRadius) }
 
     Card(
         onClick = onClick,
@@ -93,54 +274,22 @@ fun ItemCard(
                     .semantics(mergeDescendants = true) {},
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            when (itemType) {
-                ItemType.PRODUCT ->
-                    if (imageUrl != null)
-                        AsyncImage(
-                            model = imageUrl,
-                            contentDescription = title,
-                            modifier =
-                                Modifier
-                                    .size(AppDimensions.itemCardImageSize)
-                                    .clip(imageShape),
-                            contentScale = ContentScale.Crop,
-                            placeholder = painterResource(R.drawable.miempresa_logo_glyph),
-                            error = painterResource(R.drawable.miempresa_logo_glyph),
-                        )
-                    else
-                        Box(
-                            modifier =
-                                Modifier
-                                    .size(AppDimensions.itemCardImageSize)
-                                    .clip(imageShape)
-                                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Image,
-                                contentDescription = stringResource(R.string.sin_imagen),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                            )
-                        }
-
-                ItemType.CATEGORY ->
-                    Box(
-                        modifier =
-                            Modifier
-                                .size(AppDimensions.categoryEmojiContainerSize)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.background)
-                                .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        if (!emojiIcon.isNullOrEmpty())
-                            Text(
-                                text = emojiIcon,
-                                fontSize = 24.sp,
-                            )
-                        else
-                            Icon(Icons.Outlined.Sell, contentDescription = title, tint = SlateGray400)
-                    }
+            Box(
+                modifier =
+                    Modifier
+                        .size(AppDimensions.categoryEmojiContainerSize)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.background)
+                        .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (!emojiIcon.isNullOrEmpty())
+                    Text(
+                        text = emojiIcon,
+                        fontSize = 24.sp,
+                    )
+                else
+                    Icon(Icons.Outlined.Sell, contentDescription = title, tint = SlateGray400)
             }
 
             Spacer(modifier = Modifier.width(AppDimensions.mediumSmallPadding))
@@ -277,7 +426,7 @@ private fun ItemCardPreview() {
 private fun ItemCardPrivatePreview() {
     MiEmpresaTheme {
         ItemCard(
-            title = "Juego de Tazas de Cerámica",
+            title = "PIZZETAS GRANDES SIMPLE CON MUZZARELLA",
             subtitle = "$35.00",
             isPublic = false,
             badge = {
@@ -296,6 +445,9 @@ private fun ItemCardNoActionsPreview() {
         ItemCard(
             title = "Producto de ejemplo",
             subtitle = "$1.500,00",
+            badge = {
+                CategoryBadge(emoji = "🏷️", name = "Accesorios")
+            }
         )
     }
 }
@@ -343,6 +495,23 @@ private fun ItemCardNoEmojiZeroPreview() {
             itemType = ItemType.CATEGORY,
             onDelete = {},
             onClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ProductItemTilePreview() {
+    MiEmpresaTheme {
+        ProductItem(
+            title = "Granos de Café Artesanal con Tueste Medio Oscuro",
+            price = "$22.50",
+            isPublic = true,
+            badge = {
+                CategoryBadge(emoji = "☕", name = "Café")
+            },
+            onToggleVisibility = {},
+            onDelete = {},
         )
     }
 }

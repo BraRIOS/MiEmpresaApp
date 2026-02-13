@@ -19,9 +19,13 @@ object AppDimensions {
     val mediumIconSize = 32.dp
     val largeIconSize = 48.dp
     val extraLargeIconSize = 64.dp
-    val emptyStateIconSize = 160.dp
-    val emptyStateInnerIconSize = 88.dp
-    val errorStateIconSize = 160.dp
+
+    // Spot Illustration (Empty States, Error States, Not Found States)
+    val mediumSpotIllustrationSize = 120.dp
+    val mediumSpotIllustrationIconSize = 64.dp
+    val largeSpotIllustrationSize = 160.dp
+    val largeSpotIllustrationIconSize = 88.dp
+
 
     // Corners
     val smallCornerRadius = 8.dp
@@ -37,16 +41,8 @@ object AppDimensions {
     val bottomSheetPeekHeight = 220.dp
 
     // Component-specific
-    val itemCardImageSize = 64.dp
+    val productItemImageSize = 80.dp
     val categoryEmojiContainerSize = 56.dp
-    val quantitySelectorMinWidth = 40.dp
-    val emptyStateDotSize = 6.dp
-
-    // Screen-specific
-    object SignInScreen {
-        val logoSize = 120.dp
-        val googleButtonHeight = 56.dp
-    }
 
     // Buttons
     val mainFABSize = 64.dp
@@ -58,22 +54,17 @@ object AppDimensions {
     // Chips
     val categoryFilterChipWidth = 120.dp
 
+    // Screen-specific
+    object SignInScreen {
+        val logoSize = 120.dp
+        val googleButtonHeight = 56.dp
+    }
+
 
     object Drawer {
         val companyLogoSize = 64.dp
         val drawerCornerRadius = 28.dp
         val userAvatarSize = 40.dp
-    }
-
-    object ProductDetails {
-        val productImageSize = 300.dp
-        val progressIndicatorSize = 64.dp
-    }
-
-    object Products {
-        val productCardWidth = 150.dp
-        val progressIndicatorSize = 54.dp
-        val imageHeight = 80.dp
     }
 
     object Categories {

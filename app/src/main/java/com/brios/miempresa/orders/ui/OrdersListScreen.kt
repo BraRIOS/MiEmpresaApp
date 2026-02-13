@@ -18,8 +18,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -61,7 +61,7 @@ import java.util.Locale
 @Composable
 fun OrdersListScreen(
     modifier: Modifier = Modifier,
-    viewModel: PedidosListViewModel = hiltViewModel(),
+    viewModel: OrdersListViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {},
     onNavigateToCreateOrder: () -> Unit = {},
     onNavigateToOrderDetail: (String) -> Unit = {},
@@ -81,7 +81,7 @@ fun OrdersListScreen(
 @Composable
 private fun OrderListContent(
     modifier: Modifier = Modifier,
-    uiState: PedidosListUiState,
+    uiState: OrdersListUiState,
     onNavigateBack: () -> Unit = {},
     onNavigateToCreateOrder: () -> Unit = {},
     onNavigateToOrderDetail: (String) -> Unit = {},
@@ -92,7 +92,7 @@ private fun OrderListContent(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        stringResource(R.string.pedidos_title),
+                        stringResource(R.string.orders_title),
                         fontWeight = FontWeight.Bold,
                     )
                 },
@@ -121,16 +121,16 @@ private fun OrderListContent(
             )
         },
         floatingActionButton = {
-            if (uiState is PedidosListUiState.Success)
+            if (uiState is OrdersListUiState.Success)
                 MiEmpresaFAB(
                     modifier = Modifier.padding(bottom = 80.dp),
                     onClick = onNavigateToCreateOrder,
-                    contentDescription = stringResource(R.string.pedidos_add),
+                    contentDescription = stringResource(R.string.orders_add),
                 )
         },
     ) { padding ->
         when (uiState) {
-            is PedidosListUiState.Loading -> {
+            is OrdersListUiState.Loading -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -140,17 +140,17 @@ private fun OrderListContent(
                     CircularProgressIndicator()
                 }
             }
-            is PedidosListUiState.Empty -> {
+            is OrdersListUiState.Empty -> {
                 EmptyStateView(
-                    icon = Icons.Outlined.Inbox,
-                    title = stringResource(R.string.pedidos_empty_title),
-                    subtitle = stringResource(R.string.pedidos_empty_subtitle),
+                    icon = Icons.AutoMirrored.Outlined.ReceiptLong,
+                    title = stringResource(R.string.orders_empty_title),
+                    subtitle = stringResource(R.string.orders_empty_subtitle),
                     actionLabel = stringResource(R.string.empty_order_add_CTA),
                     actionIcon = Icons.Default.AddCircle,
                     onAction = onNavigateToCreateOrder,
                 )
             }
-            is PedidosListUiState.Success -> {
+            is OrdersListUiState.Success -> {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -168,7 +168,7 @@ private fun OrderListContent(
                     item { Spacer(modifier = Modifier.height(80.dp)) }
                 }
             }
-            is PedidosListUiState.Error -> {
+            is OrdersListUiState.Error -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -217,7 +217,7 @@ private fun OrderCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "#${order.id.takeLast(4)}",
+                    text = "#${order.id.takeLast(6).uppercase()}",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.ExtraBold,
                     modifier = Modifier
@@ -297,10 +297,10 @@ private fun OrderCard(
 private fun OrderListPreview() {
     MiEmpresaTheme {
         OrderListContent(
-            uiState = PedidosListUiState.Success(
+            uiState = OrdersListUiState.Success(
                 orders = listOf(
                     OrderEntity(
-                        id = "ORD-A1B2",
+                        id = "ORD-A1B2C3",
                         companyId = "c1",
                         customerName = "Juan Pérez",
                         customerPhone = "+54 11 1234-5678",
@@ -308,7 +308,7 @@ private fun OrderListPreview() {
                         createdAt = System.currentTimeMillis(),
                     ),
                     OrderEntity(
-                        id = "ORD-C3D4",
+                        id = "ORD-C3D4E5",
                         companyId = "c1",
                         customerName = "María López",
                         customerPhone = "+54 11 9876-5432",
@@ -326,6 +326,6 @@ private fun OrderListPreview() {
 @Composable
 private fun OrderListEmptyPreview() {
     MiEmpresaTheme {
-        OrderListContent(uiState = PedidosListUiState.Empty)
+        OrderListContent(uiState = OrdersListUiState.Empty)
     }
 }

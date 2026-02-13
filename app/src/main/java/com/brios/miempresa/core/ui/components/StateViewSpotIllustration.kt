@@ -29,13 +29,13 @@ import com.brios.miempresa.core.ui.theme.AppDimensions
 fun StateViewSpotIllustration(
     icon: ImageVector,
     modifier: Modifier = Modifier,
-    containerSize: Dp = AppDimensions.emptyStateIconSize,
-    iconSize: Dp = AppDimensions.emptyStateInnerIconSize,
+    containerSize: Dp = AppDimensions.largeSpotIllustrationSize,
+    iconSize: Dp = AppDimensions.largeSpotIllustrationIconSize,
     iconTint: Color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
     containerColor: List<Color> = listOf(MaterialTheme.colorScheme.surface, Color.White)
 ) {
     // Scale dots and offsets based on container size relative to the default 160dp
-    val scaleFactor = containerSize / AppDimensions.emptyStateIconSize
+    val scaleFactor = containerSize / AppDimensions.largeSpotIllustrationSize
 
     Box(
         modifier = modifier

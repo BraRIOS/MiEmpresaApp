@@ -102,8 +102,13 @@ private fun OrderDetailContent(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
+                    val titleText = if (state.order != null) {
+                        "${stringResource(R.string.order_detail_title)} #${state.order.id.takeLast(6).uppercase()}"
+                    } else {
+                        stringResource(R.string.order_detail_title)
+                    }
                     Text(
-                        stringResource(R.string.pedido_detail_title),
+                        titleText,
                         fontWeight = FontWeight.Bold,
                     )
                 },
@@ -140,7 +145,7 @@ private fun OrderDetailContent(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = stringResource(R.string.pedido_total),
+                            text = stringResource(R.string.order_total),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -174,7 +179,7 @@ private fun OrderDetailContent(
                         )
                         Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
                         Text(
-                            text = stringResource(R.string.pedido_whatsapp_button),
+                            text = stringResource(R.string.order_whatsapp_button),
                             fontWeight = FontWeight.Bold,
                         )
                     }
@@ -216,7 +221,7 @@ private fun OrderDetailContent(
                     Column {
                         // Header
                         Text(
-                            text = stringResource(R.string.pedido_info_header),
+                            text = stringResource(R.string.order_info_header),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = SlateGray400,
@@ -247,7 +252,7 @@ private fun OrderDetailContent(
                             )
                             InfoRow(
                                 icon = Icons.Outlined.Call,
-                                label = stringResource(R.string.pedido_label_phone),
+                                label = stringResource(R.string.order_label_phone),
                                 value = order.customerPhone ?: "—",
                                 showDivider = true,
                             )
@@ -281,7 +286,7 @@ private fun OrderDetailContent(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                text = stringResource(R.string.pedido_section_products),
+                                text = stringResource(R.string.order_section_products),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = SlateGray400,
@@ -420,19 +425,25 @@ private fun buildWhatsAppMessage(
     items: List<OrderItemEntity>,
     currencyFormat: NumberFormat,
 ): String {
+    val orderNumber = order.id.takeLast(6).uppercase()
+    val dateStr = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(order.createdAt))
+
     val sb = StringBuilder()
-    sb.appendLine("*Pedido de ${order.customerName}*")
+    sb.appendLine("Hola ${order.customerName}! Te confirmo tu pedido #$orderNumber:")
     sb.appendLine()
+    sb.appendLine("Fecha: $dateStr")
+    sb.appendLine()
+    sb.appendLine("Productos:")
     items.forEach { item ->
-        sb.appendLine("• ${item.productName} x${item.quantity} — ${currencyFormat.format(item.priceAtOrder * item.quantity)}")
+        sb.appendLine("- ${item.productName} x${item.quantity} (${currencyFormat.format(item.priceAtOrder)})")
     }
     sb.appendLine()
     sb.appendLine("*Total: ${currencyFormat.format(order.totalAmount)}*")
-    order.notes?.let {
+    order.notes?.takeIf { it.isNotBlank() }?.let {
         sb.appendLine()
         sb.appendLine("Notas: $it")
     }
-    return sb.toString()
+    return sb.toString().trimIndent()
 }
 
 @Preview(showBackground = true)

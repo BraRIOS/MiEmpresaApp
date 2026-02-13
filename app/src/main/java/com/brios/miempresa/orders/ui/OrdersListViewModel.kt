@@ -6,6 +6,7 @@ import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.orders.data.OrderEntity
 import com.brios.miempresa.orders.domain.OrdersRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,15 +16,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-sealed interface PedidosListUiState {
-    data object Loading : PedidosListUiState
-    data class Success(val orders: List<OrderEntity>) : PedidosListUiState
-    data object Empty : PedidosListUiState
-    data class Error(val message: String) : PedidosListUiState
+sealed interface OrdersListUiState {
+    data object Loading : OrdersListUiState
+    data class Success(val orders: List<OrderEntity>) : OrdersListUiState
+    data object Empty : OrdersListUiState
+    data class Error(val message: String) : OrdersListUiState
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class PedidosListViewModel
+class OrdersListViewModel
     @Inject
     constructor(
         private val ordersRepository: OrdersRepository,
@@ -31,8 +33,8 @@ class PedidosListViewModel
     ) : ViewModel() {
         private val _companyId = MutableStateFlow<String?>(null)
 
-        private val _uiState = MutableStateFlow<PedidosListUiState>(PedidosListUiState.Loading)
-        val uiState: StateFlow<PedidosListUiState> = _uiState.asStateFlow()
+        private val _uiState = MutableStateFlow<OrdersListUiState>(OrdersListUiState.Loading)
+        val uiState: StateFlow<OrdersListUiState> = _uiState.asStateFlow()
 
         fun refresh() {
             viewModelScope.launch {
@@ -53,8 +55,8 @@ class PedidosListViewModel
                         else ordersRepository.getAllOrders(companyId)
                     }
                     .map { orders ->
-                        if (orders.isEmpty()) PedidosListUiState.Empty
-                        else PedidosListUiState.Success(orders)
+                        if (orders.isEmpty()) OrdersListUiState.Empty
+                        else OrdersListUiState.Success(orders)
                     }
                     .collect { _uiState.value = it }
             }

@@ -103,8 +103,8 @@ class CategoriesRepositoryImpl
 
                 for (row in sheetRows) {
                     if (row.size < 2) continue
-                    val id = row[0]?.toString() ?: continue
-                    val name = row[1]?.toString() ?: continue
+                    val id = row[0].toString()
+                    val name = row[1].toString()
                     // row[2] is ProductCount formula (skip)
                     val iconEmoji = row.getOrNull(3)?.toString() ?: ""
                     sheetCategoryIds.add(id)

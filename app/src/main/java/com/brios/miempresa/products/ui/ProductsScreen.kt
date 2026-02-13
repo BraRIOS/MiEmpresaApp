@@ -198,12 +198,6 @@ private fun ProductsContentInternal(
                 is ProductsUiState.Success -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding =
-                            androidx.compose.foundation.layout.PaddingValues(
-                                horizontal = AppDimensions.mediumPadding,
-                                vertical = AppDimensions.smallPadding,
-                            ),
-                        verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumSmallPadding),
                     ) {
                         items(
                             uiState.products,

@@ -8,6 +8,7 @@ import com.brios.miempresa.cart.domain.CartEvent
 import com.brios.miempresa.cart.domain.CartUiState
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -74,6 +75,7 @@ class CartViewModel
         val events: SharedFlow<CartEvent> = _events.asSharedFlow()
 
         // Badge count
+        @OptIn(ExperimentalCoroutinesApi::class)
         val cartCount: StateFlow<Int> =
             companyIdFlow
                 .filterNotNull()

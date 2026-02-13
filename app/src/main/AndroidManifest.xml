@@ -14,6 +14,7 @@
         android:roundIcon="@mipmap/miempresa_ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MiEmpresa"
+        android:enableOnBackInvokedCallback="true"
         tools:targetApi="35" >
 
         <!-- Disable WorkManager automatic initialization to use HiltWorkerFactory -->

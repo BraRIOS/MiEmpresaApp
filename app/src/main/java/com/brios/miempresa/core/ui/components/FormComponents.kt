@@ -1,6 +1,7 @@
 package com.brios.miempresa.core.ui.components
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,7 +17,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -79,13 +82,38 @@ fun FormOutlinedTextField(
     onValueChange: (String) -> Unit,
     placeholder: String,
     leadingIcon: ImageVector? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
     isError: Boolean = false,
     supportingText: String? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
+    readOnly: Boolean = false,
+    enabled: Boolean = true,
+    singleLine: Boolean = true,
+    minLines: Int = 1,
+    onClick: (() -> Unit)? = null,
+    colors: TextFieldColors = OutlinedTextFieldDefaults.colors(
+        unfocusedBorderColor = SlateGray200,
+        unfocusedLeadingIconColor = SlateGray400,
+        focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+        unfocusedContainerColor = MaterialTheme.colorScheme.background,
+        focusedContainerColor = MaterialTheme.colorScheme.background,
+        unfocusedTextColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
+        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+    )
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
     val iconTint = if (isFocused) MaterialTheme.colorScheme.primary else SlateGray400
+
+    if (onClick != null) {
+        LaunchedEffect(interactionSource) {
+            interactionSource.interactions.collect { interaction ->
+                if (interaction is PressInteraction.Release) {
+                    onClick()
+                }
+            }
+        }
+    }
 
     OutlinedTextField(
         value = value,
@@ -96,26 +124,21 @@ fun FormOutlinedTextField(
         leadingIcon = leadingIcon?.let { icon ->
             { Icon(icon, contentDescription = null, tint = iconTint) }
         },
+        trailingIcon = trailingIcon,
         isError = isError,
         supportingText =
             supportingText?.let {
                 { Text(it) }
             },
-        singleLine = true,
+        singleLine = singleLine,
+        minLines = minLines,
         shape = FormInputShape,
         interactionSource = interactionSource,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        colors =
-            OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = SlateGray200,
-                unfocusedLeadingIconColor = SlateGray400,
-                focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
-                unfocusedContainerColor = MaterialTheme.colorScheme.background,
-                focusedContainerColor = MaterialTheme.colorScheme.background,
-                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                focusedTextColor = MaterialTheme.colorScheme.onBackground,
-            ),
+        colors = colors,
         modifier = modifier.fillMaxWidth(),
+        readOnly = readOnly,
+        enabled = enabled
     )
 }
 

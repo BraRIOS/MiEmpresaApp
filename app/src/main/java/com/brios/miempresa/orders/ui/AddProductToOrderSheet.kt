@@ -56,7 +56,7 @@ fun AddProductToOrderSheet(
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedProduct by remember { mutableStateOf<ProductEntity?>(null) }
     var quantity by rememberSaveable { mutableIntStateOf(1) }
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("es", "AR"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR"))
 
     val filteredProducts = remember(products, searchQuery) {
         if (searchQuery.isBlank()) products
@@ -75,7 +75,7 @@ fun AddProductToOrderSheet(
                 .padding(bottom = AppDimensions.extraLargePadding),
         ) {
             Text(
-                text = stringResource(R.string.pedido_add_product_title),
+                text = stringResource(R.string.order_add_product_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
             )
@@ -147,7 +147,7 @@ fun AddProductToOrderSheet(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(50),
                     ) {
-                        Text(stringResource(R.string.pedido_add_button))
+                        Text(stringResource(R.string.order_add_button))
                     }
                 }
             } else {

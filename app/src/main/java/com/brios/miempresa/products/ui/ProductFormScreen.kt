@@ -142,6 +142,7 @@ fun ProductFormScreen(
         isEditMode = viewModel.isEditMode,
         isSaving = isSaving,
         onSave = viewModel::save,
+        onCancel = viewModel::cancelSave,
         onNavigateBack = onNavigateBack,
         onNavigateToAddCategory = onNavigateToAddCategory,
         onDelete = viewModel::delete,
@@ -171,6 +172,7 @@ fun ProductFormContent(
     isEditMode: Boolean,
     isSaving: Boolean,
     onSave: () -> Unit,
+    onCancel: () -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToAddCategory: () -> Unit,
     onDelete: () -> Unit,
@@ -231,11 +233,32 @@ fun ProductFormContent(
                     horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumSmallPadding),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    if (isEditMode) {
+                    if (isSaving) {
+                        OutlinedButton(
+                            onClick = onCancel,
+                            modifier = Modifier
+                                .weight(0.4f)
+                                .height(56.dp),
+                            shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color.Transparent,
+                                contentColor = MaterialTheme.colorScheme.error,
+                            ),
+                            border = BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.error
+                            ),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.cancel),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    } else if (isEditMode) {
                         OutlinedButton(
                             onClick = { showDeleteDialog = true },
                             modifier = Modifier.size(56.dp),
-                            enabled = !isSaving,
                             shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                             contentPadding = PaddingValues(0.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
@@ -244,8 +267,7 @@ fun ProductFormContent(
                             ),
                             border = BorderStroke(
                                 2.dp,
-                                if (!isSaving) Color(0xFFFFCDD2) // red-100
-                                else Color.Gray.copy(alpha = 0.3f),
+                                Color(0xFFFFCDD2) // red-100
                             ),
                         ) {
                             Icon(
@@ -255,19 +277,27 @@ fun ProductFormContent(
                             )
                         }
                     }
+
                     Button(
                         onClick = onSave,
                         enabled = !isSaving,
                         modifier = Modifier
-                            .weight(1f)
+                            .weight(if (isSaving) 0.5f else 1f)
                             .height(56.dp),
                         shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors()
                     ) {
                         if (isSaving) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(AppDimensions.smallIconSize),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                 strokeWidth = 3.dp
+                            )
+                            Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+                            Text(
+                                text = stringResource(R.string.saving_product),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
                             )
                         } else {
                             Icon(
@@ -325,7 +355,7 @@ fun ProductFormContent(
                                 }
                         },
                     )
-                    .clickable { onImageClick() },
+                    .clickable(enabled = !isSaving) { onImageClick() },
                 contentAlignment = Alignment.Center,
             ) {
                 if (imageUrl != null) {
@@ -363,40 +393,42 @@ fun ProductFormContent(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         // Remove button
-                        SmallFloatingActionButton(
-                            modifier = Modifier
-                                .border(1.dp, Color.White.copy(alpha = 0.6f), CircleShape)
-                                .background(Color.Black.copy(alpha = 0.3f), CircleShape)
-                                .size(AppDimensions.smallFabSize),
-                            onClick = onImageRemoved,
-                            containerColor = Color.Transparent,
-                            contentColor = Color.White,
-                            shape = CircleShape,
-                            elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp),
-                        ) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = stringResource(R.string.remove_photo),
-                                modifier = Modifier.size(AppDimensions.smallFabIconSize),
-                            )
-                        }
-                        // Edit button
-                        SmallFloatingActionButton(
-                            modifier = Modifier
-                                .border(1.dp, Color.White.copy(alpha = 0.6f), CircleShape)
-                                .background(Color.Black.copy(alpha = 0.3f), CircleShape)
-                                .size(AppDimensions.smallFabSize),
-                            onClick = { onImageClick() },
-                            containerColor = Color.Transparent,
-                            contentColor = Color.White,
-                            shape = CircleShape,
-                            elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp),
-                        ) {
-                            Icon(
-                                Icons.Outlined.Edit,
-                                contentDescription = stringResource(R.string.edit_photo),
-                                modifier = Modifier.size(AppDimensions.smallFabIconSize),
-                            )
+                        if (!isSaving) {
+                            SmallFloatingActionButton(
+                                modifier = Modifier
+                                    .border(1.dp, Color.White.copy(alpha = 0.6f), CircleShape)
+                                    .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                                    .size(AppDimensions.smallFabSize),
+                                onClick = onImageRemoved,
+                                containerColor = Color.Transparent,
+                                contentColor = Color.White,
+                                shape = CircleShape,
+                                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp),
+                            ) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = stringResource(R.string.remove_photo),
+                                    modifier = Modifier.size(AppDimensions.smallFabIconSize),
+                                )
+                            }
+                            // Edit button
+                            SmallFloatingActionButton(
+                                modifier = Modifier
+                                    .border(1.dp, Color.White.copy(alpha = 0.6f), CircleShape)
+                                    .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                                    .size(AppDimensions.smallFabSize),
+                                onClick = { onImageClick() },
+                                containerColor = Color.Transparent,
+                                contentColor = Color.White,
+                                shape = CircleShape,
+                                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp),
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Edit,
+                                    contentDescription = stringResource(R.string.edit_photo),
+                                    modifier = Modifier.size(AppDimensions.smallFabIconSize),
+                                )
+                            }
                         }
                     }
                 } else {
@@ -404,14 +436,14 @@ fun ProductFormContent(
                         Icon(
                             Icons.Outlined.AddAPhoto,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = if (isSaving) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(AppDimensions.mediumIconSize),
                         )
                         Text(
                             text = stringResource(R.string.photo_label),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                            color = if (isSaving) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
                         )
                     }
                 }
@@ -644,6 +676,7 @@ private fun ProductFormPreview() {
             isEditMode = true,
             isSaving = false,
             onSave = {},
+            onCancel = {},
             onNavigateBack = {},
             onNavigateToAddCategory = {},
             onDelete = {},
@@ -673,6 +706,7 @@ private fun ProductFormNewPreview() {
             isEditMode = false,
             isSaving = false,
             onSave = {},
+            onCancel = {},
             onNavigateBack = {},
             onNavigateToAddCategory = {},
             onDelete = {},
@@ -702,6 +736,7 @@ private fun ProductFormSavingPreview() {
             isEditMode = true,
             isSaving = true,
             onSave = {},
+            onCancel = {},
             onNavigateBack = {},
             onNavigateToAddCategory = {},
             onDelete = {},
@@ -731,6 +766,7 @@ private fun ProductFormErrorPreview() {
             isEditMode = false,
             isSaving = false,
             onSave = {},
+            onCancel = {},
             onNavigateBack = {},
             onNavigateToAddCategory = {},
             onDelete = {},
@@ -763,6 +799,7 @@ private fun ProductFormNoCategoriesPreview() {
             isEditMode = false,
             isSaving = false,
             onSave = {},
+            onCancel = {},
             onNavigateBack = {},
             onNavigateToAddCategory = {},
             onDelete = {},

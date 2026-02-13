@@ -133,10 +133,10 @@ class ProductsRepositoryImpl
 
                 for (row in sheetRows) {
                     if (row.size < 4) continue
-                    val id = row[0]?.toString() ?: continue
-                    val name = row[1]?.toString() ?: continue
+                    val id = row[0].toString()
+                    val name = row[1].toString()
                     val description = row.getOrNull(2)?.toString() ?: ""
-                    val price = row[3]?.toString()?.toDoubleOrNull() ?: 0.0
+                    val price = row[3].toString().toDoubleOrNull() ?: 0.0
                     val categoryId = row.getOrNull(4)?.toString()?.takeIf { it.isNotBlank() }
                     // row[5] is CategoryName formula (skip)
                     val isPublic = row.getOrNull(6)?.toString()?.equals("TRUE", ignoreCase = true) ?: true
@@ -219,7 +219,7 @@ class ProductsRepositoryImpl
                     } else {
                         null
                     }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     null
                 }
             }

@@ -25,10 +25,10 @@ object DatabaseModule {
         @ApplicationContext context: Context,
     ): MiEmpresaDatabase {
         return Room.databaseBuilder(
-            context.applicationContext,
-            MiEmpresaDatabase::class.java,
-            "miempresa_database",
-        ).fallbackToDestructiveMigration()
+                context.applicationContext,
+                MiEmpresaDatabase::class.java,
+                "miempresa_database",
+            ).fallbackToDestructiveMigration(false)
             .build()
     }
 

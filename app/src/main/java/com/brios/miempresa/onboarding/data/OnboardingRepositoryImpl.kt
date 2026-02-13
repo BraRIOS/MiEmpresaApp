@@ -9,7 +9,7 @@ import com.brios.miempresa.onboarding.domain.WorkspaceCreationResult
 import com.brios.miempresa.onboarding.domain.WorkspaceSetupRequest
 import com.brios.miempresa.onboarding.domain.WorkspaceStep
 import com.brios.miempresa.onboarding.domain.WorkspaceValidationResult
-import com.brios.miempresa.onboarding.ui.components.defaultCountryCodes
+import com.brios.miempresa.core.domain.model.defaultCountryCodes
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -262,19 +262,21 @@ class OnboardingRepositoryImpl
                         key to value
                     }
                     val rawWhatsapp = infoMap["whatsapp_number"]?.takeIf { it.isNotBlank() }
-                    val (parsedCountryCode, parsedNumber) =
-                        if (rawWhatsapp != null && rawWhatsapp.startsWith("+")) {
-                            val matchedCode =
-                                defaultCountryCodes
-                                    .map { it.code }
-                                    .sortedByDescending { it.length }
-                                    .firstOrNull { rawWhatsapp.startsWith(it) }
-                                    ?: "+54"
-                            matchedCode to rawWhatsapp.removePrefix(matchedCode)
-                        } else {
-                            (updated.whatsappCountryCode ?: "+54") to
-                                (rawWhatsapp ?: updated.whatsappNumber ?: "")
-                        }
+
+                    var parsedCountryCode = updated.whatsappCountryCode
+                    var parsedNumber = rawWhatsapp ?: updated.whatsappNumber ?: ""
+
+                    if (rawWhatsapp != null && rawWhatsapp.startsWith("+")) {
+                        val matchedCode =
+                            defaultCountryCodes
+                                .map { it.dialCode }
+                                .sortedByDescending { it.length }
+                                .firstOrNull { rawWhatsapp.startsWith(it) }
+                                ?: "+54"
+
+                        parsedCountryCode = matchedCode
+                        parsedNumber = rawWhatsapp.removePrefix(matchedCode)
+                    }
 
                     updated = updated.copy(
                         logoUrl = infoMap["logo_url"]?.takeIf { it.isNotBlank() } ?: updated.logoUrl,

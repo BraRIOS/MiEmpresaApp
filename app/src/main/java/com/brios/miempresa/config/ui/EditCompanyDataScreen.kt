@@ -29,6 +29,7 @@ import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,7 +52,7 @@ import com.brios.miempresa.core.ui.components.FormOutlinedTextField
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray500
-import com.brios.miempresa.onboarding.ui.components.CountryCodeDropdown
+import com.brios.miempresa.core.ui.components.CountryCodeDropdown
 
 private val cameraOverlaySize = 40.dp
 
@@ -102,6 +103,13 @@ fun EditCompanyDataContent(
     onSave: () -> Unit = {},
     onCancel: () -> Unit = {},
 ) {
+    val formColors = OutlinedTextFieldDefaults.colors(
+        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        unfocusedTextColor = MaterialTheme.colorScheme.onBackground
+            .copy(alpha = 0.8f),
+        focusedTextColor = MaterialTheme.colorScheme.onBackground
+    )
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -197,6 +205,7 @@ fun EditCompanyDataContent(
                     value = form.companyName,
                     onValueChange = onUpdateName,
                     placeholder = stringResource(R.string.placeholder_company_name),
+                    colors = formColors
                 )
             }
 
@@ -215,6 +224,7 @@ fun EditCompanyDataContent(
                     CountryCodeDropdown(
                         selectedCode = form.whatsappCountryCode,
                         onCodeSelected = onUpdateCountryCode,
+                        colors = formColors
                     )
                     FormOutlinedTextField(
                         value = form.whatsappNumber,
@@ -224,6 +234,7 @@ fun EditCompanyDataContent(
                         },
                         placeholder = stringResource(R.string.placeholder_whatsapp),
                         keyboardType = KeyboardType.Phone,
+                        colors = formColors
                     )
                 }
             }
@@ -237,6 +248,7 @@ fun EditCompanyDataContent(
                     onValueChange = onUpdateSpecialization,
                     placeholder = stringResource(R.string.placeholder_specialization),
                     leadingIcon = Icons.Outlined.Category,
+                    colors = formColors
                 )
             }
 
@@ -249,6 +261,7 @@ fun EditCompanyDataContent(
                     onValueChange = onUpdateAddress,
                     placeholder = stringResource(R.string.placeholder_address),
                     leadingIcon = Icons.Outlined.LocationOn,
+                    colors = formColors
                 )
             }
 
@@ -261,6 +274,7 @@ fun EditCompanyDataContent(
                     onValueChange = onUpdateBusinessHours,
                     placeholder = stringResource(R.string.placeholder_hours),
                     leadingIcon = Icons.Outlined.Schedule,
+                    colors = formColors
                 )
             }
 

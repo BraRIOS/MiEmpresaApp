@@ -1,8 +1,10 @@
 package com.brios.miempresa.orders.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,35 +12,44 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Inventory2
-import androidx.compose.material.icons.outlined.Notes
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -48,9 +59,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
+import com.brios.miempresa.core.ui.components.CountryCodeDropdown
 import com.brios.miempresa.core.ui.components.FormFieldGroup
 import com.brios.miempresa.core.ui.components.FormOutlinedTextField
-import com.brios.miempresa.core.ui.components.MiEmpresaFAB
+import com.brios.miempresa.core.ui.components.OrderProductListItem
 import com.brios.miempresa.core.ui.components.StateViewSpotIllustration
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
@@ -58,7 +70,10 @@ import com.brios.miempresa.core.ui.theme.SlateGray200
 import com.brios.miempresa.core.ui.theme.SlateGray400
 import com.brios.miempresa.core.ui.theme.SlateGray500
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
+import java.util.Locale.getDefault
 
 @Composable
 fun OrderManualScreen(
@@ -89,9 +104,12 @@ fun OrderManualScreen(
         onNavigateBack = onNavigateBack,
         onUpdateCustomerName = viewModel::updateCustomerName,
         onUpdateCustomerPhone = viewModel::updateCustomerPhone,
+        onUpdateCustomerPhoneCountryCode = viewModel::updateCustomerPhoneCountryCode,
+        onUpdateDate = viewModel::updateDate,
         onUpdateNotes = viewModel::updateNotes,
         onAddProductClick = { showProductSheet = true },
         onRemoveItem = viewModel::removeItem,
+        onUpdateItemQuantity = viewModel::updateItemQuantity,
         onCreateOrder = viewModel::createOrder,
     )
 
@@ -116,20 +134,50 @@ private fun OrderManualContent(
     onNavigateBack: () -> Unit = {},
     onUpdateCustomerName: (String) -> Unit = {},
     onUpdateCustomerPhone: (String) -> Unit = {},
+    onUpdateCustomerPhoneCountryCode: (String) -> Unit = {},
+    onUpdateDate: (Long) -> Unit = {},
     onUpdateNotes: (String) -> Unit = {},
     onAddProductClick: () -> Unit = {},
     onRemoveItem: (Int) -> Unit = {},
+    onUpdateItemQuantity: (Int, Int) -> Unit = { _, _ -> },
     onCreateOrder: () -> Unit = {},
 ) {
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("es", "AR"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR"))
+    val dateFormat = SimpleDateFormat("dd MMM, yyyy", getDefault())
+
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = form.date)
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { onUpdateDate(it) }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        stringResource(R.string.pedido_manual_title),
+                        stringResource(R.string.order_manual_title),
                         fontWeight = FontWeight.Bold,
                     )
                 },
@@ -143,13 +191,15 @@ private fun OrderManualContent(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
             )
         },
         bottomBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface,
+                color = MaterialTheme.colorScheme.surfaceContainerLowest,
                 shadowElevation = 8.dp,
             ) {
                 Column(
@@ -162,9 +212,10 @@ private fun OrderManualContent(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = stringResource(R.string.pedido_total),
+                            text = stringResource(R.string.order_total),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = currencyFormat.format(form.total),
@@ -176,13 +227,15 @@ private fun OrderManualContent(
                     Button(
                         onClick = onCreateOrder,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
+                            .fillMaxWidth(),
                         enabled = form.isValid && !isSaving,
-                        shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                        shape = CircleShape,
+                        contentPadding = PaddingValues(AppDimensions.mediumPadding),
                     ) {
+                        Icon(Icons.Default.CheckCircle, contentDescription = null)
+                        Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
                         Text(
-                            text = stringResource(R.string.pedido_create_cta),
+                            text = stringResource(R.string.order_create_cta),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                         )
@@ -196,10 +249,9 @@ private fun OrderManualContent(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = AppDimensions.mediumPadding),
+            contentPadding = PaddingValues(bottom = AppDimensions.extraLargePadding),
             verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
         ) {
-            item { Spacer(modifier = Modifier.height(AppDimensions.smallPadding)) }
-
             // Form card
             item {
                 Card(
@@ -214,41 +266,65 @@ private fun OrderManualContent(
                         modifier = Modifier.padding(AppDimensions.mediumLargePadding),
                         verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
                     ) {
-                        FormFieldGroup(label = stringResource(R.string.pedido_label_customer)) {
+                        FormFieldGroup(label = stringResource(R.string.order_label_customer).uppercase(getDefault())) {
                             FormOutlinedTextField(
                                 value = form.customerName,
                                 onValueChange = onUpdateCustomerName,
-                                placeholder = stringResource(R.string.pedido_placeholder_customer),
+                                placeholder = stringResource(R.string.order_placeholder_customer),
                                 leadingIcon = Icons.Outlined.Person,
                             )
                         }
 
                         FormFieldGroup(
-                            label = stringResource(R.string.pedido_label_phone),
+                            label = stringResource(R.string.order_label_phone).uppercase(),
                             required = true,
                         ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+                                verticalAlignment = Alignment.Top,
+                            ) {
+                                CountryCodeDropdown(
+                                    selectedCode = form.customerPhoneCountryCode,
+                                    onCodeSelected = onUpdateCustomerPhoneCountryCode,
+                                )
+                                FormOutlinedTextField(
+                                    value = form.customerPhone,
+                                    onValueChange = { input -> onUpdateCustomerPhone(input.filter { it.isDigit() }) },
+                                    placeholder = stringResource(R.string.placeholder_whatsapp),
+                                    keyboardType = KeyboardType.Phone,
+                                )
+                            }
+                        }
+
+                        FormFieldGroup(label = "FECHA DEL PEDIDO") {
                             FormOutlinedTextField(
-                                value = form.customerPhone,
-                                onValueChange = { input -> onUpdateCustomerPhone(input.filter { it.isDigit() }) },
-                                placeholder = stringResource(R.string.pedido_placeholder_phone),
-                                leadingIcon = Icons.Outlined.Phone,
-                                keyboardType = KeyboardType.Phone,
+                                value = dateFormat.format(Date(form.date)),
+                                onValueChange = {},
+                                placeholder = "",
+                                leadingIcon = null,
+                                trailingIcon = {
+                                     Icon(Icons.Outlined.CalendarToday, contentDescription = null, tint = SlateGray400)
+                                },
+                                readOnly = true,
+                                onClick = { showDatePicker = true }
                             )
                         }
 
-                        FormFieldGroup(label = stringResource(R.string.pedido_label_notes)) {
+                        FormFieldGroup(label = stringResource(R.string.order_label_notes).uppercase()) {
                             FormOutlinedTextField(
                                 value = form.notes,
                                 onValueChange = onUpdateNotes,
-                                placeholder = stringResource(R.string.pedido_placeholder_notes),
-                                leadingIcon = Icons.Outlined.Notes,
+                                placeholder = stringResource(R.string.order_placeholder_notes),
+                                singleLine = false,
+                                minLines = 3
                             )
                         }
                     }
                 }
             }
 
-            // Products card (D-18: "+" in header, no standalone FAB)
+            // Products Section
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -258,118 +334,110 @@ private fun OrderManualContent(
                     shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                     border = BorderStroke(1.dp, SlateGray200),
                 ) {
-                    Column(modifier = Modifier.padding(AppDimensions.mediumLargePadding)) {
-                        // Header with "+" button
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // Header
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = AppDimensions.mediumPadding)
+                                .padding(top = AppDimensions.mediumPadding, bottom = AppDimensions.smallPadding),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                text = stringResource(R.string.pedido_section_products_manual),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = SlateGray400,
-                                letterSpacing = 1.sp,
-                            )
-                            MiEmpresaFAB(
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = stringResource(R.string.order_section_products),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = SlateGray400,
+                                    letterSpacing = 1.sp,
+                                )
+                                val itemCount = form.items.size
+                                if (itemCount > 0) {
+                                    Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+                                    Text(
+                                        text = stringResource(R.string.items_count, itemCount),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(AppDimensions.smallCornerRadius))
+                                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                                            .padding(horizontal = 10.dp, vertical = 2.dp),
+                                    )
+                                }
+                            }
+
+                            TextButton(
                                 onClick = onAddProductClick,
-                                contentDescription = stringResource(R.string.pedido_add_product),
-                                modifier = Modifier.padding(bottom = 0.dp),
-                                size = AppDimensions.smallFabSize,
-                                iconSize = AppDimensions.smallIconSize,
-                            )
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                modifier = Modifier.height(32.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = stringResource(R.string.order_add_product),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
 
                         if (form.items.isEmpty()) {
-                            // Empty state within card
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = AppDimensions.largePadding),
+                                    .padding(bottom = AppDimensions.largePadding),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
-                                StateViewSpotIllustration(Icons.Outlined.Inventory2)
+                                StateViewSpotIllustration(
+                                    Icons.Outlined.Inventory2,
+                                    containerSize = AppDimensions.mediumSpotIllustrationSize,
+                                    iconSize = AppDimensions.mediumSpotIllustrationIconSize,
+                                )
                                 Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
                                 Text(
-                                    text = stringResource(R.string.pedido_no_products_title),
+                                    text = stringResource(R.string.order_no_products_title),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold,
                                 )
                                 Spacer(modifier = Modifier.height(AppDimensions.extraSmallPadding))
                                 Text(
-                                    text = stringResource(R.string.pedido_no_products_subtitle),
+                                    text = stringResource(R.string.order_no_products_subtitle),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = SlateGray500,
                                 )
+                            }
+                        } else {
+                            form.items.forEachIndexed { index, item ->
+                                OrderProductListItem(
+                                    name = item.productName,
+                                    price = item.price,
+                                    quantity = item.quantity,
+                                    imageUrl = item.thumbnailUrl,
+                                    onQuantityChange = { newQty -> onUpdateItemQuantity(index, newQty) },
+                                    onRemove = { onRemoveItem(index) },
+                                    isCard = false
+                                )
+                                if (index < form.items.lastIndex) {
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(horizontal = AppDimensions.mediumLargePadding),
+                                        color = SlateGray200
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
 
-            // Product items (outside card for scroll)
-            if (form.items.isNotEmpty()) {
-                itemsIndexed(form.items) { index, item ->
-                    OrderItemRow(
-                        item = item,
-                        currencyFormat = currencyFormat,
-                        onRemove = { onRemoveItem(index) },
-                    )
-                }
-            }
-
             item { Spacer(modifier = Modifier.height(AppDimensions.smallPadding)) }
-        }
-    }
-}
-
-@Composable
-private fun OrderItemRow(
-    item: OrderFormItem,
-    currencyFormat: NumberFormat,
-    onRemove: () -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-        ),
-        shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
-        border = BorderStroke(1.dp, SlateGray200),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(AppDimensions.mediumSmallPadding),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.productName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = "${item.quantity} × ${currencyFormat.format(item.price)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = SlateGray400,
-                )
-            }
-            Text(
-                text = currencyFormat.format(item.subtotal),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
-                Icon(
-                    Icons.Outlined.Close,
-                    contentDescription = stringResource(R.string.pedido_remove_item),
-                    modifier = Modifier.size(16.dp),
-                    tint = SlateGray400,
-                )
-            }
         }
     }
 }
@@ -384,17 +452,27 @@ private fun OrderManualEmptyPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun OrderManualWithItemsPreview() {
+private fun OrderManualContentPreview() {
     MiEmpresaTheme {
         OrderManualContent(
             form = OrderFormState(
-                customerName = "Juan Pérez",
-                customerPhone = "1112345678",
+                customerName = "John Doe",
+                customerPhone = "1234567890",
                 items = listOf(
-                    OrderFormItem("p1", "Vino Malbec Reserva", 4500.0, 2),
-                    OrderFormItem("p2", "Aceite de Oliva Extra Virgen", 3200.0, 1),
-                ),
-            ),
+                    OrderFormItem(
+                        productId = "1",
+                        productName = "Product A",
+                        price = 10.0,
+                        quantity = 2
+                    ),
+                    OrderFormItem(
+                        productId = "2",
+                        productName = "Product B",
+                        price = 20.0,
+                        quantity = 1
+                    )
+                )
+            )
         )
     }
 }

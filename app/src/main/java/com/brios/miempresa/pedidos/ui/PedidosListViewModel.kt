@@ -34,6 +34,13 @@ class PedidosListViewModel
         private val _uiState = MutableStateFlow<PedidosListUiState>(PedidosListUiState.Loading)
         val uiState: StateFlow<PedidosListUiState> = _uiState.asStateFlow()
 
+        fun refresh() {
+            viewModelScope.launch {
+                val company = companyDao.getSelectedOwnedCompany()
+                _companyId.value = company?.id
+            }
+        }
+
         init {
             viewModelScope.launch {
                 val company = companyDao.getSelectedOwnedCompany()

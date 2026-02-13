@@ -171,6 +171,7 @@
     <string name="config_logout_confirm">Cerrar sesión</string>
     <string name="config_logout_dismiss">Cancelar</string>
     <string name="share_qr_content_description">Código QR del catálogo</string>
+    <string name="pedidos_title">Mis Pedidos</string>
     <string name="pedidos_add">Nuevo pedido</string>
     <string name="pedidos_empty_title">Sin pedidos</string>
     <string name="pedidos_empty_subtitle">Registrá tu primer pedido con el botón +</string>
@@ -185,10 +186,16 @@
     <string name="pedido_add_product_title">Agregar producto</string>
     <string name="pedido_add_button">Agregar al pedido</string>
     <string name="pedido_no_products">Agregá productos al pedido</string>
+    <string name="pedido_no_products_title">Aún no agregaste productos</string>
+    <string name="pedido_no_products_subtitle">Tocá el botón + para agregar</string>
     <string name="pedido_remove_item">Eliminar</string>
     <string name="pedido_total">Total</string>
     <string name="pedido_create_cta">Registrar Pedido</string>
-    <string name="pedido_whatsapp_button">Enviar por WhatsApp</string>
+    <string name="pedido_manual_title">Nuevo pedido</string>
+    <string name="pedido_section_products_manual">PRODUCTOS DEL PEDIDO</string>
+    <string name="pedido_whatsapp_button">Ver en WhatsApp</string>
+    <string name="pedido_detail_title">Detalle del Pedido</string>
+    <string name="pedido_info_header">INFORMACIÓN DEL PEDIDO</string>
 
     <!-- Categories screen -->
     <string name="search_categories">Buscar categorías…</string>

@@ -249,6 +249,7 @@ fun NavHostComposable(
         }
         composable(route = MiEmpresaScreen.PedidosList.name) {
             PedidosListScreen(
+                onNavigateBack = { navController.popBackStack() },
                 onNavigateToCreateOrder = {
                     navController.navigate(MiEmpresaScreen.PedidoManual.name)
                 },
@@ -267,7 +268,9 @@ fun NavHostComposable(
             route = "${MiEmpresaScreen.PedidoDetail.name}/{orderId}",
             arguments = listOf(navArgument("orderId") { type = NavType.StringType }),
         ) {
-            PedidoDetailScreen()
+            PedidoDetailScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
         }
     }
 }

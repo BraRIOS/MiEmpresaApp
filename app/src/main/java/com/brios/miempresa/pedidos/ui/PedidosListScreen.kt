@@ -1,5 +1,7 @@
 package com.brios.miempresa.pedidos.ui
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,38 +11,46 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.outlined.Inbox
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
+import com.brios.miempresa.core.ui.components.EmptyStateView
+import com.brios.miempresa.core.ui.components.MiEmpresaFAB
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
+import com.brios.miempresa.core.ui.theme.SlateGray100
+import com.brios.miempresa.core.ui.theme.SlateGray200
 import com.brios.miempresa.core.ui.theme.SlateGray400
-import com.brios.miempresa.core.ui.theme.SlateGray500
 import com.brios.miempresa.pedidos.data.OrderEntity
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -51,6 +61,7 @@ import java.util.Locale
 fun PedidosListScreen(
     modifier: Modifier = Modifier,
     viewModel: PedidosListViewModel = hiltViewModel(),
+    onNavigateBack: () -> Unit = {},
     onNavigateToCreateOrder: () -> Unit = {},
     onNavigateToOrderDetail: (String) -> Unit = {},
 ) {
@@ -59,27 +70,57 @@ fun PedidosListScreen(
     PedidosListContent(
         modifier = modifier,
         uiState = uiState,
+        onNavigateBack = onNavigateBack,
         onNavigateToCreateOrder = onNavigateToCreateOrder,
         onNavigateToOrderDetail = onNavigateToOrderDetail,
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PedidosListContent(
     modifier: Modifier = Modifier,
     uiState: PedidosListUiState,
+    onNavigateBack: () -> Unit = {},
     onNavigateToCreateOrder: () -> Unit = {},
     onNavigateToOrderDetail: (String) -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        stringResource(R.string.pedidos_title),
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver",
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { /* TODO sort */ }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Sort,
+                            contentDescription = "Ordenar",
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
+            )
+        },
         floatingActionButton = {
-            FloatingActionButton(
+            MiEmpresaFAB(
                 onClick = onNavigateToCreateOrder,
-                containerColor = MaterialTheme.colorScheme.primary,
-            ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.pedidos_add))
-            }
+                contentDescription = stringResource(R.string.pedidos_add),
+            )
         },
     ) { padding ->
         when (uiState) {
@@ -92,31 +133,12 @@ private fun PedidosListContent(
                 }
             }
             is PedidosListUiState.Empty -> {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Outlined.Inbox,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = SlateGray400,
-                        )
-                        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
-                        Text(
-                            text = stringResource(R.string.pedidos_empty_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = SlateGray500,
-                        )
-                        Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
-                        Text(
-                            text = stringResource(R.string.pedidos_empty_subtitle),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = SlateGray400,
-                        )
-                    }
-                }
+                EmptyStateView(
+                    modifier = Modifier.padding(padding),
+                    icon = Icons.Outlined.Inbox,
+                    title = stringResource(R.string.pedidos_empty_title),
+                    subtitle = stringResource(R.string.pedidos_empty_subtitle),
+                )
             }
             is PedidosListUiState.Success -> {
                 LazyColumn(
@@ -168,58 +190,88 @@ private fun OrderCard(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         ),
         shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = BorderStroke(1.dp, SlateGray200),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(AppDimensions.mediumPadding),
+                .padding(AppDimensions.mediumLargePadding),
         ) {
+            // Row 1: #ID badge + date
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = order.customerName,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
+                    text = "#${order.id.takeLast(4)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(SlateGray100.copy(alpha = 0.5f))
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
                 )
                 Text(
-                    text = totalStr,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-
-            Spacer(modifier = Modifier.height(AppDimensions.extraSmallPadding))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Outlined.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp),
-                    tint = SlateGray400,
-                )
-                Spacer(modifier = Modifier.size(AppDimensions.extraSmallPadding))
-                Text(
-                    text = order.customerPhone ?: "",
-                    style = MaterialTheme.typography.bodySmall,
+                    text = dateStr,
+                    style = MaterialTheme.typography.labelSmall,
                     color = SlateGray400,
                 )
             }
 
-            Spacer(modifier = Modifier.height(AppDimensions.extraSmallPadding))
+            Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
 
+            // Row 2: CLIENTE label + name
             Text(
-                text = dateStr,
+                text = "CLIENTE",
                 style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
                 color = SlateGray400,
+                letterSpacing = 1.sp,
             )
+            Spacer(modifier = Modifier.height(AppDimensions.extraSmallPadding))
+            Text(
+                text = order.customerName,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
+
+            // Divider
+            HorizontalDivider(color = SlateGray200.copy(alpha = 0.5f))
+
+            Spacer(modifier = Modifier.height(AppDimensions.mediumSmallPadding))
+
+            // Row 3: MONTO TOTAL + amount + chevron
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                Column {
+                    Text(
+                        text = "MONTO TOTAL",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = SlateGray400,
+                        letterSpacing = 1.sp,
+                    )
+                    Spacer(modifier = Modifier.height(AppDimensions.extraSmallPadding))
+                    Text(
+                        text = totalStr,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = SlateGray400,
+                )
+            }
         }
     }
 }
@@ -232,7 +284,7 @@ private fun PedidosListPreview() {
             uiState = PedidosListUiState.Success(
                 orders = listOf(
                     OrderEntity(
-                        id = "1",
+                        id = "ORD-A1B2",
                         companyId = "c1",
                         customerName = "Juan Pérez",
                         customerPhone = "+54 11 1234-5678",
@@ -240,7 +292,7 @@ private fun PedidosListPreview() {
                         createdAt = System.currentTimeMillis(),
                     ),
                     OrderEntity(
-                        id = "2",
+                        id = "ORD-C3D4",
                         companyId = "c1",
                         customerName = "María López",
                         customerPhone = "+54 11 9876-5432",

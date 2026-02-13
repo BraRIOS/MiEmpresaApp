@@ -3,12 +3,7 @@ package com.brios.miempresa.navigation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
@@ -20,7 +15,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -33,7 +27,7 @@ import com.brios.miempresa.categories.ui.CategoriesUiState
 import com.brios.miempresa.categories.ui.CategoriesViewModel
 import com.brios.miempresa.config.ui.ConfigScreen
 import com.brios.miempresa.config.ui.ConfigViewModel
-import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.components.MiEmpresaFAB
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.products.ui.ProductsContent
 import com.brios.miempresa.products.ui.ProductsUiState
@@ -148,16 +142,16 @@ fun HomeAdminScreenContent(
                 if (showFab) {
                     when (selectedTab) {
                         0 -> {
-                            FABPaddingBottom(
+                            MiEmpresaFAB(
                                 onClick = onNavigateToAddProduct,
-                                contentDescription = stringResource(R.string.add_product)
+                                contentDescription = stringResource(R.string.add_product),
                             )
                         }
 
                         1 -> {
-                            FABPaddingBottom(
+                            MiEmpresaFAB(
                                 onClick = onNavigateToAddCategory,
-                                contentDescription = stringResource(R.string.add_category)
+                                contentDescription = stringResource(R.string.add_category),
                             )
                         }
                     }
@@ -169,30 +163,6 @@ fun HomeAdminScreenContent(
                 1 -> categoriesContent(Modifier.padding(paddingValues))
                 2 -> configContent(Modifier.padding(paddingValues))
             }
-        }
-    }
-}
-
-@Composable
-private fun FABPaddingBottom(
-    onClick: () -> Unit,
-    icon: ImageVector = Icons.Default.Add,
-    contentDescription: String) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .padding(bottom = AppDimensions.mediumPadding)
-        ) {
-        FloatingActionButton(
-            modifier = Modifier.size(AppDimensions.mainFABSize),
-            onClick = onClick,
-//            containerColor = MaterialTheme.colorScheme.primary
-        ) {
-            Icon(
-                icon,
-                contentDescription,
-                Modifier.size(AppDimensions.mainFABIconSize)
-            )
         }
     }
 }

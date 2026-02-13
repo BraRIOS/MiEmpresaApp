@@ -13,6 +13,7 @@ import com.brios.miempresa.core.sync.SyncManager
 import com.brios.miempresa.core.sync.SyncType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -70,6 +71,9 @@ class ConfigViewModel
         private val _companyId = MutableStateFlow<String?>(null)
         private var originalCompany: Company? = null
 
+        // Prevents reactive Flow from overwriting user edits in EditCompanyDataScreen
+        private var isEditing = false
+
         private val _form = MutableStateFlow(ConfigFormState())
         val form: StateFlow<ConfigFormState> = _form.asStateFlow()
 
@@ -82,6 +86,7 @@ class ConfigViewModel
         private val _isSyncing = MutableStateFlow(false)
         val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
 
+        @OptIn(ExperimentalCoroutinesApi::class)
         val publicSheetId: StateFlow<String?> =
             _companyId
                 .filterNotNull()
@@ -96,60 +101,79 @@ class ConfigViewModel
                 }
 
         init {
-            loadCompany()
+            loadCompanyAndObserve()
         }
 
-        private fun loadCompany() {
+        private fun loadCompanyAndObserve() {
             viewModelScope.launch {
                 val company = companyDao.getSelectedOwnedCompany()
                 if (company != null) {
                     _companyId.value = company.id
-                    originalCompany = company
-                    _form.value = ConfigFormState(
-                        companyName = company.name,
-                        whatsappCountryCode = company.whatsappCountryCode,
-                        whatsappNumber = company.whatsappNumber ?: "",
-                        specialization = company.specialization ?: "",
-                        logoUrl = company.logoUrl,
-                        address = company.address ?: "",
-                        businessHours = company.businessHours ?: "",
-                    )
-                    _uiState.value = ConfigUiState.Ready(_form.value)
+                    updateFormFromCompany(company)
+
+                    // Observe Room changes reactively so ConfigScreen refreshes
+                    // after EditCompanyDataScreen saves
+                    configRepository.observeCompany(company.id).collect { updated ->
+                        if (updated != null && !isEditing) {
+                            updateFormFromCompany(updated)
+                        }
+                    }
                 }
             }
         }
 
+        private fun updateFormFromCompany(company: Company) {
+            originalCompany = company
+            _form.value = ConfigFormState(
+                companyName = company.name,
+                whatsappCountryCode = company.whatsappCountryCode,
+                whatsappNumber = company.whatsappNumber ?: "",
+                specialization = company.specialization ?: "",
+                logoUrl = company.logoUrl,
+                address = company.address ?: "",
+                businessHours = company.businessHours ?: "",
+            )
+            _uiState.value = ConfigUiState.Ready(_form.value)
+        }
+
         fun updateCompanyName(name: String) {
+            isEditing = true
             _form.value = _form.value.copy(companyName = name)
             _uiState.value = ConfigUiState.Ready(_form.value)
         }
 
         fun updateCountryCode(code: String) {
+            isEditing = true
             _form.value = _form.value.copy(whatsappCountryCode = code)
             _uiState.value = ConfigUiState.Ready(_form.value)
         }
 
         fun updateWhatsappNumber(number: String) {
+            isEditing = true
             _form.value = _form.value.copy(whatsappNumber = number)
             _uiState.value = ConfigUiState.Ready(_form.value)
         }
 
         fun updateSpecialization(specialization: String) {
+            isEditing = true
             _form.value = _form.value.copy(specialization = specialization)
             _uiState.value = ConfigUiState.Ready(_form.value)
         }
 
         fun updateAddress(address: String) {
+            isEditing = true
             _form.value = _form.value.copy(address = address)
             _uiState.value = ConfigUiState.Ready(_form.value)
         }
 
         fun updateBusinessHours(hours: String) {
+            isEditing = true
             _form.value = _form.value.copy(businessHours = hours)
             _uiState.value = ConfigUiState.Ready(_form.value)
         }
 
         fun updateLocalLogoUri(uri: String?) {
+            isEditing = true
             _form.value = _form.value.copy(localLogoUri = uri)
             _uiState.value = ConfigUiState.Ready(_form.value)
         }
@@ -199,6 +223,7 @@ class ConfigViewModel
 
                     _form.value = _form.value.copy(localLogoUri = null, logoUrl = finalCompany.logoUrl)
                     _uiState.value = ConfigUiState.Ready(_form.value)
+                    isEditing = false
                     _events.emit(ConfigEvent.ShowSnackbar(appContext.getString(R.string.config_changes_saved)))
                 } catch (e: Exception) {
                     _uiState.value = ConfigUiState.Error(

@@ -1,4 +1,4 @@
-package com.brios.miempresa.pedidos.ui
+package com.brios.miempresa.orders.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
@@ -126,7 +127,7 @@ fun AddProductToOrderSheet(
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.width(48.dp),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            textAlign = TextAlign.Center,
                         )
                         IconButton(
                             onClick = { quantity++ },

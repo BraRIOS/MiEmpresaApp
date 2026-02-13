@@ -12,9 +12,9 @@ import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.categories.data.CategoryDao
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.core.data.local.entities.Company
-import com.brios.miempresa.pedidos.data.OrderDao
-import com.brios.miempresa.pedidos.data.OrderEntity
-import com.brios.miempresa.pedidos.data.OrderItemEntity
+import com.brios.miempresa.orders.data.OrderDao
+import com.brios.miempresa.orders.data.OrderEntity
+import com.brios.miempresa.orders.data.OrderItemEntity
 import com.brios.miempresa.products.data.ProductDao
 import com.brios.miempresa.products.data.ProductEntity
 
@@ -100,7 +100,7 @@ abstract class MiEmpresaDatabase : RoomDatabase() {
                         MiEmpresaDatabase::class.java,
                         "miempresa_database",
                     ).addMigrations(MIGRATION_10_11, MIGRATION_11_12)
-                        .fallbackToDestructiveMigration()
+                        .fallbackToDestructiveMigration(false)
                         .build()
                 INSTANCE = instance
                 instance

@@ -37,7 +37,7 @@ fun MiEmpresaFAB(
             modifier = Modifier.size(size),
             onClick = onClick,
             shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
-            containerColor = MaterialTheme.colorScheme.primary,
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
         ) {
             Icon(
                 icon,

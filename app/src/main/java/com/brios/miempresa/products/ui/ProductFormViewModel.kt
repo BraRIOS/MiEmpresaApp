@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.brios.miempresa.R
 import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.categories.domain.CategoriesRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
@@ -174,15 +175,15 @@ class ProductFormViewModel
 
             var hasError = false
             if (currentName.isBlank()) {
-                _nameError.value = "El nombre es obligatorio"
+                _nameError.value = appContext.getString(R.string.error_name_required)
                 hasError = true
             }
             if (currentPrice == null || currentPrice < 0) {
-                _priceError.value = "Ingresá un precio válido"
+                _priceError.value = appContext.getString(R.string.error_invalid_price)
                 hasError = true
             }
             if (currentCategoryId == null) {
-                _categoryError.value = "Seleccioná una categoría"
+                _categoryError.value = appContext.getString(R.string.error_category_required)
                 hasError = true
             }
             if (hasError) return

@@ -1,10 +1,10 @@
-package com.brios.miempresa.pedidos.ui
+package com.brios.miempresa.orders.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.core.data.local.daos.CompanyDao
-import com.brios.miempresa.pedidos.data.OrderEntity
-import com.brios.miempresa.pedidos.domain.OrdersRepository
+import com.brios.miempresa.orders.data.OrderEntity
+import com.brios.miempresa.orders.domain.OrdersRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

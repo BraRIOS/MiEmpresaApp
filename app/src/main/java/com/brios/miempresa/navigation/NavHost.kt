@@ -29,9 +29,9 @@ import com.brios.miempresa.auth.ui.WelcomeScreen
 import com.brios.miempresa.categories.ui.CategoryFormScreen
 import com.brios.miempresa.config.ui.EditCompanyDataScreen
 import com.brios.miempresa.onboarding.ui.OnboardingScreen
-import com.brios.miempresa.pedidos.ui.PedidoDetailScreen
-import com.brios.miempresa.pedidos.ui.PedidoManualScreen
-import com.brios.miempresa.pedidos.ui.PedidosListScreen
+import com.brios.miempresa.orders.ui.OrderDetailScreen
+import com.brios.miempresa.orders.ui.OrderManualScreen
+import com.brios.miempresa.orders.ui.OrdersListScreen
 import com.brios.miempresa.products.ui.ProductFormScreen
 
 @Composable
@@ -248,7 +248,7 @@ fun NavHostComposable(
             )
         }
         composable(route = MiEmpresaScreen.PedidosList.name) {
-            PedidosListScreen(
+            OrdersListScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToCreateOrder = {
                     navController.navigate(MiEmpresaScreen.PedidoManual.name)
@@ -259,7 +259,7 @@ fun NavHostComposable(
             )
         }
         composable(route = MiEmpresaScreen.PedidoManual.name) {
-            PedidoManualScreen(
+            OrderManualScreen(
                 onOrderCreated = { navController.popBackStack() },
                 onNavigateBack = { navController.popBackStack() },
             )
@@ -268,7 +268,7 @@ fun NavHostComposable(
             route = "${MiEmpresaScreen.PedidoDetail.name}/{orderId}",
             arguments = listOf(navArgument("orderId") { type = NavType.StringType }),
         ) {
-            PedidoDetailScreen(
+            OrderDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
             )
         }

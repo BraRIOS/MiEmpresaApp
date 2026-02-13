@@ -3,7 +3,7 @@ package com.brios.miempresa.core.sync.domain
 import android.util.Log
 import com.brios.miempresa.categories.domain.CategoriesRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
-import com.brios.miempresa.pedidos.domain.OrdersRepository
+import com.brios.miempresa.orders.domain.OrdersRepository
 import com.brios.miempresa.products.domain.ProductsRepository
 import javax.inject.Inject
 import javax.inject.Singleton

@@ -1,4 +1,4 @@
-package com.brios.miempresa.pedidos.ui
+package com.brios.miempresa.orders.ui
 
 import android.content.Intent
 import android.net.Uri
@@ -20,12 +20,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Notes
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.Call
-import androidx.compose.material.icons.outlined.Notes
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -36,15 +37,16 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -52,6 +54,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
@@ -61,25 +64,23 @@ import com.brios.miempresa.core.ui.theme.SlateGray100
 import com.brios.miempresa.core.ui.theme.SlateGray200
 import com.brios.miempresa.core.ui.theme.SlateGray400
 import com.brios.miempresa.core.ui.theme.SlateGray500
-import com.brios.miempresa.core.ui.theme.WhatsAppGreen
-import com.brios.miempresa.pedidos.data.OrderEntity
-import com.brios.miempresa.pedidos.data.OrderItemEntity
+import com.brios.miempresa.orders.data.OrderEntity
+import com.brios.miempresa.orders.data.OrderItemEntity
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.core.net.toUri
 
 @Composable
-fun PedidoDetailScreen(
+fun OrderDetailScreen(
     modifier: Modifier = Modifier,
-    viewModel: PedidoDetailViewModel = hiltViewModel(),
+    viewModel: OrderDetailViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val items by viewModel.items.collectAsStateWithLifecycle()
 
-    PedidoDetailContent(
+    OrderDetailContent(
         modifier = modifier,
         state = state.copy(items = items),
         onNavigateBack = onNavigateBack,
@@ -88,18 +89,18 @@ fun PedidoDetailScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PedidoDetailContent(
+private fun OrderDetailContent(
     modifier: Modifier = Modifier,
-    state: PedidoDetailState,
+    state: OrderDetailState,
     onNavigateBack: () -> Unit = {},
 ) {
     val context = LocalContext.current
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("es", "AR"))
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR"))
 
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     Text(
                         stringResource(R.string.pedido_detail_title),
@@ -110,20 +111,23 @@ private fun PedidoDetailContent(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
+                            contentDescription = stringResource(R.string.go_back),
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.primary,
                 ),
             )
         },
+        contentColor = MaterialTheme.colorScheme.onBackground,
         bottomBar = {
             val order = state.order ?: return@Scaffold
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface,
+                color = MaterialTheme.colorScheme.surfaceContainerLowest,
                 shadowElevation = 8.dp,
             ) {
                 Column(
@@ -139,6 +143,7 @@ private fun PedidoDetailContent(
                             text = stringResource(R.string.pedido_total),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
                             text = currencyFormat.format(order.totalAmount),
@@ -162,10 +167,10 @@ private fun PedidoDetailContent(
                         border = BorderStroke(1.dp, SlateGray200),
                     ) {
                         Icon(
-                            Icons.Outlined.Call,
+                            painter = painterResource(id = R.drawable.whatsapp_glyph_green),
                             contentDescription = null,
                             modifier = Modifier.size(AppDimensions.smallIconSize),
-                            tint = WhatsAppGreen,
+                            tint = Color.Unspecified
                         )
                         Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
                         Text(
@@ -228,26 +233,28 @@ private fun PedidoDetailContent(
 
                             InfoRow(
                                 icon = Icons.Outlined.CalendarToday,
-                                label = "Fecha",
+                                label = stringResource(R.string.order_label_date),
                                 value = dateStr,
                                 showDivider = true,
                             )
                             InfoRow(
                                 icon = Icons.Outlined.Person,
-                                label = "Cliente",
-                                value = order.customerName,
+                                label = stringResource(R.string.order_label_customer),
+                                value = order.customerName.ifBlank {
+                                    stringResource(R.string.order_default_customer_name)
+                                },
                                 showDivider = true,
                             )
                             InfoRow(
                                 icon = Icons.Outlined.Call,
-                                label = "WhatsApp",
+                                label = stringResource(R.string.pedido_label_phone),
                                 value = order.customerPhone ?: "—",
                                 showDivider = true,
                             )
                             InfoRow(
-                                icon = Icons.Outlined.Notes,
-                                label = "Notas",
-                                value = order.notes ?: "Sin observaciones",
+                                icon = Icons.AutoMirrored.Outlined.Notes,
+                                label = stringResource(R.string.order_label_notes),
+                                value = order.notes ?: "—",
                                 isItalic = order.notes == null,
                                 showDivider = false,
                             )
@@ -281,7 +288,7 @@ private fun PedidoDetailContent(
                                 letterSpacing = 1.sp,
                             )
                             Text(
-                                text = "${state.items.size} items",
+                                text = stringResource(R.string.items_count, state.items.size),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary,
@@ -351,6 +358,7 @@ private fun InfoRow(
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 fontStyle = if (isItalic) FontStyle.Italic else FontStyle.Normal,
+                color = MaterialTheme.colorScheme.onBackground,
             )
         }
     }
@@ -378,6 +386,7 @@ private fun ProductItemRow(
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onBackground
             )
             Text(
                 text = "${currencyFormat.format(item.priceAtOrder)} c/u",
@@ -428,10 +437,10 @@ private fun buildWhatsAppMessage(
 
 @Preview(showBackground = true)
 @Composable
-private fun PedidoDetailPreview() {
+private fun OrderDetailPreview() {
     MiEmpresaTheme {
-        PedidoDetailContent(
-            state = PedidoDetailState(
+        OrderDetailContent(
+            state = OrderDetailState(
                 order = OrderEntity(
                     id = "1",
                     companyId = "c1",

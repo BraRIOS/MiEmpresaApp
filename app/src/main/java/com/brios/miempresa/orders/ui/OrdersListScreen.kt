@@ -1,4 +1,4 @@
-package com.brios.miempresa.pedidos.ui
+package com.brios.miempresa.orders.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -18,9 +18,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -29,7 +31,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,14 +52,14 @@ import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray100
 import com.brios.miempresa.core.ui.theme.SlateGray200
 import com.brios.miempresa.core.ui.theme.SlateGray400
-import com.brios.miempresa.pedidos.data.OrderEntity
+import com.brios.miempresa.orders.data.OrderEntity
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 @Composable
-fun PedidosListScreen(
+fun OrdersListScreen(
     modifier: Modifier = Modifier,
     viewModel: PedidosListViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {},
@@ -67,7 +68,7 @@ fun PedidosListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    PedidosListContent(
+    OrderListContent(
         modifier = modifier,
         uiState = uiState,
         onNavigateBack = onNavigateBack,
@@ -78,7 +79,7 @@ fun PedidosListScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PedidosListContent(
+private fun OrderListContent(
     modifier: Modifier = Modifier,
     uiState: PedidosListUiState,
     onNavigateBack: () -> Unit = {},
@@ -88,7 +89,7 @@ private fun PedidosListContent(
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     Text(
                         stringResource(R.string.pedidos_title),
@@ -99,7 +100,7 @@ private fun PedidosListContent(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
+                            contentDescription = stringResource(R.string.go_back),
                         )
                     }
                 },
@@ -107,26 +108,33 @@ private fun PedidosListContent(
                     IconButton(onClick = { /* TODO sort */ }) {
                         Icon(
                             Icons.AutoMirrored.Filled.Sort,
-                            contentDescription = "Ordenar",
+                            contentDescription = stringResource(R.string.action_sort),
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
             )
         },
         floatingActionButton = {
-            MiEmpresaFAB(
-                onClick = onNavigateToCreateOrder,
-                contentDescription = stringResource(R.string.pedidos_add),
-            )
+            if (uiState is PedidosListUiState.Success)
+                MiEmpresaFAB(
+                    modifier = Modifier.padding(bottom = 80.dp),
+                    onClick = onNavigateToCreateOrder,
+                    contentDescription = stringResource(R.string.pedidos_add),
+                )
         },
     ) { padding ->
         when (uiState) {
             is PedidosListUiState.Loading -> {
                 Box(
-                    modifier = Modifier.fillMaxSize().padding(padding),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
                     contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator()
@@ -134,10 +142,12 @@ private fun PedidosListContent(
             }
             is PedidosListUiState.Empty -> {
                 EmptyStateView(
-                    modifier = Modifier.padding(padding),
                     icon = Icons.Outlined.Inbox,
                     title = stringResource(R.string.pedidos_empty_title),
                     subtitle = stringResource(R.string.pedidos_empty_subtitle),
+                    actionLabel = stringResource(R.string.empty_order_add_CTA),
+                    actionIcon = Icons.Default.AddCircle,
+                    onAction = onNavigateToCreateOrder,
                 )
             }
             is PedidosListUiState.Success -> {
@@ -160,7 +170,9 @@ private fun PedidosListContent(
             }
             is PedidosListUiState.Error -> {
                 Box(
-                    modifier = Modifier.fillMaxSize().padding(padding),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
@@ -180,7 +192,7 @@ private fun OrderCard(
 ) {
     val dateStr = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
         .format(Date(order.createdAt))
-    val totalStr = NumberFormat.getCurrencyInstance(Locale("es", "AR"))
+    val totalStr = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR"))
         .format(order.totalAmount)
 
     Card(
@@ -212,6 +224,7 @@ private fun OrderCard(
                         .clip(RoundedCornerShape(6.dp))
                         .background(SlateGray100.copy(alpha = 0.5f))
                         .padding(horizontal = 8.dp, vertical = 4.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = dateStr,
@@ -232,9 +245,12 @@ private fun OrderCard(
             )
             Spacer(modifier = Modifier.height(AppDimensions.extraSmallPadding))
             Text(
-                text = order.customerName,
+                text = order.customerName.ifBlank {
+                    stringResource(R.string.order_default_customer_name)
+                },
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
+
             )
 
             Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
@@ -278,9 +294,9 @@ private fun OrderCard(
 
 @Preview(showBackground = true)
 @Composable
-private fun PedidosListPreview() {
+private fun OrderListPreview() {
     MiEmpresaTheme {
-        PedidosListContent(
+        OrderListContent(
             uiState = PedidosListUiState.Success(
                 orders = listOf(
                     OrderEntity(
@@ -308,8 +324,8 @@ private fun PedidosListPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun PedidosListEmptyPreview() {
+private fun OrderListEmptyPreview() {
     MiEmpresaTheme {
-        PedidosListContent(uiState = PedidosListUiState.Empty)
+        OrderListContent(uiState = PedidosListUiState.Empty)
     }
 }

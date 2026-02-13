@@ -1,8 +1,10 @@
 package com.brios.miempresa.config.ui
 
 import android.app.Activity
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.brios.miempresa.R
 import com.brios.miempresa.config.domain.ConfigRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.core.data.local.entities.Company
@@ -10,6 +12,7 @@ import com.brios.miempresa.core.domain.LogoutUseCase
 import com.brios.miempresa.core.sync.SyncManager
 import com.brios.miempresa.core.sync.SyncType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -58,6 +61,7 @@ sealed interface ConfigEvent {
 class ConfigViewModel
     @Inject
     constructor(
+        @ApplicationContext private val appContext: Context,
         private val configRepository: ConfigRepository,
         private val companyDao: CompanyDao,
         private val syncManager: SyncManager,
@@ -195,10 +199,10 @@ class ConfigViewModel
 
                     _form.value = _form.value.copy(localLogoUri = null, logoUrl = finalCompany.logoUrl)
                     _uiState.value = ConfigUiState.Ready(_form.value)
-                    _events.emit(ConfigEvent.ShowSnackbar("Cambios guardados"))
+                    _events.emit(ConfigEvent.ShowSnackbar(appContext.getString(R.string.config_changes_saved)))
                 } catch (e: Exception) {
                     _uiState.value = ConfigUiState.Error(
-                        e.message ?: "Error al guardar",
+                        e.message ?: appContext.getString(R.string.error_save_config),
                         form,
                     )
                 }
@@ -211,7 +215,7 @@ class ConfigViewModel
                 syncManager.syncNow(SyncType.ALL)
                 kotlinx.coroutines.delay(2000)
                 _isSyncing.value = false
-                _events.emit(ConfigEvent.ShowSnackbar("Sincronización completada"))
+                _events.emit(ConfigEvent.ShowSnackbar(appContext.getString(R.string.sync_completed)))
             }
         }
 

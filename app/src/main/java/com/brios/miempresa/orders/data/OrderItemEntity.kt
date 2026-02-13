@@ -1,4 +1,4 @@
-package com.brios.miempresa.pedidos.data
+package com.brios.miempresa.orders.data
 
 import androidx.room.Entity
 import androidx.room.ForeignKey

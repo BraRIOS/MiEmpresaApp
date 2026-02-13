@@ -1,14 +1,17 @@
-package com.brios.miempresa.pedidos.ui
+package com.brios.miempresa.orders.ui
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.brios.miempresa.R
 import com.brios.miempresa.core.data.local.daos.CompanyDao
-import com.brios.miempresa.pedidos.data.OrderEntity
-import com.brios.miempresa.pedidos.data.OrderItemEntity
-import com.brios.miempresa.pedidos.domain.OrdersRepository
+import com.brios.miempresa.orders.data.OrderEntity
+import com.brios.miempresa.orders.data.OrderItemEntity
+import com.brios.miempresa.orders.domain.OrdersRepository
 import com.brios.miempresa.products.data.ProductDao
 import com.brios.miempresa.products.data.ProductEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -43,15 +46,16 @@ data class OrderFormState(
     val isValid: Boolean get() = customerPhone.matches(Regex("^\\d{6,15}$")) && items.isNotEmpty()
 }
 
-sealed interface PedidoManualEvent {
-    data object OrderCreated : PedidoManualEvent
-    data class ShowError(val message: String) : PedidoManualEvent
+sealed interface OrderManualEvent {
+    data object OrderCreated : OrderManualEvent
+    data class ShowError(val message: String) : OrderManualEvent
 }
 
 @HiltViewModel
-class PedidoManualViewModel
+class OrderManualViewModel
     @Inject
     constructor(
+        @ApplicationContext private val appContext: Context,
         private val ordersRepository: OrdersRepository,
         private val productDao: ProductDao,
         private val companyDao: CompanyDao,
@@ -61,8 +65,8 @@ class PedidoManualViewModel
         private val _form = MutableStateFlow(OrderFormState())
         val form: StateFlow<OrderFormState> = _form.asStateFlow()
 
-        private val _events = MutableSharedFlow<PedidoManualEvent>(replay = 0)
-        val events: SharedFlow<PedidoManualEvent> = _events.asSharedFlow()
+        private val _events = MutableSharedFlow<OrderManualEvent>(replay = 0)
+        val events: SharedFlow<OrderManualEvent> = _events.asSharedFlow()
 
         private val _isSaving = MutableStateFlow(false)
         val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
@@ -135,7 +139,7 @@ class PedidoManualViewModel
                     val order = OrderEntity(
                         id = orderId,
                         companyId = companyId,
-                        customerName = formValue.customerName.ifBlank { "Sin nombre" },
+                        customerName = formValue.customerName.ifBlank { "" },
                         customerPhone = formValue.customerPhone,
                         notes = formValue.notes.ifBlank { null },
                         totalAmount = formValue.total,
@@ -153,9 +157,13 @@ class PedidoManualViewModel
                         )
                     }
                     ordersRepository.createOrder(order, items)
-                    _events.emit(PedidoManualEvent.OrderCreated)
+                    _events.emit(OrderManualEvent.OrderCreated)
                 } catch (e: Exception) {
-                    _events.emit(PedidoManualEvent.ShowError(e.message ?: "Error al crear pedido"))
+                    _events.emit(
+                        OrderManualEvent.ShowError(
+                            e.message ?: appContext.getString(R.string.error_create_order),
+                        ),
+                    )
                 } finally {
                     _isSaving.value = false
                 }

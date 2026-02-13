@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.brios.miempresa.R
 import com.brios.miempresa.core.auth.GoogleAuthClient
 import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.core.sync.SyncManager
@@ -81,7 +82,9 @@ class OnboardingViewModel
                     }
 
                     // Room doesn't have a fully valid workspace — discover from Drive
-                    _uiState.value = OnboardingUiState.DiscoveringWorkspace("Buscando tu espacio de trabajo...")
+                    _uiState.value = OnboardingUiState.DiscoveringWorkspace(
+                        appContext.getString(R.string.onboarding_status_discovering),
+                    )
                     val companies =
                         try {
                             repository.syncCompaniesFromDrive()
@@ -109,7 +112,9 @@ class OnboardingViewModel
                     }
 
                     // Validate workspace for selected company
-                    _uiState.value = OnboardingUiState.DiscoveringWorkspace("Verificando base de datos...")
+                    _uiState.value = OnboardingUiState.DiscoveringWorkspace(
+                        appContext.getString(R.string.onboarding_status_verifying),
+                    )
                     when (val result = repository.validateExistingWorkspace()) {
                         is WorkspaceValidationResult.Valid -> {
                             syncManager.syncNow()
@@ -302,7 +307,9 @@ class OnboardingViewModel
 
         fun selectCompany(company: Company) {
             viewModelScope.launch {
-                _uiState.value = OnboardingUiState.DiscoveringWorkspace("Verificando base de datos...")
+                _uiState.value = OnboardingUiState.DiscoveringWorkspace(
+                    appContext.getString(R.string.onboarding_status_verifying),
+                )
                 repository.selectCompany(company)
 
                 // Offline-fast: if company already has sheet IDs, go home
@@ -333,7 +340,9 @@ class OnboardingViewModel
 
         fun retryValidation() {
             viewModelScope.launch {
-                _uiState.value = OnboardingUiState.DiscoveringWorkspace("Reintentando búsqueda...")
+                _uiState.value = OnboardingUiState.DiscoveringWorkspace(
+                    appContext.getString(R.string.onboarding_status_retrying),
+                )
                 when (val result = repository.validateExistingWorkspace()) {
                     is WorkspaceValidationResult.Valid -> {
                         syncManager.syncNow()
@@ -360,7 +369,9 @@ class OnboardingViewModel
 
         fun deleteCompany(company: Company) {
             viewModelScope.launch {
-                _uiState.value = OnboardingUiState.DiscoveringWorkspace("Eliminando empresa...")
+                _uiState.value = OnboardingUiState.DiscoveringWorkspace(
+                    appContext.getString(R.string.onboarding_status_deleting),
+                )
                 repository.deleteCompany(company)
                 val companies = repository.getOwnedCompanies()
                 if (companies.isEmpty()) {

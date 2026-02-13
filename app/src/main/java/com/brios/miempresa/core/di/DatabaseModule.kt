@@ -7,7 +7,7 @@ import com.brios.miempresa.cart.data.CartItemDao
 import com.brios.miempresa.categories.data.CategoryDao
 import com.brios.miempresa.core.data.local.MiEmpresaDatabase
 import com.brios.miempresa.core.data.local.daos.CompanyDao
-import com.brios.miempresa.pedidos.data.OrderDao
+import com.brios.miempresa.orders.data.OrderDao
 import com.brios.miempresa.products.data.ProductDao
 import dagger.Module
 import dagger.Provides

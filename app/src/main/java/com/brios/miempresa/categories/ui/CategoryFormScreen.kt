@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -75,6 +74,7 @@ import androidx.emoji2.emojipicker.EmojiPickerView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
+import com.brios.miempresa.core.ui.components.InfoCard
 import com.brios.miempresa.core.ui.components.MiEmpresaDialog
 import com.brios.miempresa.core.ui.components.SimpleFormField
 import com.brios.miempresa.core.ui.theme.AppDimensions
@@ -232,7 +232,7 @@ private fun CategoryFormContent(
                 onShowAllEmojis = { showEmojiBottomSheet = true },
             )
 
-            InfoCard()
+            InfoCard(text = stringResource(R.string.emoji_info_hint))
         }
 
         if (showEmojiBottomSheet) {
@@ -505,45 +505,6 @@ private fun EmojiQuickPickSection(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun InfoCard() {
-    val infoBg = Color(0xFFEFF6FF) // blue-50
-    val infoBorder = Color(0xFFDBEAFE) // blue-100
-    val infoIcon = Color(0xFF3B82F6) // blue-500
-    val infoText = Color(0xFF2563EB) // blue-600
-
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .background(
-                    color = infoBg,
-                    shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
-                )
-                .border(
-                    AppDimensions.smallBorderWidth,
-                    infoBorder,
-                    RoundedCornerShape(AppDimensions.smallCornerRadius),
-                )
-                .padding(AppDimensions.mediumSmallPadding),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Info,
-            contentDescription = null,
-            tint = infoIcon,
-            modifier = Modifier.size(AppDimensions.smallIconSize),
-        )
-        Text(
-            text = stringResource(R.string.emoji_info_hint),
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.Medium,
-            color = infoText,
-        )
     }
 }
 

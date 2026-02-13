@@ -69,6 +69,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.components.CompanyAvatar
+import com.brios.miempresa.core.ui.components.InfoCard
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.Blue50
 import com.brios.miempresa.core.ui.theme.Blue500
@@ -404,7 +405,7 @@ private fun ShareCatalogCard(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                     border = BorderStroke(1.dp, SlateGray200),
-                    contentPadding = PaddingValues(horizontal = AppDimensions.smallPadding),
+                    contentPadding = PaddingValues(horizontal = AppDimensions.extraSmallPadding),
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Share,
@@ -645,12 +646,8 @@ private fun QrCodeBottomSheet(
             Spacer(modifier = Modifier.height(AppDimensions.largePadding))
 
             // Google Lens helper text
-            Text(
-                text = stringResource(R.string.config_qr_helper),
-                style = MaterialTheme.typography.bodySmall,
-                color = SlateGray400,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = AppDimensions.mediumPadding),
+            InfoCard(
+                text = stringResource(R.string.config_qr_helper)
             )
         }
     }
@@ -679,5 +676,16 @@ private fun ConfigScreenPreview() {
 private fun ConfigScreenEmptyPreview() {
     MiEmpresaTheme {
         ConfigScreenContent(form = ConfigFormState())
+    }
+}
+
+@Preview(showBackground = true, device = Devices.PIXEL_7_PRO)
+@Composable
+private fun QrCodeBottomSheetPreview() {
+    MiEmpresaTheme {
+        QrCodeBottomSheet(
+            publicSheetId = "sample-sheet-id",
+            onDismiss = {},
+        )
     }
 }

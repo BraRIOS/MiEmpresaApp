@@ -1,9 +1,9 @@
-package com.brios.miempresa.pedidos.data
+package com.brios.miempresa.orders.data
 
 import android.util.Log
 import com.brios.miempresa.core.api.sheets.SpreadsheetsApi
 import com.brios.miempresa.core.data.local.daos.CompanyDao
-import com.brios.miempresa.pedidos.domain.OrdersRepository
+import com.brios.miempresa.orders.domain.OrdersRepository
 import kotlinx.coroutines.flow.Flow
 import org.json.JSONArray
 import org.json.JSONObject

@@ -1,4 +1,4 @@
-package com.brios.miempresa.pedidos.ui
+package com.brios.miempresa.orders.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -61,9 +61,9 @@ import java.text.NumberFormat
 import java.util.Locale
 
 @Composable
-fun PedidoManualScreen(
+fun OrderManualScreen(
     modifier: Modifier = Modifier,
-    viewModel: PedidoManualViewModel = hiltViewModel(),
+    viewModel: OrderManualViewModel = hiltViewModel(),
     onOrderCreated: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
 ) {
@@ -76,13 +76,13 @@ fun PedidoManualScreen(
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is PedidoManualEvent.OrderCreated -> onOrderCreated()
-                is PedidoManualEvent.ShowError -> {}
+                is OrderManualEvent.OrderCreated -> onOrderCreated()
+                is OrderManualEvent.ShowError -> {}
             }
         }
     }
 
-    PedidoManualContent(
+    OrderManualContent(
         modifier = modifier,
         form = form,
         isSaving = isSaving,
@@ -109,7 +109,7 @@ fun PedidoManualScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PedidoManualContent(
+private fun OrderManualContent(
     modifier: Modifier = Modifier,
     form: OrderFormState,
     isSaving: Boolean = false,
@@ -137,7 +137,7 @@ private fun PedidoManualContent(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             Icons.Outlined.Close,
-                            contentDescription = "Cerrar",
+                            contentDescription = stringResource(R.string.action_close),
                         )
                     }
                 },
@@ -376,17 +376,17 @@ private fun OrderItemRow(
 
 @Preview(showBackground = true)
 @Composable
-private fun PedidoManualEmptyPreview() {
+private fun OrderManualEmptyPreview() {
     MiEmpresaTheme {
-        PedidoManualContent(form = OrderFormState())
+        OrderManualContent(form = OrderFormState())
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun PedidoManualWithItemsPreview() {
+private fun OrderManualWithItemsPreview() {
     MiEmpresaTheme {
-        PedidoManualContent(
+        OrderManualContent(
             form = OrderFormState(
                 customerName = "Juan Pérez",
                 customerPhone = "1112345678",

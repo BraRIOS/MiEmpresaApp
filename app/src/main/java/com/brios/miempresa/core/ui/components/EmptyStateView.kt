@@ -7,11 +7,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +38,7 @@ fun EmptyStateView(
     modifier: Modifier = Modifier,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
+    actionIcon: ImageVector? = null,
 ) {
     Column(
         modifier =
@@ -76,6 +80,14 @@ fun EmptyStateView(
                 contentPadding = PaddingValues(horizontal = AppDimensions.largePadding, vertical = AppDimensions.mediumPadding),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp),
             ) {
+                if (actionIcon != null) {
+                    Icon(
+                        actionIcon,
+                        contentDescription =
+                            if (title.isNotEmpty() && title.isNotBlank()) title else subtitle
+                    )
+                    Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+                }
                 Text(
                     text = actionLabel,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
@@ -95,6 +107,21 @@ private fun EmptyStateViewPreview() {
             subtitle = "Empezá agregando tu primer producto al catálogo",
             actionLabel = "Agregar primer producto",
             onAction = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun EmptyStateViewWithButtonIconPreview() {
+    MiEmpresaTheme {
+        EmptyStateView(
+            icon = Icons.Filled.ShoppingBag,
+            title = "Aún no tenés productos",
+            subtitle = "Empezá agregando tu primer producto al catálogo",
+            actionLabel = "Agregar primer producto",
+            onAction = {},
+            actionIcon = Icons.Filled.AddCircle,
         )
     }
 }

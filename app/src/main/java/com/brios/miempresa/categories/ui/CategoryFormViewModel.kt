@@ -1,12 +1,15 @@
 package com.brios.miempresa.categories.ui
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.brios.miempresa.R
 import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.categories.domain.CategoriesRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -19,6 +22,7 @@ import javax.inject.Inject
 class CategoryFormViewModel
     @Inject
     constructor(
+        @ApplicationContext private val appContext: Context,
         private val categoriesRepository: CategoriesRepository,
         private val companyDao: CompanyDao,
         savedStateHandle: SavedStateHandle,
@@ -80,7 +84,7 @@ class CategoryFormViewModel
             val currentName = _name.value.trim()
 
             if (currentName.isBlank()) {
-                _nameError.value = "El nombre es obligatorio"
+                _nameError.value = appContext.getString(R.string.error_name_required)
                 return
             }
 

@@ -1,7 +1,7 @@
-package com.brios.miempresa.pedidos.domain
+package com.brios.miempresa.orders.domain
 
-import com.brios.miempresa.pedidos.data.OrderEntity
-import com.brios.miempresa.pedidos.data.OrderItemEntity
+import com.brios.miempresa.orders.data.OrderEntity
+import com.brios.miempresa.orders.data.OrderItemEntity
 import kotlinx.coroutines.flow.Flow
 
 interface OrdersRepository {

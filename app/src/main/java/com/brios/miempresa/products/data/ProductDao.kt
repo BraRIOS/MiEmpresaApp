@@ -79,4 +79,19 @@ interface ProductDao {
         categoryId: String,
         companyId: String,
     )
+
+    // Client flow queries
+    @Query("SELECT * FROM products WHERE companyId = :companyId AND isPublic = 1 AND deleted = 0")
+    fun getByCompanyIdPublic(companyId: String): Flow<List<ProductEntity>>
+
+    @Query(
+        "SELECT * FROM products WHERE companyId = :companyId AND categoryName = :categoryName AND deleted = 0",
+    )
+    fun getProductsByCategory(
+        companyId: String,
+        categoryName: String,
+    ): Flow<List<ProductEntity>>
+
+    @Query("DELETE FROM products WHERE companyId = :companyId")
+    suspend fun deleteByCompanyId(companyId: String)
 }

@@ -59,4 +59,20 @@ interface CompanyDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCompany(company: Company)
+
+    // Client flow queries
+    @Query("SELECT * FROM companies WHERE publicSheetId = :sheetId LIMIT 1")
+    suspend fun getByPublicSheetId(sheetId: String): Company?
+
+    @Query("SELECT * FROM companies WHERE isOwned = 0 ORDER BY lastVisited DESC")
+    fun getVisitedCompanies(): Flow<List<Company>>
+
+    @Query("SELECT COUNT(*) FROM companies WHERE isOwned = 0")
+    suspend fun countVisited(): Int
+
+    @Query("UPDATE companies SET lastVisited = :timestamp WHERE id = :id")
+    suspend fun updateLastVisited(
+        id: String,
+        timestamp: Long,
+    )
 }

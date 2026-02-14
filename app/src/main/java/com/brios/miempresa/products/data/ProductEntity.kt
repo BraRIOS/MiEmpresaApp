@@ -18,6 +18,7 @@ import com.brios.miempresa.categories.data.Category
     indices = [
         Index(value = ["companyId", "dirty"]),
         Index(value = ["categoryId"]), // Performance for FK queries
+        Index(value = ["companyId", "categoryName"]), // Performance for client flow filter
     ],
 )
 data class ProductEntity(
@@ -27,6 +28,7 @@ data class ProductEntity(
     val companyId: String,
     val description: String? = null,
     val categoryId: String? = null,
+    val categoryName: String? = null, // For client flow filtering
     val imageUrl: String? = null,
     val localImagePath: String? = null,
     val driveImageId: String? = null,

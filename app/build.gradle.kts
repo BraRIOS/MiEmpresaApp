@@ -35,8 +35,10 @@ android {
         }
         signingConfig = signingConfigs.getByName("debug")
         val webClientId: String = gradleLocalProperties(rootDir, providers).getProperty("WEB_CLIENT_ID") ?: ""
+        val sheetsApiKey: String = gradleLocalProperties(rootDir, providers).getProperty("SHEETS_API_KEY") ?: ""
         val syncPeriodMinutes: Long = gradleLocalProperties(rootDir, providers).getProperty("SYNC_PERIOD_MINUTES")?.toLong() ?: 15
         buildConfigField("String", "WEB_CLIENT_ID", "\"$webClientId\"")
+        buildConfigField("String", "SHEETS_API_KEY", "\"$sheetsApiKey\"")
         buildConfigField("long", "SYNC_PERIOD_MINUTES", "$syncPeriodMinutes")
     }
 

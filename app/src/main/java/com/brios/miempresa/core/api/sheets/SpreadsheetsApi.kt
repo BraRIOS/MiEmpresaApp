@@ -2,9 +2,13 @@ package com.brios.miempresa.core.api.sheets
 
 import android.content.Context
 import android.util.Log
+import com.brios.miempresa.R
 import com.brios.miempresa.core.auth.GoogleAuthClient
 import com.brios.miempresa.core.di.IoDispatcher
 import com.brios.miempresa.products.data.ProductEntity
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.gson.GsonFactory
+import com.google.api.services.sheets.v4.Sheets
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest
 import com.google.api.services.sheets.v4.model.ClearValuesRequest
 import com.google.api.services.sheets.v4.model.DeleteDimensionRequest
@@ -88,6 +92,29 @@ class SpreadsheetsApi
                 }
                 val response = service.spreadsheets().values().get(spreadsheetId, range).execute()
                 response?.getValues()
+            }
+
+        suspend fun readPublicRange(
+            spreadsheetId: String,
+            range: String,
+            apiKey: String? = null,
+        ): List<List<Any>> =
+            withContext(ioDispatcher) {
+                val publicService =
+                    Sheets
+                        .Builder(
+                            NetHttpTransport(),
+                            GsonFactory.getDefaultInstance(),
+                            null,
+                        ).setApplicationName(context.getString(R.string.app_name))
+                        .build()
+
+                val request = publicService.spreadsheets().values().get(spreadsheetId, range)
+                if (!apiKey.isNullOrBlank()) {
+                    request.setKey(apiKey)
+                }
+
+                request.execute()?.getValues() ?: emptyList()
             }
 
         suspend fun appendRows(

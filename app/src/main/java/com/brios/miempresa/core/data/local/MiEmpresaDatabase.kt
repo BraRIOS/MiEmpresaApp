@@ -27,7 +27,7 @@ import com.brios.miempresa.products.data.ProductEntity
         OrderEntity::class,
         OrderItemEntity::class,
     ],
-    version = 12,
+    version = 13,
     exportSchema = false,
 )
 abstract class MiEmpresaDatabase : RoomDatabase() {
@@ -92,6 +92,17 @@ abstract class MiEmpresaDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add categoryName field to products table for client flow filtering
+                db.execSQL("ALTER TABLE products ADD COLUMN categoryName TEXT")
+                // Add index for performance on client flow category filter
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_products_companyId_categoryName` ON `products` (`companyId`, `categoryName`)",
+                )
+            }
+        }
+
         fun getDatabase(context: Context): MiEmpresaDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance =
@@ -99,7 +110,7 @@ abstract class MiEmpresaDatabase : RoomDatabase() {
                         context.applicationContext,
                         MiEmpresaDatabase::class.java,
                         "miempresa_database",
-                    ).addMigrations(MIGRATION_10_11, MIGRATION_11_12)
+                    ).addMigrations(MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
                         .fallbackToDestructiveMigration(false)
                         .build()
                 INSTANCE = instance

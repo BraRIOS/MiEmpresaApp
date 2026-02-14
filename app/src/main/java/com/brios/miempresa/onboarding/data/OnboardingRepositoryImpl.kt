@@ -84,7 +84,15 @@ class OnboardingRepositoryImpl
                 // Hide CategoryID (A=0) column
                 sheetsApi.hideColumns(privateSheet.spreadsheetId, "Categories", listOf(0))
 
-                val fullWhatsappNumber = "${request.whatsappCountryCode}${request.whatsappNumber}"
+                driveApi.initializeSheetHeaders(
+                    privateSheet.spreadsheetId,
+                    "Pedidos",
+                    listOf("OrderID", "Order Number", "Fecha", "Cliente", "Teléfono", "Notas", "Total", "Productos"),
+                )
+                // Hide OrderID (A=0) column
+                sheetsApi.hideColumns(privateSheet.spreadsheetId, "Pedidos", listOf(0))
+
+                val fullWhatsappNumber= "${request.whatsappCountryCode}${request.whatsappNumber}"
                 val privateInfoData =
                     listOf(
                         listOf("company_id", companyId),
@@ -333,7 +341,15 @@ class OnboardingRepositoryImpl
                 // Hide CategoryID (A=0) column
                 sheetsApi.hideColumns(privateSheet.spreadsheetId, "Categories", listOf(0))
 
-                val whatsapp = "${company.whatsappCountryCode}${company.whatsappNumber ?: ""}"
+                driveApi.initializeSheetHeaders(
+                    privateSheet.spreadsheetId,
+                    "Pedidos",
+                    listOf("OrderID", "Order Number", "Fecha", "Cliente", "Teléfono", "Notas", "Total", "Productos"),
+                )
+                // Hide OrderID (A=0) column
+                sheetsApi.hideColumns(privateSheet.spreadsheetId, "Pedidos", listOf(0))
+
+                val whatsapp= "${company.whatsappCountryCode}${company.whatsappNumber ?: ""}"
                 val privateInfoData =
                     listOf(
                         listOf("company_id", company.id),

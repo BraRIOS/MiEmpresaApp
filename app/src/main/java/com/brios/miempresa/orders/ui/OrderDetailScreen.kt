@@ -103,7 +103,7 @@ private fun OrderDetailContent(
             CenterAlignedTopAppBar(
                 title = {
                     val titleText = if (state.order != null) {
-                        "${stringResource(R.string.order_detail_title)} #${state.order.id.takeLast(6).uppercase()}"
+                        "${stringResource(R.string.order_detail_title)} ${state.order.displayOrderNumber}"
                     } else {
                         stringResource(R.string.order_detail_title)
                     }
@@ -234,7 +234,7 @@ private fun OrderDetailContent(
 
                         Column(modifier = Modifier.padding(horizontal = AppDimensions.mediumLargePadding)) {
                             val dateStr = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
-                                .format(Date(order.createdAt))
+                                .format(Date(order.orderDate))
 
                             InfoRow(
                                 icon = Icons.Outlined.CalendarToday,
@@ -425,11 +425,11 @@ private fun buildWhatsAppMessage(
     items: List<OrderItemEntity>,
     currencyFormat: NumberFormat,
 ): String {
-    val orderNumber = order.id.takeLast(6).uppercase()
-    val dateStr = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(order.createdAt))
+    val orderNumber = order.displayOrderNumber
+    val dateStr = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(order.orderDate))
 
     val sb = StringBuilder()
-    sb.appendLine("Hola ${order.customerName}! Te confirmo tu pedido #$orderNumber:")
+    sb.appendLine("Hola ${order.customerName}! Te confirmo tu pedido $orderNumber:")
     sb.appendLine()
     sb.appendLine("Fecha: $dateStr")
     sb.appendLine()

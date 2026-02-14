@@ -5,8 +5,6 @@ import com.brios.miempresa.core.api.sheets.SpreadsheetsApi
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.orders.domain.OrdersRepository
 import kotlinx.coroutines.flow.Flow
-import org.json.JSONArray
-import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -43,26 +41,44 @@ class OrdersRepositoryImpl
             val dirtyOrders = orderDao.getDirty(companyId)
             if (dirtyOrders.isEmpty()) return
 
+            // Duplication guard: read existing IDs from Sheet to skip already-synced rows
+            val existingIds = try {
+                val sheetData = sheetsApi.readRange(privateSheetId, "$TAB_NAME!A:A")
+                sheetData?.mapNotNull { row -> row.getOrNull(0)?.toString() }?.toSet() ?: emptySet()
+            } catch (e: Exception) {
+                Log.w(TAG, "Could not read existing order IDs from Sheet, proceeding without guard", e)
+                emptySet()
+            }
+
+            val ordersToSync = dirtyOrders.filter { it.id !in existingIds }
+            if (ordersToSync.isEmpty()) {
+                // All dirty orders already exist in Sheet, just mark them synced
+                val now = System.currentTimeMillis()
+                orderDao.markSynced(dirtyOrders.map { it.id }, now, companyId)
+                return
+            }
+
             val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-            val rows = dirtyOrders.map { order ->
+            val rows = ordersToSync.map { order ->
                 val items = orderDao.getItemsByOrderId(order.id)
-                val itemsJson = serializeItems(items)
-                val dateStr = dateFormat.format(Date(order.createdAt))
+                val itemsSummary = formatItemsSummary(items)
+                val dateStr = dateFormat.format(Date(order.orderDate))
                 listOf<Any>(
                     order.id,
+                    order.displayOrderNumber,
                     dateStr,
                     order.customerName,
                     order.customerPhone ?: "",
                     order.notes ?: "",
-                    itemsJson,
                     order.totalAmount,
+                    itemsSummary,
                 )
             }
 
             try {
                 sheetsApi.appendRows(
                     spreadsheetId = privateSheetId,
-                    range = "$TAB_NAME!A:G",
+                    range = "$TAB_NAME!A:H",
                     values = rows,
                 )
                 val now = System.currentTimeMillis()
@@ -72,18 +88,9 @@ class OrdersRepositoryImpl
             }
         }
 
-        private fun serializeItems(items: List<OrderItemEntity>): String {
-            val jsonArray = JSONArray()
-            items.forEach { item ->
-                val obj = JSONObject().apply {
-                    put("name", item.productName)
-                    put("qty", item.quantity)
-                    put("price", item.priceAtOrder)
-                }
-                jsonArray.put(obj)
-            }
-            return jsonArray.toString()
-        }
+        /** Human-readable summary: "2x Malbec, 1x Aceite" */
+        private fun formatItemsSummary(items: List<OrderItemEntity>): String =
+            items.joinToString(", ") { "${it.quantity}x ${it.productName}" }
 
         companion object {
             private const val TAG = "OrdersRepositoryImpl"

@@ -1,5 +1,6 @@
 package com.brios.miempresa.orders.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -18,7 +19,10 @@ data class OrderEntity(
     val customerPhone: String? = null,
     val notes: String? = null,
     val totalAmount: Double,
-    val createdAt: Long = System.currentTimeMillis(),
+    @ColumnInfo(name = "createdAt") val orderDate: Long = System.currentTimeMillis(),
     val dirty: Boolean = false,
     val lastSyncedAt: Long? = null,
-)
+) {
+    /** Short display ID (6-char suffix), e.g. "#A1B2C3" */
+    val displayOrderNumber: String get() = "#${id.takeLast(6).uppercase()}"
+}

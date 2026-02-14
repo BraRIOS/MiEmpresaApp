@@ -191,7 +191,7 @@ private fun OrderCard(
     onClick: () -> Unit,
 ) {
     val dateStr = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
-        .format(Date(order.createdAt))
+        .format(Date(order.orderDate))
     val totalStr = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR"))
         .format(order.totalAmount)
 
@@ -217,7 +217,7 @@ private fun OrderCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "#${order.id.takeLast(6).uppercase()}",
+                    text = order.displayOrderNumber,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.ExtraBold,
                     modifier = Modifier
@@ -305,7 +305,7 @@ private fun OrderListPreview() {
                         customerName = "Juan Pérez",
                         customerPhone = "+54 11 1234-5678",
                         totalAmount = 15500.0,
-                        createdAt = System.currentTimeMillis(),
+                        orderDate = System.currentTimeMillis(),
                     ),
                     OrderEntity(
                         id = "ORD-C3D4E5",
@@ -314,7 +314,7 @@ private fun OrderListPreview() {
                         customerPhone = "+54 11 9876-5432",
                         notes = "Entregar después de las 18h",
                         totalAmount = 8200.0,
-                        createdAt = System.currentTimeMillis() - 86400000,
+                        orderDate = System.currentTimeMillis() - 86400000,
                     ),
                 ),
             ),

@@ -169,7 +169,7 @@ class OrderManualViewModel
                         customerPhone = formValue.fullPhoneNumber,
                         notes = formValue.notes.ifBlank { null },
                         totalAmount = formValue.total,
-                        createdAt = formValue.date,
+                        orderDate = formValue.date,
                         dirty = true,
                     )
                     val items = formValue.items.mapIndexed { index, item ->

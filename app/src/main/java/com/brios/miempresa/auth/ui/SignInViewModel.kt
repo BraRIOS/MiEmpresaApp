@@ -1,8 +1,6 @@
 package com.brios.miempresa.auth.ui
 
 import android.app.Activity
-import android.content.Context
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
@@ -10,9 +8,7 @@ import com.brios.miempresa.auth.domain.AuthRepository
 import com.brios.miempresa.auth.domain.AuthState
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.core.domain.LogoutUseCase
-import com.brios.miempresa.core.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -31,11 +27,9 @@ sealed class PostAuthDestination {
 class SignInViewModel
     @Inject
     constructor(
-        @ApplicationContext private val context: Context,
         private val authRepository: AuthRepository,
         private val companyDao: CompanyDao,
         private val logoutUseCase: LogoutUseCase,
-        private val syncManager: SyncManager,
     ) : ViewModel() {
         private val _signInState = MutableStateFlow(SignInState())
         val signInStateFlow = _signInState.asStateFlow()
@@ -48,9 +42,8 @@ class SignInViewModel
             viewModelScope.launch {
                 val signInResult = authRepository.signIn(activity)
                 val signInSucceed = signInResult.data != null
-                if (!signInSucceed) {
-                    println("\u001B${signInResult.errorMessage}\u001B")
-                }
+                // User cancelled — no error message returned, do nothing
+                if (!signInSucceed && signInResult.errorMessage == null) return@launch
                 _signInState.update {
                     it.copy(
                         isSignInSuccessful = signInSucceed,
@@ -101,27 +94,27 @@ class SignInViewModel
 
         fun authorizeDriveAndSheets(activity: Activity) =
             viewModelScope.launch {
-                val authState = authRepository.authorizeDriveAndSheets()
-                when (authState) {
-                    is AuthState.PendingAuth -> {
-                        authState.intentSender?.let { intentSender ->
-                            _authState.update { AuthState.PendingAuth(intentSender) }
-                        } ?: run {
-                            Toast.makeText(activity, activity.getString(R.string.authorization_failed), Toast.LENGTH_SHORT).show()
+                try {
+                    val authState = authRepository.authorizeDriveAndSheets()
+                    when (authState) {
+                        is AuthState.PendingAuth -> {
+                            authState.intentSender?.let { intentSender ->
+                                _authState.update { AuthState.PendingAuth(intentSender) }
+                            } ?: run {
+                                _authState.update { AuthState.Unauthorized }
+                            }
+                        }
+                        is AuthState.Authorized -> {
+                            _authState.update { AuthState.Authorized }
+                        }
+                        else -> {
                             _authState.update { AuthState.Unauthorized }
                         }
                     }
-                    is AuthState.Authorized -> {
-                        Toast.makeText(
-                            activity,
-                            activity.getString(R.string.authorization_success),
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                        _authState.update { AuthState.Authorized }
-                    }
-                    else -> {
-                        _authState.update { AuthState.Unauthorized }
-                    }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    _authState.update { AuthState.Unauthorized }
                 }
             }
 

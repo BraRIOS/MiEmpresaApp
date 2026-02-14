@@ -2,12 +2,13 @@ package com.brios.miempresa.core.auth
 
 import android.app.Activity
 import android.content.Context
-import android.widget.Toast
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.exceptions.NoCredentialException
 import com.brios.miempresa.BuildConfig
 import com.brios.miempresa.R
@@ -73,9 +74,11 @@ class GoogleAuthClient
             return try {
                 val result = credentialManager.getCredential(activity, request)
                 handleSignInResult(result)
-            } catch (e: NoCredentialException) {
+            } catch (e: GetCredentialCancellationException) {
+                // User dismissed the sign-in sheet — silent failure, no error message
+                SignInResult(data = null, errorMessage = null)
+            } catch (e: GetCredentialException) {
                 e.printStackTrace()
-                println("\u001B${e.message}\u001B")
                 SignInResult(
                     data = null,
                     errorMessage = e.message,
@@ -159,9 +162,6 @@ class GoogleAuthClient
                         context.resources.getResourceName(R.string.app_name),
                     ).build()
                 }
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.not_authorized), Toast.LENGTH_SHORT).show()
-                }
                 return@withContext null
             }
 
@@ -176,9 +176,6 @@ class GoogleAuthClient
                     ).setApplicationName(
                         context.resources.getString(R.string.app_name),
                     ).build()
-                }
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, context.getString(R.string.not_authorized), Toast.LENGTH_SHORT).show()
                 }
                 return@withContext null
             }

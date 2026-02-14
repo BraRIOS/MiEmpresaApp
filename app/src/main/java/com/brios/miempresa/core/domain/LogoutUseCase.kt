@@ -18,10 +18,12 @@ class LogoutUseCase
         private val authRepository: AuthRepository,
     ) {
         suspend operator fun invoke(activity: Activity) {
+            // Sign out Firebase FIRST (synchronous) so getSignedInUser() returns null immediately.
+            // This prevents race conditions where navigation checks auth state before it's cleared.
+            authRepository.signOut(activity)
             syncManager.cancelAll()
             withContext(Dispatchers.IO) {
                 database.clearAllTables()
             }
-            authRepository.signOut(activity)
         }
     }

@@ -283,6 +283,7 @@ private fun DrawerContent(
                 TextButton(onClick = {
                     showLogoutDialog = false
                     if (signInViewModel != null && context != null) {
+                        signInViewModel.resetStates()
                         signInViewModel.signOut(context)
                         navController.navigate(MiEmpresaScreen.Welcome.name) {
                             popUpTo(0) { inclusive = true }

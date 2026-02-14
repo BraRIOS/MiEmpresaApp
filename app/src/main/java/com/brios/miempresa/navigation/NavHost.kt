@@ -140,14 +140,25 @@ fun NavHostComposable(
                 }
 
             LaunchedEffect(key1 = authState) {
-                if (authState is AuthState.PendingAuth) {
-                    (authState as AuthState.PendingAuth).intentSender?.let { intentSender ->
-                        authorizationLauncher.launch(
-                            IntentSenderRequest.Builder(intentSender).build(),
-                        )
+                when (authState) {
+                    is AuthState.PendingAuth -> {
+                        (authState as AuthState.PendingAuth).intentSender?.let { intentSender ->
+                            authorizationLauncher.launch(
+                                IntentSenderRequest.Builder(intentSender).build(),
+                            )
+                        }
                     }
-                } else if (authState is AuthState.Authorized) {
-                    signInViewModel.determinePostAuthDestination()
+                    is AuthState.Authorized -> {
+                        signInViewModel.determinePostAuthDestination()
+                    }
+                    is AuthState.Unauthorized, is AuthState.Failed -> {
+                        // Authorization denied — sign out and return to Welcome
+                        signInViewModel.signOut(activity)
+                        navController.navigate(MiEmpresaScreen.Welcome.name) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                    null -> {}
                 }
             }
 

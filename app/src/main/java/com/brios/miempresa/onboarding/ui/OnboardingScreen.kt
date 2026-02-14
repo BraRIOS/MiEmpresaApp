@@ -77,7 +77,7 @@ fun OnboardingScreen(
     ) { state ->
         when (state) {
             is OnboardingUiState.Loading -> LoadingView()
-            is OnboardingUiState.DiscoveringWorkspace -> LoadingView()
+            is OnboardingUiState.DiscoveringWorkspace -> LoadingView(message = state.message)
             is OnboardingUiState.ValidatingWorkspace -> LoadingView()
             is OnboardingUiState.CompanySelector ->
                 CompanySelectionView(

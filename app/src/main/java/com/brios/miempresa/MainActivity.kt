@@ -1,11 +1,15 @@
 package com.brios.miempresa
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.compose.rememberNavController
@@ -15,20 +19,11 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
+    private var pendingDeeplinkSheetId: String? by mutableStateOf(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Spike 6: Deeplink handling validation
-        val deeplink = intent?.data
-        if (deeplink?.scheme == "miempresa") {
-            val sheetId = deeplink.getQueryParameter("sheetId")
-
-            // TODO US-026: Implementar árbol de prioridades aquí:
-            // 1. Query companyDao.getByPublicSheetId(sheetId)
-            // 2. Si null + online → syncPublicSheet()
-            // 3. Si isOwned → Route.HomeAdmin
-            // 4. Si !isOwned → Route.CatalogoCliente
-        }
+        pendingDeeplinkSheetId = extractSheetId(intent)
 
         enableEdgeToEdge()
         setContent {
@@ -40,9 +35,36 @@ class MainActivity : FragmentActivity() {
                     color = MaterialTheme.colorScheme.background,
                 ) {
                     val navController = rememberNavController()
-                    NavHostComposable(applicationContext, navController)
+                    NavHostComposable(
+                        applicationContext = applicationContext,
+                        navController = navController,
+                        pendingDeeplinkSheetId = pendingDeeplinkSheetId,
+                        onDeeplinkConsumed = { consumedSheetId ->
+                            if (pendingDeeplinkSheetId == consumedSheetId) {
+                                pendingDeeplinkSheetId = null
+                            }
+                        },
+                    )
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pendingDeeplinkSheetId = extractSheetId(intent)
+    }
+
+    private fun extractSheetId(intent: Intent?): String? {
+        val deeplink = intent?.data ?: return null
+        if (deeplink.scheme != DEEPLINK_SCHEME || deeplink.host != DEEPLINK_HOST) return null
+        return deeplink.getQueryParameter(DEEPLINK_SHEET_ID_PARAM)?.trim()?.takeIf { it.isNotEmpty() }
+    }
+
+    companion object {
+        private const val DEEPLINK_SCHEME = "miempresa"
+        private const val DEEPLINK_HOST = "catalogo"
+        private const val DEEPLINK_SHEET_ID_PARAM = "sheetId"
     }
 }

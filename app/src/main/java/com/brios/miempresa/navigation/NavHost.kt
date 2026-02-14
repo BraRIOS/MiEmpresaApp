@@ -2,6 +2,7 @@ package com.brios.miempresa.navigation
 
 import android.app.Activity
 import android.content.Context
+import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -11,6 +12,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -26,6 +30,12 @@ import com.brios.miempresa.auth.ui.PostAuthDestination
 import com.brios.miempresa.auth.ui.SignInScreen
 import com.brios.miempresa.auth.ui.SignInViewModel
 import com.brios.miempresa.auth.ui.WelcomeScreen
+import com.brios.miempresa.catalog.domain.CatalogAccessError
+import com.brios.miempresa.catalog.ui.ClientCatalogScreen
+import com.brios.miempresa.catalog.ui.DeeplinkErrorScreen
+import com.brios.miempresa.catalog.ui.DeeplinkNavigationEvent
+import com.brios.miempresa.catalog.ui.DeeplinkRoutingViewModel
+import com.brios.miempresa.catalog.ui.MyStoresScreen
 import com.brios.miempresa.categories.ui.CategoryFormScreen
 import com.brios.miempresa.config.ui.EditCompanyDataScreen
 import com.brios.miempresa.onboarding.ui.OnboardingScreen
@@ -38,12 +48,66 @@ import com.brios.miempresa.products.ui.ProductFormScreen
 fun NavHostComposable(
     applicationContext: Context,
     navController: NavHostController,
+    pendingDeeplinkSheetId: String? = null,
+    onDeeplinkConsumed: (String) -> Unit = {},
 ) {
     val signInViewModel = hiltViewModel<SignInViewModel>()
+    val deeplinkRoutingViewModel = hiltViewModel<DeeplinkRoutingViewModel>()
     val isAlreadySignedIn = signInViewModel.getSignedInUser() != null
+    var suppressDefaultStartupRouting by rememberSaveable { mutableStateOf(pendingDeeplinkSheetId != null) }
+    var checkedVisitedStores by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(pendingDeeplinkSheetId) {
+        pendingDeeplinkSheetId?.let { sheetId ->
+            suppressDefaultStartupRouting = true
+            deeplinkRoutingViewModel.handleDeeplink(sheetId)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        deeplinkRoutingViewModel.navigationEvents.collect { event ->
+            when (event) {
+                is DeeplinkNavigationEvent.NavigateClientCatalog -> {
+                    navController.navigate("${MiEmpresaScreen.ClientCatalog.name}/${event.companyId}") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                    onDeeplinkConsumed(event.consumedSheetId)
+                }
+
+                is DeeplinkNavigationEvent.NavigateError -> {
+                    navController.navigate(
+                        "${MiEmpresaScreen.DeeplinkError.name}/${event.error.routeValue}?sheetId=${Uri.encode(event.sheetId)}",
+                    ) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                    onDeeplinkConsumed(event.sheetId)
+                }
+
+                is DeeplinkNavigationEvent.NavigateHome -> {
+                    navController.navigate(MiEmpresaScreen.Home.name) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                    event.consumedSheetId?.let(onDeeplinkConsumed)
+                }
+
+                DeeplinkNavigationEvent.NavigateMyStores -> {
+                    navController.navigate(MiEmpresaScreen.MyStores.name) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(isAlreadySignedIn, suppressDefaultStartupRouting) {
+        if (!checkedVisitedStores && !isAlreadySignedIn && !suppressDefaultStartupRouting) {
+            checkedVisitedStores = true
+            deeplinkRoutingViewModel.routeToMyStoresIfVisited()
+        }
+    }
 
     // If already signed in, skip Welcome and check Drive authorization
-    if (isAlreadySignedIn) {
+    if (isAlreadySignedIn && !suppressDefaultStartupRouting) {
         LaunchedEffect(Unit) {
             when (val authState = signInViewModel.checkDriveAuthorization()) {
                 is AuthState.Authorized -> {
@@ -89,7 +153,7 @@ fun NavHostComposable(
     // Start at Onboarding if already signed in (shows discovery loading),
     // otherwise start at Welcome for new/signed-out users
     val startDestination =
-        if (isAlreadySignedIn) {
+        if (isAlreadySignedIn && !suppressDefaultStartupRouting) {
             MiEmpresaScreen.Onboarding.name
         } else {
             MiEmpresaScreen.Welcome.name
@@ -105,7 +169,61 @@ fun NavHostComposable(
                 onNavigateToSignIn = {
                     navController.navigate(MiEmpresaScreen.SignIn.name)
                 },
-                onNavigateToMyStores = {},
+                onNavigateToMyStores = {
+                    navController.navigate(MiEmpresaScreen.MyStores.name)
+                },
+            )
+        }
+        composable(
+            route = "${MiEmpresaScreen.ClientCatalog.name}/{companyId}",
+            arguments = listOf(navArgument("companyId") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val companyId = backStackEntry.arguments?.getString("companyId").orEmpty()
+            ClientCatalogScreen(
+                companyId = companyId,
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+        composable(route = MiEmpresaScreen.MyStores.name) {
+            MyStoresScreen(
+                onNavigateBack = {
+                    navController.navigate(MiEmpresaScreen.Welcome.name) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+            )
+        }
+        composable(
+            route = "${MiEmpresaScreen.DeeplinkError.name}/{errorType}?sheetId={sheetId}",
+            arguments = listOf(
+                navArgument("errorType") { type = NavType.StringType },
+                navArgument("sheetId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+            ),
+        ) { backStackEntry ->
+            val errorTypeArg = backStackEntry.arguments?.getString("errorType")
+            val sheetIdArg = backStackEntry.arguments?.getString("sheetId")
+
+            DeeplinkErrorScreen(
+                error = CatalogAccessError.fromRouteValue(errorTypeArg),
+                showRetry = !sheetIdArg.isNullOrBlank() && deeplinkRoutingViewModel.isOnlineNow(),
+                onRetry = {
+                    sheetIdArg?.let { deeplinkRoutingViewModel.retryDeeplink(it) }
+                },
+                onGoHome = {
+                    if (isAlreadySignedIn) {
+                        navController.navigate(MiEmpresaScreen.Home.name) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(MiEmpresaScreen.Welcome.name) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                },
             )
         }
         composable(route = MiEmpresaScreen.SignIn.name) {

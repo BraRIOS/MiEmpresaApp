@@ -67,19 +67,8 @@ object AppDimensions {
         val userAvatarSize = 40.dp
     }
 
-    object Categories {
-        val imageSize = 40.dp
-        val emojiPreviewWidth = 72.dp
-        val emojiPreviewHeight = 80.dp
-        val emojiGridItemSize = 48.dp
-    }
-
     object CompanyListView {
-        val listHeight = 140.dp
-    }
-
-    object QrCode {
-        val size = 200.dp
+        val companyAvatarSize = 56.dp
     }
 
     object WelcomeScreen {

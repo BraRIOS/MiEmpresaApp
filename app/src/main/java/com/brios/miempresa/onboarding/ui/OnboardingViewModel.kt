@@ -55,8 +55,12 @@ class OnboardingViewModel
 
         private var formState = OnboardingFormState()
 
+        /** True when navigated from Drawer (mode=selector|create), false for initial onboarding. */
+        val isNavigatedFromHome: Boolean
+
         init {
             val mode: String? = savedStateHandle["mode"]
+            isNavigatedFromHome = mode != null
             when (mode) {
                 "selector" -> showSelector()
                 "create" -> createNewCompany()
@@ -426,13 +430,18 @@ class OnboardingViewModel
 
         fun cancelWizard() {
             viewModelScope.launch {
-                val companies = repository.getOwnedCompanies()
-                if (companies.isEmpty()) {
-                    // New user with no companies — signal to sign out
-                    _events.emit(OnboardingEvent.SignOutRequested)
+                if (isNavigatedFromHome) {
+                    // Came from Drawer — pop back to Home
+                    _events.emit(OnboardingEvent.NavigateBack)
                 } else {
-                    // User has companies — return to selector
-                    showCompanySelector(companies)
+                    val companies = repository.getOwnedCompanies()
+                    if (companies.isEmpty()) {
+                        // New user with no companies — signal to sign out
+                        _events.emit(OnboardingEvent.SignOutRequested)
+                    } else {
+                        // User has companies — return to selector
+                        showCompanySelector(companies)
+                    }
                 }
             }
         }

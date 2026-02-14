@@ -13,7 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.brios.miempresa.core.ui.components.CompanySelectionView
+import com.brios.miempresa.onboarding.ui.components.CompanySelectionView
 import com.brios.miempresa.core.ui.components.LoadingView
 import com.brios.miempresa.core.ui.components.MessageWithIcon
 import com.brios.miempresa.core.ui.components.SpreadsheetNotFoundView
@@ -25,6 +25,7 @@ import com.brios.miempresa.onboarding.ui.components.WorkspaceProgressView
 fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel(),
     onNavigateToHome: () -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     onSignOutRequested: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -33,6 +34,7 @@ fun OnboardingScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is OnboardingEvent.NavigateToHome -> onNavigateToHome()
+                is OnboardingEvent.NavigateBack -> onNavigateBack?.invoke()
                 is OnboardingEvent.ShowError -> { /* Snackbar if needed */ }
                 is OnboardingEvent.SignOutRequested -> onSignOutRequested()
             }
@@ -43,7 +45,7 @@ fun OnboardingScreen(
         targetState = uiState,
         transitionSpec = {
             if (targetState.isLoading || initialState.isLoading) {
-                fadeIn(animationSpec = tween(500)) togetherWith fadeOut(animationSpec = tween(500))
+                fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
             } else {
                 val direction =
                     if (targetState.order > initialState.order) {
@@ -63,18 +65,27 @@ fun OnboardingScreen(
             }
         },
         label = "Onboarding Transition",
-        contentKey = { it::class },
+        contentKey = { state ->
+            when (state) {
+                // All loading-like states share a single key → no animation between them
+                is OnboardingUiState.Loading,
+                is OnboardingUiState.DiscoveringWorkspace,
+                is OnboardingUiState.ValidatingWorkspace -> "loading"
+                else -> state::class
+            }
+        },
     ) { state ->
         when (state) {
             is OnboardingUiState.Loading -> LoadingView()
-            is OnboardingUiState.DiscoveringWorkspace -> LoadingView(message = state.message)
-            is OnboardingUiState.ValidatingWorkspace -> LoadingView(message = "Validando workspace...")
+            is OnboardingUiState.DiscoveringWorkspace -> LoadingView()
+            is OnboardingUiState.ValidatingWorkspace -> LoadingView()
             is OnboardingUiState.CompanySelector ->
                 CompanySelectionView(
                     username = state.username,
                     companies = state.companies,
                     onSelectCompany = viewModel::selectCompany,
                     onCreateNewCompany = viewModel::createNewCompany,
+                    onBack = if (viewModel.isNavigatedFromHome) onNavigateBack else null,
                 )
             is OnboardingUiState.WorkspaceIssue ->
                 SpreadsheetNotFoundView(

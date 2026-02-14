@@ -79,9 +79,7 @@ fun HomeAdminScreen(
     HomeAdminScreenContent(
         navController = navController,
         onNavigateToAddProduct = onNavigateToAddProduct,
-        onNavigateToProductDetail = onNavigateToProductDetail,
         onNavigateToAddCategory = onNavigateToAddCategory,
-        onNavigateToCategoryDetail = onNavigateToCategoryDetail,
         productsUiState = productsUiState,
         categoriesUiState = categoriesUiState,
         productsContent = productsContent,
@@ -94,9 +92,7 @@ fun HomeAdminScreen(
 fun HomeAdminScreenContent(
     navController: NavHostController,
     onNavigateToAddProduct: () -> Unit,
-    onNavigateToProductDetail: (String) -> Unit,
     onNavigateToAddCategory: () -> Unit,
-    onNavigateToCategoryDetail: (String) -> Unit,
     productsUiState: ProductsUiState,
     categoriesUiState: CategoriesUiState,
     productsContent: @Composable (Modifier) -> Unit,
@@ -127,7 +123,6 @@ fun HomeAdminScreenContent(
         Scaffold(
             topBar = {
                 TopBar(
-                    navController = navController,
                     title = tabTitles[selectedTab],
                     openDrawer = { scope.launch { drawerState.open() } },
                 )
@@ -174,9 +169,7 @@ private fun HomeAdminScreenPreview() {
         HomeAdminScreenContent(
             navController = rememberNavController(),
             onNavigateToAddProduct = {},
-            onNavigateToProductDetail = {},
             onNavigateToAddCategory = {},
-            onNavigateToCategoryDetail = {},
             productsUiState = ProductsUiState.Empty,
             categoriesUiState = CategoriesUiState.Empty,
             productsContent = { modifier ->
@@ -205,9 +198,7 @@ private fun HomeAdminScreenWithFABPreview() {
         HomeAdminScreenContent(
             navController = rememberNavController(),
             onNavigateToAddProduct = {},
-            onNavigateToProductDetail = {},
             onNavigateToAddCategory = {},
-            onNavigateToCategoryDetail = {},
             productsUiState = ProductsUiState.Loading,
             categoriesUiState = CategoriesUiState.Empty,
             productsContent = { modifier ->

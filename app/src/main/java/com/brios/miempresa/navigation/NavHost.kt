@@ -173,6 +173,7 @@ fun NavHostComposable(
                         popUpTo(0) { inclusive = true }
                     }
                 },
+                onNavigateBack = { navController.popBackStack() },
                 onSignOutRequested = {
                     signInViewModel.signOut(activity)
                     navController.navigate(MiEmpresaScreen.Welcome.name) {

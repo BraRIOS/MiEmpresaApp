@@ -26,7 +26,7 @@
     <string name="delete_product">Eliminar producto</string>
     <string name="user">Usuario</string>
     <string name="greeting_user">Hola, %1$s</string>
-    <string name="select_company_question">¿Quieres seleccionar una empresa?</string>
+    <string name="select_company_question">¿Qué empresa querés gestionar?</string>
     <string name="create_new_company">Crear nueva empresa</string>
     <string name="no_companies_found">No se encontraron empresas</string>
     <string name="retry_search">Reintentar búsqueda</string>

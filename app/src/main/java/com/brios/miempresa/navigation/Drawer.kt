@@ -50,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -164,14 +165,6 @@ private fun DrawerContent(
                                 ),
                         verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
                     ) {
-                        // Tiendas visitadas (placeholder — feature not yet implemented)
-                        DrawerMenuItem(
-                            icon = Icons.Filled.Storefront,
-                            label = stringResource(R.string.visited_stores),
-                            isSelected = true,
-                            tint = MaterialTheme.colorScheme.primary,
-                            onClick = {},
-                        )
 
                         // Switch company - goes to CompanySelector (CompanyListView)
                         DrawerMenuItem(
@@ -195,6 +188,21 @@ private fun DrawerContent(
                                     navController.navigate("${MiEmpresaScreen.Onboarding.name}?mode=create")
                                 }
                             },
+                        )
+
+                        HorizontalDivider(
+                            modifier =
+                                Modifier.padding(
+                                    horizontal = AppDimensions.mediumPadding,
+                                    vertical = AppDimensions.smallPadding,
+                                ),
+                        )
+
+                        // Tiendas visitadas (placeholder — feature not yet implemented)
+                        DrawerMenuItem(
+                            icon = Icons.Filled.Storefront,
+                            label = stringResource(R.string.visited_stores),
+                            onClick = {},
                         )
 
                         HorizontalDivider(
@@ -295,21 +303,14 @@ private fun DrawerContent(
 
 @Composable
 private fun DrawerMenuItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     label: String,
     modifier: Modifier = Modifier,
-    isSelected: Boolean = false,
-    tint: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    tint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     onClick: () -> Unit,
 ) {
-    val backgroundColor =
-        if (isSelected) {
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-        } else {
-            androidx.compose.ui.graphics.Color.Transparent
-        }
-    val contentColor = if (isSelected) MaterialTheme.colorScheme.primary else tint
-    val fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+    val backgroundColor = Color.Transparent
+    val fontWeight = FontWeight.Medium
 
     Row(
         modifier =
@@ -331,13 +332,13 @@ private fun DrawerMenuItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = contentColor,
+            tint = tint,
         )
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = fontWeight,
-            color = contentColor,
+            color = tint,
         )
     }
 }

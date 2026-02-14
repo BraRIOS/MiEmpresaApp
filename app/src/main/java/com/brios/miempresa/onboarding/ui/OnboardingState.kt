@@ -70,5 +70,7 @@ sealed class OnboardingEvent {
 
     data object NavigateToHome : OnboardingEvent()
 
+    data object NavigateBack : OnboardingEvent()
+
     data object SignOutRequested : OnboardingEvent()
 }

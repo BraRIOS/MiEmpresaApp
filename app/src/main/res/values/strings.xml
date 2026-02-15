@@ -68,7 +68,7 @@
     <string name="client_catalog_offline_title">Catálogo no disponible sin conexión</string>
     <string name="client_catalog_offline_subtitle">Conectate a internet para descargar el catálogo por primera vez.</string>
     <string name="client_catalog_admin_hybrid_hint">Estás explorando una tienda visitada.</string>
-    <string name="client_catalog_go_my_business">Volver a mi negocio</string>
+    <string name="client_catalog_go_my_business">Volver a mi empresa</string>
     <string name="client_cart_placeholder_title">Carrito en construcción</string>
     <string name="client_cart_placeholder_subtitle">Vamos a habilitar el checkout del cliente en el siguiente batch.</string>
     <string name="cart">Carrito</string>

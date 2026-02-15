@@ -2,6 +2,7 @@ package com.brios.miempresa.catalog.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.core.ui.components.CompanyAvatar
 import com.brios.miempresa.core.ui.theme.AppDimensions
@@ -31,7 +33,7 @@ fun CompanyHeader(
                 .fillMaxWidth()
                 .padding(
                     horizontal = AppDimensions.mediumPadding,
-                    vertical = AppDimensions.mediumPadding,
+                    vertical = AppDimensions.smallPadding,
                 ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
@@ -39,21 +41,25 @@ fun CompanyHeader(
         CompanyAvatar(
             companyName = company.name,
             logoUrl = company.logoUrl,
-            size = AppDimensions.extraLargeIconSize,
+            size = AppDimensions.catalogCompanyLogoSize,
         )
         Text(
             text = company.name,
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
         company.specialization
             ?.takeIf { it.isNotBlank() }
             ?.let { specialization ->
                 Text(
                     text = specialization,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyLarge,
                     fontStyle = FontStyle.Italic,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         company.address
@@ -65,6 +71,7 @@ fun CompanyHeader(
                             imageVector = Icons.Outlined.LocationOn,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(AppDimensions.smallIconSize),
                         )
                     },
                     text = address,
@@ -79,6 +86,7 @@ fun CompanyHeader(
                             imageVector = Icons.Outlined.Schedule,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(AppDimensions.smallIconSize),
                         )
                     },
                     text = businessHours,
@@ -101,6 +109,8 @@ private fun CompanyMetadataRow(
             text = text,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

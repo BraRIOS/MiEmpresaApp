@@ -21,6 +21,7 @@ object AppDimensions {
     val mediumLargeIconSize = 40.dp
     val largeIconSize = 48.dp
     val extraLargeIconSize = 64.dp
+    val catalogCompanyLogoSize = 80.dp
 
     // Spot Illustration (Empty States, Error States, Not Found States)
     val mediumSpotIllustrationSize = 120.dp

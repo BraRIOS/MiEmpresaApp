@@ -1,6 +1,7 @@
 package com.brios.miempresa.catalog.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,14 +11,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.CloudOff
@@ -25,29 +29,43 @@ import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
+import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.catalog.ui.components.CatalogProductCard
 import com.brios.miempresa.catalog.ui.components.CompanyHeader
+import com.brios.miempresa.core.data.local.entities.Company
+import com.brios.miempresa.core.ui.components.CategoryFilterChip
+import com.brios.miempresa.core.ui.components.CategorySelectorBottomSheet
 import com.brios.miempresa.core.ui.components.EmptyStateView
 import com.brios.miempresa.core.ui.components.NotFoundView
 import com.brios.miempresa.core.ui.components.OfflineBanner
 import com.brios.miempresa.core.ui.components.SearchBar
+import com.brios.miempresa.core.ui.components.SearchBarVariant
 import com.brios.miempresa.core.ui.components.TriangleArrowRefreshIndicator
 import com.brios.miempresa.core.ui.theme.AppDimensions
 
@@ -104,56 +122,73 @@ fun ClientCatalogScreen(
             is ClientCatalogState.Offline,
             -> {
                 val data = uiState.data
+                val gridState = rememberLazyGridState()
+                val collapseRangePx = with(LocalDensity.current) { 180.dp.toPx() }
+                val collapseFraction by
+                    remember(gridState, collapseRangePx, uiState) {
+                        derivedStateOf {
+                            if (uiState !is ClientCatalogState.Success) {
+                                0f
+                            } else if (gridState.firstVisibleItemIndex > 0) {
+                                1f
+                            } else {
+                                (gridState.firstVisibleItemScrollOffset / collapseRangePx).coerceIn(0f, 1f)
+                            }
+                        }
+                    }
+                val showCollapsedTitle = uiState is ClientCatalogState.Success && collapseFraction > 0.45f
+                var showCategorySelector by rememberSaveable(data.company.id) { mutableStateOf(false) }
+                val categoryOptions =
+                    remember(data.categories, data.company.id) {
+                        data.categories.map { categoryName ->
+                            Category(
+                                id = categoryName,
+                                name = categoryName,
+                                iconEmoji = "",
+                                companyId = data.company.id,
+                            )
+                        }
+                    }
+
                 Column(
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     CatalogTopBar(
-                        title = data.company.name,
+                        title = if (showCollapsedTitle) data.company.name else "",
                         cartCount = data.cartCount,
                         onNavigateBack = onNavigateBack,
                         onNavigateToCart = { onNavigateToCart(data.company.id) },
                     )
 
+                    if (uiState is ClientCatalogState.Success) {
+                        CollapsibleCompanyHeader(
+                            company = data.company,
+                            visibleFraction = 1f - collapseFraction,
+                        )
+                    } else {
+                        CompanyHeader(
+                            company = data.company,
+                            modifier = Modifier.padding(top = AppDimensions.smallPadding),
+                        )
+                    }
+
+                    CatalogFilterRow(
+                        query = data.searchQuery,
+                        selectedCategory = data.selectedCategory,
+                        onQueryChange = viewModel::onSearchQueryChange,
+                        onCategoryClick = { showCategorySelector = true },
+                    )
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
                     if (data.isOffline) {
                         OfflineBanner()
                     }
 
-                    CompanyHeader(company = data.company)
-
-                    SearchBar(
-                        query = data.searchQuery,
-                        onQueryChange = viewModel::onSearchQueryChange,
-                        placeholderText = stringResource(R.string.search_products),
-                    )
-
-                    Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
-
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = AppDimensions.mediumPadding),
-                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
-                    ) {
-                        item {
-                            FilterChip(
-                                selected = data.selectedCategory == null,
-                                onClick = viewModel::clearCategoryFilter,
-                                label = { Text(text = stringResource(R.string.all_categories)) },
-                            )
-                        }
-                        items(data.categories.size) { index ->
-                            val category = data.categories[index]
-                            FilterChip(
-                                selected = category == data.selectedCategory,
-                                onClick = { viewModel.onCategoryToggle(category) },
-                                label = { Text(text = category) },
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
-
                     when (val state = uiState) {
                         is ClientCatalogState.Success -> {
                             LazyVerticalGrid(
+                                state = gridState,
                                 columns = GridCells.Fixed(2),
                                 modifier = Modifier.weight(1f),
                                 verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
@@ -163,7 +198,12 @@ fun ClientCatalogScreen(
                                         start = AppDimensions.mediumPadding,
                                         end = AppDimensions.mediumPadding,
                                         top = AppDimensions.smallPadding,
-                                        bottom = AppDimensions.largePadding,
+                                        bottom =
+                                            if (data.isAdminHybrid) {
+                                                AppDimensions.extraLargePadding * 3
+                                            } else {
+                                                AppDimensions.largePadding
+                                            },
                                     ),
                             ) {
                                 items(
@@ -211,35 +251,83 @@ fun ClientCatalogScreen(
                     }
 
                     if (data.isAdminHybrid) {
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            tonalElevation = AppDimensions.extraSmallPadding,
-                        ) {
-                            Row(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(
-                                            horizontal = AppDimensions.mediumPadding,
-                                            vertical = AppDimensions.smallPadding,
-                                        ),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.client_catalog_admin_hybrid_hint),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                TextButton(onClick = onNavigateToHome) {
-                                    Text(text = stringResource(R.string.client_catalog_go_my_business))
-                                }
-                            }
-                        }
+                        AdminHybridReturnBanner(onClick = onNavigateToHome)
                     }
+                }
+
+                if (showCategorySelector) {
+                    CategorySelectorBottomSheet(
+                        categories = categoryOptions,
+                        selectedCategoryId = data.selectedCategory,
+                        onCategorySelected = { selectedCategory ->
+                            when {
+                                selectedCategory.isNullOrBlank() -> viewModel.clearCategoryFilter()
+                                selectedCategory == data.selectedCategory -> viewModel.clearCategoryFilter()
+                                else -> viewModel.onCategoryToggle(selectedCategory)
+                            }
+                            showCategorySelector = false
+                        },
+                        onDismiss = { showCategorySelector = false },
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun CollapsibleCompanyHeader(
+    company: Company,
+    visibleFraction: Float,
+) {
+    val clampedFraction = visibleFraction.coerceIn(0f, 1f)
+    if (clampedFraction <= 0f) return
+
+    Box(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(220.dp * clampedFraction)
+                .clipToBounds()
+                .alpha(clampedFraction),
+    ) {
+        CompanyHeader(
+            company = company,
+            modifier = Modifier.padding(top = AppDimensions.smallPadding),
+        )
+    }
+}
+
+@Composable
+private fun CatalogFilterRow(
+    query: String,
+    selectedCategory: String?,
+    onQueryChange: (String) -> Unit,
+    onCategoryClick: () -> Unit,
+) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                .padding(
+                    horizontal = AppDimensions.mediumPadding,
+                    vertical = AppDimensions.smallPadding,
+                ),
+        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        SearchBar(
+            query = query,
+            onQueryChange = onQueryChange,
+            placeholderText = stringResource(R.string.search_products),
+            variant = SearchBarVariant.Filled,
+            modifier = Modifier.weight(1f),
+        )
+        CategoryFilterChip(
+            selectedCategoryName = selectedCategory,
+            onClick = onCategoryClick,
+        )
     }
 }
 
@@ -250,40 +338,89 @@ private fun CatalogTopBar(
     onNavigateBack: () -> Unit,
     onNavigateToCart: () -> Unit,
 ) {
-    Row(
+    Surface(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = AppDimensions.smallPadding)
-                .height(AppDimensions.extraLargePadding * 2),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
+                .background(MaterialTheme.colorScheme.surfaceContainerLowest),
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        shadowElevation = 2.dp,
     ) {
-        IconButton(onClick = onNavigateBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.go_back),
-            )
-        }
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            maxLines = 1,
-        )
-        IconButton(onClick = onNavigateToCart) {
-            BadgedBox(
-                badge = {
-                    if (cartCount > 0) {
-                        Badge { Text(text = cartCount.toString()) }
-                    }
-                },
-            ) {
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = AppDimensions.smallPadding)
+                    .height(AppDimensions.extraLargePadding * 2),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = onNavigateBack) {
                 Icon(
-                    imageVector = Icons.Filled.ShoppingCart,
-                    contentDescription = stringResource(R.string.cart),
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.go_back),
                 )
             }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = onNavigateToCart) {
+                BadgedBox(
+                    badge = {
+                        if (cartCount > 0) {
+                            Badge { Text(text = cartCount.toString()) }
+                        }
+                    },
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ShoppingCart,
+                        contentDescription = stringResource(R.string.cart),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AdminHybridReturnBanner(
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+        shadowElevation = 8.dp,
+    ) {
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(
+                        horizontal = AppDimensions.mediumPadding,
+                        vertical = AppDimensions.mediumPadding,
+                    ),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Home,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+            Text(
+                text = stringResource(R.string.client_catalog_go_my_business),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+            )
         }
     }
 }

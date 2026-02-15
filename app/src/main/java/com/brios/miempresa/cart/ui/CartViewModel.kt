@@ -8,6 +8,8 @@ import com.brios.miempresa.cart.data.CartRepository
 import com.brios.miempresa.cart.domain.CartEvent
 import com.brios.miempresa.cart.domain.CartItem
 import com.brios.miempresa.cart.domain.CartUiState
+import com.brios.miempresa.cart.domain.PriceValidationResult
+import com.brios.miempresa.cart.domain.WhatsAppHelper
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -18,7 +20,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -42,7 +43,7 @@ class CartViewModel
 
         private val companyIdFlow: StateFlow<String?> =
             if (routeCompanyId.isNotBlank()) {
-                MutableStateFlow<String?>(routeCompanyId).asStateFlow()
+                MutableStateFlow(routeCompanyId)
             } else {
                 companyDao.getSelectedCompany()
                     .asFlow()
@@ -54,6 +55,9 @@ class CartViewModel
                     )
             }
 
+        private val validationResult = MutableStateFlow<PriceValidationResult?>(null)
+        private val isValidating = MutableStateFlow(false)
+
         val uiState: StateFlow<CartUiState> =
             companyIdFlow
                 .flatMapLatest { companyId ->
@@ -63,7 +67,9 @@ class CartViewModel
                         combine(
                             cartRepository.observeCartItems(companyId),
                             companyDao.observeCompanyById(companyId),
-                        ) { cartItems, company ->
+                            validationResult,
+                            isValidating,
+                        ) { cartItems, company, validation, validating ->
                             val items =
                                 cartItems.map { item ->
                                     CartItem(
@@ -78,15 +84,23 @@ class CartViewModel
                                     )
                                 }
 
-                            if (items.isEmpty()) {
-                                CartUiState.Empty
-                            } else {
-                                CartUiState.Success(
-                                    items = items,
-                                    totalItems = items.sumOf { it.quantity },
-                                    totalPrice = items.sumOf { it.subtotal },
-                                    companyName = company?.name.orEmpty(),
-                                )
+                            when {
+                                validating -> CartUiState.Validating
+                                items.isEmpty() -> CartUiState.Empty
+                                company == null -> CartUiState.Error("No pudimos cargar la tienda")
+                                else -> {
+                                    val blocked =
+                                        validation is PriceValidationResult.Blocked ||
+                                            validation is PriceValidationResult.ItemsUnavailable
+                                    CartUiState.Success(
+                                        items = items,
+                                        totalItems = items.sumOf { it.quantity },
+                                        totalPrice = items.sumOf { it.subtotal },
+                                        companyName = company.name,
+                                        validationResult = validation,
+                                        blocked = blocked,
+                                    )
+                                }
                             }
                         }.onStart { emit(CartUiState.Loading) }
                     }
@@ -123,6 +137,7 @@ class CartViewModel
                 val companyId = getCompanyIdOrNull() ?: return@launch
                 try {
                     cartRepository.addItem(companyId, productId, quantity)
+                    validationResult.value = null
                     _events.emit(CartEvent.ShowSnackbar("Producto agregado al carrito"))
                 } catch (error: Throwable) {
                     if (error is CancellationException) throw error
@@ -144,6 +159,7 @@ class CartViewModel
                     } else {
                         cartRepository.updateQuantity(cartItemId, companyId, newQuantity)
                     }
+                    validationResult.value = null
                 } catch (error: Throwable) {
                     if (error is CancellationException) throw error
                     _events.emit(CartEvent.ShowError(error.message ?: "No pudimos actualizar la cantidad"))
@@ -156,6 +172,7 @@ class CartViewModel
                 val companyId = getCompanyIdOrNull() ?: return@launch
                 try {
                     cartRepository.removeItem(cartItemId, companyId)
+                    validationResult.value = null
                     _events.emit(CartEvent.ShowSnackbar("Producto eliminado del carrito"))
                 } catch (error: Throwable) {
                     if (error is CancellationException) throw error
@@ -169,6 +186,7 @@ class CartViewModel
                 val companyId = getCompanyIdOrNull() ?: return@launch
                 try {
                     cartRepository.clearCart(companyId)
+                    validationResult.value = null
                     _events.emit(CartEvent.CartCleared)
                 } catch (error: Throwable) {
                     if (error is CancellationException) throw error
@@ -177,10 +195,83 @@ class CartViewModel
             }
         }
 
-        fun checkout() {
+        fun validateAndCheckout() {
             viewModelScope.launch {
-                _events.emit(CartEvent.NavigateToCheckout)
+                val companyId = getCompanyIdOrNull() ?: return@launch
+                val company =
+                    companyDao.getCompanyById(companyId) ?: run {
+                        _events.emit(CartEvent.ShowError("No pudimos cargar los datos de la tienda"))
+                        return@launch
+                    }
+                val publicSheetId = company.publicSheetId
+                val normalizedPhone = normalizeWhatsAppPhone("${company.whatsappCountryCode}${company.whatsappNumber.orEmpty()}")
+                if (normalizedPhone == null) {
+                    _events.emit(CartEvent.ShowError("Esta tienda no tiene WhatsApp configurado"))
+                    return@launch
+                }
+                if (publicSheetId.isNullOrBlank()) {
+                    validationResult.value = PriceValidationResult.Blocked
+                    _events.emit(CartEvent.ShowError("No pudimos verificar los precios de esta tienda"))
+                    return@launch
+                }
+
+                isValidating.value = true
+                try {
+                    val result = cartRepository.validateCartPrices(companyId, publicSheetId)
+                    validationResult.value = result
+
+                    when (result) {
+                        PriceValidationResult.AllValid -> proceedToWhatsApp(companyId, company.name, normalizedPhone)
+                        is PriceValidationResult.PricesUpdated ->
+                            _events.emit(CartEvent.ShowSnackbar("Algunos precios se actualizaron"))
+
+                        is PriceValidationResult.ItemsUnavailable ->
+                            _events.emit(CartEvent.ShowError("Algunos productos ya no están disponibles"))
+
+                        PriceValidationResult.Blocked ->
+                            _events.emit(CartEvent.ShowError("Conectate para verificar precios antes de enviar"))
+                    }
+                } catch (error: Throwable) {
+                    if (error is CancellationException) throw error
+                    _events.emit(CartEvent.ShowError(error.message ?: "No pudimos validar los precios"))
+                } finally {
+                    isValidating.value = false
+                }
             }
+        }
+
+        private suspend fun proceedToWhatsApp(
+            companyId: String,
+            companyName: String,
+            phoneNumber: String,
+        ) {
+            val items =
+                cartRepository.getCartItemsWithProducts(companyId).map { item ->
+                    CartItem(
+                        id = item.id,
+                        companyId = companyId,
+                        productId = item.productId,
+                        productName = item.productName ?: "Producto",
+                        productPrice = item.productPrice ?: 0.0,
+                        productImageUrl = item.productImageUrl,
+                        quantity = item.quantity,
+                        addedAt = item.addedAt,
+                    )
+                }
+
+            if (items.isEmpty()) {
+                _events.emit(CartEvent.ShowError("Tu carrito está vacío"))
+                return
+            }
+
+            val total = items.sumOf { it.subtotal }
+            val message = WhatsAppHelper.buildMessage(items = items, companyName = companyName, total = total)
+            _events.emit(
+                CartEvent.ProceedToWhatsApp(
+                    phoneNumber = phoneNumber,
+                    message = message,
+                ),
+            )
         }
 
         private suspend fun getCompanyIdOrNull(): String? {
@@ -191,5 +282,10 @@ class CartViewModel
             } else {
                 companyId
             }
+        }
+
+        private fun normalizeWhatsAppPhone(value: String): String? {
+            val normalized = value.replace(Regex("\\D"), "")
+            return normalized.takeIf { it.isNotBlank() }
         }
     }

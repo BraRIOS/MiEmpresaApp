@@ -10,6 +10,7 @@ import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.products.data.ProductDao
 import com.brios.miempresa.products.data.ProductEntity
 import kotlinx.coroutines.flow.Flow
+import kotlin.coroutines.cancellation.CancellationException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -105,6 +106,7 @@ class CartRepository
                 }
 
                 val productIds = cartItems.map { it.productId }
+                val localProducts = productDao.getByIds(productIds, companyId)
 
                 // Fetch updated products from Sheets (PARTIAL SYNC)
                 val updatedProducts = sheetsApi.getProductsByIds(spreadsheetId, productIds, companyId)
@@ -115,11 +117,20 @@ class CartRepository
                     // Continue processing - detectPriceChanges will mark missing as unavailable
                 }
 
-                // Update Room (decision: always update for instant UX)
-                productDao.upsertAll(updatedProducts)
+                if (updatedProducts.isNotEmpty()) {
+                    // Update Room with latest public prices for instant UX feedback
+                    productDao.upsertAll(updatedProducts)
+                    companyDao.updateLastSyncedAt(companyId, System.currentTimeMillis())
+                }
 
                 // Detect changes
-                detectPriceChanges(cartItems, updatedProducts, companyId)
+                detectPriceChanges(
+                    cartItems = cartItems,
+                    localProducts = localProducts,
+                    updatedProducts = updatedProducts,
+                )
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.e("CartRepository", "Price validation failed", e)
                 PriceValidationResult.Blocked
@@ -132,13 +143,12 @@ class CartRepository
             return capabilities.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
         }
 
-        private suspend fun detectPriceChanges(
+        private fun detectPriceChanges(
             cartItems: List<CartItemEntity>,
+            localProducts: List<ProductEntity>,
             updatedProducts: List<ProductEntity>,
-            companyId: String,
         ): PriceValidationResult {
             val updatedMap = updatedProducts.associateBy { it.id }
-            val localProducts = productDao.getByIds(cartItems.map { it.productId }, companyId)
             val localMap = localProducts.associateBy { it.id }
 
             val priceChanges = mutableListOf<PriceChange>()

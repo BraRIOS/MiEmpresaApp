@@ -24,7 +24,9 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import java.util.UUID
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 // TODO: Restore after refactor
 // import com.brios.miempresa.categories.Category
@@ -336,14 +338,9 @@ class SpreadsheetsApi
             private const val MAX_SHEET_ROWS = 10000
             private val COLUMN_LABEL_REGEX = Regex("[A-Z]+")
             private val ROW_INDEX_REGEX = Regex("\\d+")
+            private val PUBLIC_PRICE_CLEAN_REGEX = Regex("[^0-9,.-]")
         }
 
-        /**
-         * SPIKE S4 SIMPLIFIED: Fetches ALL products, filters in-memory.
-         * TODO: Update after bidirectional sync — Public Sheet format is now
-         * [Name, Desc, Price, Category, ImageUrl] (no IDs).
-         * This method needs rework to match the new public sheet format.
-         */
         suspend fun getProductsByIds(
             spreadsheetId: String,
             productIds: List<String>,
@@ -351,38 +348,63 @@ class SpreadsheetsApi
         ): List<ProductEntity> {
             return withContext(ioDispatcher) {
                 try {
-                    val service = googleAuthClient.getGoogleSheetsService()
+                    val requestedIds = productIds.toSet()
+                    val rows = readPublicRange(spreadsheetId = spreadsheetId, range = "Products!A2:E")
+                    val now = System.currentTimeMillis()
 
-                    // Public Sheet now: A=Name, B=Desc, C=Price, D=Category, E=ImageUrl (no IDs)
-                    val response =
-                        service?.spreadsheets()?.values()
-                            ?.get(spreadsheetId, "Products!A2:E")
-                            ?.execute()
+                    rows.mapIndexedNotNull { index, row ->
+                        val name = row.getOrNull(0)?.toString()?.trim()?.takeIf { it.isNotEmpty() } ?: return@mapIndexedNotNull null
+                        val description = row.getOrNull(1)?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+                        val price = parsePublicPrice(row.getOrNull(2)?.toString())
+                        val categoryName = row.getOrNull(3)?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+                        val imageUrl = normalizePublicImageUrl(row.getOrNull(4)?.toString()?.trim())
+                        val resolvedId = buildPublicProductId(companyId, index, name, categoryName)
 
-                    val rows = response?.getValues() ?: emptyList()
+                        if (resolvedId !in requestedIds) return@mapIndexedNotNull null
 
-                    // NOTE: Public sheet no longer has IDs. Match by name as fallback.
-                    rows.mapNotNull { row ->
-                        if (row.size < 3) return@mapNotNull null
-                        val name = row[0]?.toString() ?: return@mapNotNull null
-                        val price = row[2]?.toString()?.toDoubleOrNull() ?: 0.0
-
-                        // Use name as pseudo-ID until cart refactor
                         ProductEntity(
-                            id = name,
+                            id = resolvedId,
                             name = name,
                             price = price,
                             companyId = companyId,
-                            description = row.getOrNull(1)?.toString(),
-                            imageUrl = row.getOrNull(4)?.toString(),
-                            lastSyncedAt = System.currentTimeMillis(),
+                            description = description,
+                            categoryName = categoryName,
+                            imageUrl = imageUrl,
+                            isPublic = true,
+                            dirty = false,
+                            deleted = false,
+                            lastSyncedAt = now,
                         )
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     Log.e("SpreadsheetsApi", "Failed to fetch products by IDs", e)
                     emptyList()
                 }
             }
+        }
+
+        private fun buildPublicProductId(
+            companyId: String,
+            rowIndex: Int,
+            name: String,
+            categoryName: String?,
+        ): String {
+            val raw = "$companyId|$rowIndex|${name.lowercase()}|${categoryName.orEmpty().lowercase()}"
+            return UUID.nameUUIDFromBytes(raw.toByteArray()).toString()
+        }
+
+        private fun parsePublicPrice(rawPrice: String?): Double {
+            if (rawPrice.isNullOrBlank()) return 0.0
+            val normalized = rawPrice.replace(PUBLIC_PRICE_CLEAN_REGEX, "").replace(',', '.')
+            return normalized.toDoubleOrNull() ?: 0.0
+        }
+
+        private fun normalizePublicImageUrl(value: String?): String? {
+            if (value.isNullOrBlank()) return null
+            if (value.startsWith("http://") || value.startsWith("https://")) return value
+            return "https://lh3.googleusercontent.com/d/$value"
         }
 
         private data class CsvRangeSpec(

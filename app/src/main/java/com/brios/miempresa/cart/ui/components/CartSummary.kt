@@ -38,6 +38,7 @@ fun CartSummary(
     totalItems: Int,
     totalPrice: Double,
     onCheckout: () -> Unit,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR")) }
@@ -78,6 +79,7 @@ fun CartSummary(
 
             OutlinedButton(
                 onClick = onCheckout,
+                enabled = enabled,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                 border = BorderStroke(AppDimensions.smallBorderWidth, SlateGray200),

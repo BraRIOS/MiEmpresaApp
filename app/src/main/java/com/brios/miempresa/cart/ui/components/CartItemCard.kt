@@ -30,11 +30,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import com.brios.miempresa.R
 import com.brios.miempresa.cart.domain.CartItem
+import com.brios.miempresa.cart.domain.PriceChange
 import com.brios.miempresa.core.ui.components.QuantitySelector
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.SlateGray200
@@ -46,6 +48,8 @@ fun CartItemCard(
     item: CartItem,
     onQuantityChange: (Int) -> Unit,
     onRemove: () -> Unit,
+    priceChange: PriceChange? = null,
+    isUnavailable: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR")) }
@@ -107,6 +111,32 @@ fun CartItemCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
+                if (priceChange != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.cart_item_previous_price, currencyFormatter.format(priceChange.oldPrice)),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textDecoration = TextDecoration.LineThrough,
+                        )
+                        Text(
+                            text = stringResource(R.string.cart_item_new_price, currencyFormatter.format(priceChange.newPrice)),
+                            style = MaterialTheme.typography.bodySmall,
+                            color =
+                                if (priceChange.difference > 0) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.primary
+                                },
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -120,11 +150,21 @@ fun CartItemCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    QuantitySelector(
-                        quantity = item.quantity,
-                        onQuantityChange = onQuantityChange,
-                        modifier = Modifier.padding(start = AppDimensions.smallPadding),
-                    )
+                    if (isUnavailable) {
+                        Text(
+                            text = stringResource(R.string.cart_item_unavailable),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(start = AppDimensions.smallPadding),
+                        )
+                    } else {
+                        QuantitySelector(
+                            quantity = item.quantity,
+                            onQuantityChange = onQuantityChange,
+                            modifier = Modifier.padding(start = AppDimensions.smallPadding),
+                        )
+                    }
                 }
             }
         }

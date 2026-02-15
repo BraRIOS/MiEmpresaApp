@@ -15,6 +15,8 @@ data class CartItem(
 sealed interface CartUiState {
     data object Loading : CartUiState
 
+    data object Validating : CartUiState
+
     data object Empty : CartUiState
 
     data class Success(
@@ -22,13 +24,18 @@ sealed interface CartUiState {
         val totalItems: Int,
         val totalPrice: Double,
         val companyName: String,
+        val validationResult: PriceValidationResult? = null,
+        val blocked: Boolean = false,
     ) : CartUiState
 
     data class Error(val message: String) : CartUiState
 }
 
 sealed interface CartEvent {
-    data object NavigateToCheckout : CartEvent
+    data class ProceedToWhatsApp(
+        val phoneNumber: String,
+        val message: String,
+    ) : CartEvent
 
     data object CartCleared : CartEvent
 

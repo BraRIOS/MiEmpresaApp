@@ -10,7 +10,6 @@ import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.products.data.ProductDao
 import com.brios.miempresa.products.data.ProductEntity
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,13 +28,19 @@ class CartRepository
             productId: String,
             quantity: Int,
         ): Long {
-            val item =
-                CartItemEntity(
-                    companyId = companyId,
-                    productId = productId,
-                    quantity = quantity,
-                )
-            return cartItemDao.insert(item)
+            val existing = cartItemDao.getByProductId(companyId, productId)
+            return if (existing != null) {
+                cartItemDao.update(existing.copy(quantity = existing.quantity + quantity))
+                existing.id
+            } else {
+                val item =
+                    CartItemEntity(
+                        companyId = companyId,
+                        productId = productId,
+                        quantity = quantity,
+                    )
+                cartItemDao.insert(item)
+            }
         }
 
         suspend fun updateQuantity(
@@ -64,9 +69,7 @@ class CartRepository
         }
 
         fun observeCartCount(companyId: String): Flow<Int> =
-            flow {
-                emit(cartItemDao.getAll(companyId).size)
-            }
+            cartItemDao.observeItemCount(companyId)
 
         suspend fun validateCartPrices(
             companyId: String,

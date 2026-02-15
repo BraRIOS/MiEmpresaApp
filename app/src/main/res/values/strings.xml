@@ -44,6 +44,15 @@
     <string name="sin_imagen">Sin imagen</string>
     <string name="visited_stores">Tiendas visitadas</string>
     <string name="my_stores">Mis tiendas</string>
+    <string name="my_stores_search_placeholder">Buscar tiendas…</string>
+    <string name="my_stores_add_by_code">Agregar por código</string>
+    <string name="my_stores_add_store_title">Agregar tienda</string>
+    <string name="my_stores_code_label">Código de la empresa</string>
+    <string name="my_stores_code_helper">El código te lo comparte el dueño</string>
+    <string name="my_stores_add_store_button">Agregar tienda</string>
+    <string name="my_stores_last_visit">Última visita: %1$s</string>
+    <string name="my_stores_no_results">No encontramos tiendas con ese nombre</string>
+    <string name="my_stores_back_to_business">Volver a mi negocio</string>
     <string name="switch_company">Cambiar empresa</string>
     <string name="create_another_company">Crear otra empresa</string>
     <string name="deeplink_error_no_internet_first_visit">Necesitás conexión para la primera visita a este catálogo.</string>
@@ -63,6 +72,10 @@
     <string name="client_cart_placeholder_title">Carrito en construcción</string>
     <string name="client_cart_placeholder_subtitle">Vamos a habilitar el checkout del cliente en el siguiente batch.</string>
     <string name="cart">Carrito</string>
+    <string name="product_detail_title">Detalle del producto</string>
+    <string name="product_detail_quantity">Cantidad</string>
+    <string name="product_detail_add_to_cart">Agregar al carrito</string>
+    <string name="product_detail_subtotal">Subtotal: %1$s</string>
     <string name="client_catalog_placeholder_title">Catálogo del cliente</string>
     <string name="client_catalog_placeholder_subtitle">Sincronización lista para %1$s. La pantalla completa del catálogo se implementa en el siguiente batch.</string>
     <string name="my_stores_placeholder_subtitle">Tus tiendas visitadas aparecerán acá después de abrir un catálogo por enlace.</string>

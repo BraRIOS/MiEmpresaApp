@@ -14,9 +14,10 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -45,6 +46,7 @@ import com.brios.miempresa.onboarding.ui.OnboardingScreen
 import com.brios.miempresa.orders.ui.OrderDetailScreen
 import com.brios.miempresa.orders.ui.OrderManualScreen
 import com.brios.miempresa.orders.ui.OrdersListScreen
+import com.brios.miempresa.products.ui.ProductDetailScreen
 import com.brios.miempresa.products.ui.ProductFormScreen
 
 @Composable
@@ -56,6 +58,7 @@ fun NavHostComposable(
 ) {
     val signInViewModel = hiltViewModel<SignInViewModel>()
     val deeplinkRoutingViewModel = hiltViewModel<DeeplinkRoutingViewModel>()
+    val selectedCompany = signInViewModel.getSelectedCompany().observeAsState().value
     val isAlreadySignedIn = signInViewModel.getSignedInUser() != null
     var suppressDefaultStartupRouting by rememberSaveable { mutableStateOf(pendingDeeplinkSheetId != null) }
     var checkedVisitedStores by rememberSaveable { mutableStateOf(false) }
@@ -180,7 +183,8 @@ fun NavHostComposable(
         composable(
             route = "${MiEmpresaScreen.ClientCatalog.name}/{companyId}",
             arguments = listOf(navArgument("companyId") { type = NavType.StringType }),
-        ) {
+        ) { backStackEntry ->
+            val companyId = backStackEntry.arguments?.getString("companyId").orEmpty()
             ClientCatalogScreen(
                 onNavigateBack = {
                     if (!navController.popBackStack()) {
@@ -209,7 +213,11 @@ fun NavHostComposable(
                         popUpTo(0) { inclusive = true }
                     }
                 },
-                onNavigateToProductDetail = { },
+                onNavigateToProductDetail = { productId ->
+                    if (companyId.isNotBlank()) {
+                        navController.navigate("${MiEmpresaScreen.ProductDetail.name}/$productId/$companyId?mode=client")
+                    }
+                },
             )
         }
         composable(
@@ -224,7 +232,6 @@ fun NavHostComposable(
         }
         composable(route = MiEmpresaScreen.MyStores.name) {
             MyStoresScreen(
-                isHybridAdminContext = isAlreadySignedIn,
                 onNavigateBack = {
                     val targetRoute =
                         if (isAlreadySignedIn) {
@@ -235,6 +242,32 @@ fun NavHostComposable(
                     navController.navigate(targetRoute) {
                         popUpTo(0) { inclusive = true }
                     }
+                },
+                onNavigateToCatalog = { companyId ->
+                    navController.navigate("${MiEmpresaScreen.ClientCatalog.name}/$companyId")
+                },
+                onNavigateToHome = {
+                    navController.navigate(MiEmpresaScreen.Home.name) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+            )
+        }
+        composable(
+            route = "${MiEmpresaScreen.ProductDetail.name}/{productId}/{companyId}?mode={mode}",
+            arguments = listOf(
+                navArgument("productId") { type = NavType.StringType },
+                navArgument("companyId") { type = NavType.StringType },
+                navArgument("mode") {
+                    type = NavType.StringType
+                    defaultValue = "admin"
+                },
+            ),
+        ) {
+            ProductDetailScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEdit = { productId ->
+                    navController.navigate("${MiEmpresaScreen.Product.name}/$productId")
                 },
             )
         }
@@ -363,7 +396,12 @@ fun NavHostComposable(
                     navController.navigate("${MiEmpresaScreen.Product.name}/add")
                 },
                 onNavigateToProductDetail = { productId ->
-                    navController.navigate("${MiEmpresaScreen.Product.name}/$productId")
+                    val selectedCompanyId = selectedCompany?.id
+                    if (selectedCompanyId.isNullOrBlank()) {
+                        navController.navigate("${MiEmpresaScreen.Product.name}/$productId")
+                    } else {
+                        navController.navigate("${MiEmpresaScreen.ProductDetail.name}/$productId/$selectedCompanyId?mode=admin")
+                    }
                 },
                 onNavigateToAddCategory = {
                     navController.navigate("${MiEmpresaScreen.Categories.name}/add")

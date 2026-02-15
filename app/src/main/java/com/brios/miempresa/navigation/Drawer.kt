@@ -202,7 +202,12 @@ private fun DrawerContent(
                         DrawerMenuItem(
                             icon = Icons.Filled.Storefront,
                             label = stringResource(R.string.visited_stores),
-                            onClick = {},
+                            onClick = {
+                                scope.launch {
+                                    drawerState.close()
+                                    navController.navigate(MiEmpresaScreen.MyStores.name)
+                                }
+                            },
                         )
 
                         HorizontalDivider(

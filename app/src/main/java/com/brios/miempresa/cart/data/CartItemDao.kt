@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 
 data class CartItemWithProduct(
     val id: Long,
@@ -54,4 +55,7 @@ interface CartItemDao {
 
     @Query("DELETE FROM cart_items WHERE companyId = :companyId")
     suspend fun deleteAll(companyId: String)
+
+    @Query("SELECT COUNT(*) FROM cart_items WHERE companyId = :companyId")
+    fun observeItemCount(companyId: String): Flow<Int>
 }

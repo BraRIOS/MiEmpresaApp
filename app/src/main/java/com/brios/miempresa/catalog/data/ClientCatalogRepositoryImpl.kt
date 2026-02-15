@@ -7,6 +7,7 @@ import com.brios.miempresa.BuildConfig
 import com.brios.miempresa.catalog.domain.CatalogAccessError
 import com.brios.miempresa.catalog.domain.CatalogSyncException
 import com.brios.miempresa.catalog.domain.ClientCatalogRepository
+import com.brios.miempresa.core.api.sheets.PublicSheetHttpException
 import com.brios.miempresa.core.api.sheets.SpreadsheetsApi
 import com.brios.miempresa.core.data.local.MiEmpresaDatabase
 import com.brios.miempresa.core.data.local.daos.CompanyDao
@@ -249,6 +250,31 @@ class ClientCatalogRepositoryImpl
                         )
 
                     403 ->
+                        CatalogSyncException(
+                            CatalogAccessError.CATALOG_NOT_AVAILABLE,
+                            "Catalog spreadsheet is not publicly available.",
+                            throwable,
+                        )
+
+                    else ->
+                        CatalogSyncException(
+                            CatalogAccessError.CATALOG_NOT_AVAILABLE,
+                            "Failed to read catalog spreadsheet.",
+                            throwable,
+                        )
+                }
+            }
+
+            if (throwable is PublicSheetHttpException) {
+                return when (throwable.statusCode) {
+                    404 ->
+                        CatalogSyncException(
+                            CatalogAccessError.CATALOG_NOT_FOUND,
+                            "Catalog spreadsheet was not found.",
+                            throwable,
+                        )
+
+                    401, 403 ->
                         CatalogSyncException(
                             CatalogAccessError.CATALOG_NOT_AVAILABLE,
                             "Catalog spreadsheet is not publicly available.",

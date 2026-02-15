@@ -6,6 +6,7 @@ import com.brios.miempresa.R
 import com.brios.miempresa.core.auth.GoogleAuthClient
 import com.brios.miempresa.core.di.IoDispatcher
 import com.brios.miempresa.products.data.ProductEntity
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.sheets.v4.Sheets
@@ -18,6 +19,11 @@ import com.google.api.services.sheets.v4.model.ValueRange
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
+import java.net.URLEncoder
 import javax.inject.Inject
 
 // TODO: Restore after refactor
@@ -114,8 +120,143 @@ class SpreadsheetsApi
                     request.setKey(apiKey)
                 }
 
-                request.execute()?.getValues() ?: emptyList()
+                try {
+                    request.execute()?.getValues() ?: emptyList()
+                } catch (e: GoogleJsonResponseException) {
+                    if (apiKey.isNullOrBlank() && e.statusCode in setOf(400, 401, 403)) {
+                        readPublicRangeFromCsv(
+                            spreadsheetId = spreadsheetId,
+                            range = range,
+                        )
+                    } else {
+                        throw e
+                    }
+                }
             }
+
+        private fun readPublicRangeFromCsv(
+            spreadsheetId: String,
+            range: String,
+        ): List<List<Any>> {
+            val rangeSpec = parseRangeSpec(range)
+            val encodedSheetName = URLEncoder.encode(rangeSpec.sheetName, Charsets.UTF_8.name())
+            val url = URL("https://docs.google.com/spreadsheets/d/$spreadsheetId/gviz/tq?tqx=out:csv&sheet=$encodedSheetName")
+            val connection = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 10_000
+                readTimeout = 10_000
+            }
+
+            val responseCode = connection.responseCode
+            if (responseCode >= 400) {
+                connection.disconnect()
+                throw PublicSheetHttpException(
+                    statusCode = responseCode,
+                    message = "Public CSV endpoint failed with HTTP $responseCode",
+                )
+            }
+
+            val body =
+                BufferedReader(InputStreamReader(connection.inputStream)).use { reader ->
+                    reader.readText()
+                }
+            connection.disconnect()
+
+            if (body.isBlank()) return emptyList()
+
+            val csvRows = parseCsvRows(body)
+            val rowsInRange =
+                csvRows
+                    .drop(rangeSpec.startRowIndex)
+                    .map { row ->
+                        (rangeSpec.startColumnIndex..rangeSpec.endColumnIndex).map { columnIndex ->
+                            row.getOrNull(columnIndex).orEmpty()
+                        }
+                    }.filter { row -> row.any { it.isNotBlank() } }
+
+            return rowsInRange.map { row -> row.map { it as Any } }
+        }
+
+        private fun parseRangeSpec(range: String): CsvRangeSpec {
+            val (sheetNameRaw, cellRangeRaw) =
+                range.split("!", limit = 2).let { parts ->
+                    val sheet = parts.getOrNull(0)?.trim().orEmpty()
+                    val cells = parts.getOrNull(1)?.trim().orEmpty()
+                    sheet to cells
+                }
+
+            val sheetName = sheetNameRaw.takeIf { it.isNotEmpty() } ?: "Info"
+            val cellRange = cellRangeRaw.takeIf { it.isNotEmpty() } ?: "A:Z"
+
+            val startToken = cellRange.substringBefore(":").trim().uppercase()
+            val endToken = cellRange.substringAfter(":", startToken).trim().uppercase()
+
+            val startColumnLabel = COLUMN_LABEL_REGEX.find(startToken)?.value ?: "A"
+            val endColumnLabel = COLUMN_LABEL_REGEX.find(endToken)?.value ?: startColumnLabel
+            val startRow = ROW_INDEX_REGEX.find(startToken)?.value?.toIntOrNull() ?: 1
+
+            return CsvRangeSpec(
+                sheetName = sheetName,
+                startColumnIndex = columnLabelToIndex(startColumnLabel),
+                endColumnIndex = columnLabelToIndex(endColumnLabel),
+                startRowIndex = (startRow - 1).coerceAtLeast(0),
+            )
+        }
+
+        private fun columnLabelToIndex(label: String): Int {
+            var result = 0
+            label.uppercase().forEach { char ->
+                result = (result * 26) + (char.code - 'A'.code + 1)
+            }
+            return result - 1
+        }
+
+        private fun parseCsvRows(csv: String): List<List<String>> {
+            val rows = mutableListOf<List<String>>()
+            var currentRow = mutableListOf<String>()
+            val currentField = StringBuilder()
+            var inQuotes = false
+            var index = 0
+
+            while (index < csv.length) {
+                val char = csv[index]
+
+                when {
+                    char == '"' -> {
+                        if (inQuotes && index + 1 < csv.length && csv[index + 1] == '"') {
+                            currentField.append('"')
+                            index++
+                        } else {
+                            inQuotes = !inQuotes
+                        }
+                    }
+
+                    char == ',' && !inQuotes -> {
+                        currentRow.add(currentField.toString())
+                        currentField.clear()
+                    }
+
+                    (char == '\n' || char == '\r') && !inQuotes -> {
+                        if (char == '\r' && index + 1 < csv.length && csv[index + 1] == '\n') {
+                            index++
+                        }
+                        currentRow.add(currentField.toString())
+                        currentField.clear()
+                        rows.add(currentRow)
+                        currentRow = mutableListOf()
+                    }
+
+                    else -> currentField.append(char)
+                }
+                index++
+            }
+
+            currentRow.add(currentField.toString())
+            if (currentRow.size > 1 || currentRow.firstOrNull()?.isNotEmpty() == true) {
+                rows.add(currentRow)
+            }
+            return rows
+        }
 
         suspend fun appendRows(
             spreadsheetId: String,
@@ -193,6 +334,8 @@ class SpreadsheetsApi
 
         companion object {
             private const val MAX_SHEET_ROWS = 10000
+            private val COLUMN_LABEL_REGEX = Regex("[A-Z]+")
+            private val ROW_INDEX_REGEX = Regex("\\d+")
         }
 
         /**
@@ -241,4 +384,16 @@ class SpreadsheetsApi
                 }
             }
         }
+
+        private data class CsvRangeSpec(
+            val sheetName: String,
+            val startColumnIndex: Int,
+            val endColumnIndex: Int,
+            val startRowIndex: Int,
+        )
     }
+
+class PublicSheetHttpException(
+    val statusCode: Int,
+    message: String,
+) : Exception(message)

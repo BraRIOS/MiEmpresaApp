@@ -12,13 +12,20 @@ import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 
 @Composable
 fun MyStoresScreen(
+    isHybridAdminContext: Boolean,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val titleText =
+        if (isHybridAdminContext) {
+            stringResource(R.string.visited_stores)
+        } else {
+            stringResource(R.string.my_stores)
+        }
     EmptyStateView(
         modifier = modifier,
         icon = Icons.Filled.Store,
-        title = stringResource(R.string.visited_stores),
+        title = titleText,
         subtitle = stringResource(R.string.my_stores_placeholder_subtitle),
         actionLabel = stringResource(R.string.go_back),
         onAction = onNavigateBack,
@@ -29,6 +36,9 @@ fun MyStoresScreen(
 @Composable
 private fun MyStoresScreenPreview() {
     MiEmpresaTheme {
-        MyStoresScreen(onNavigateBack = {})
+        MyStoresScreen(
+            isHybridAdminContext = false,
+            onNavigateBack = {},
+        )
     }
 }

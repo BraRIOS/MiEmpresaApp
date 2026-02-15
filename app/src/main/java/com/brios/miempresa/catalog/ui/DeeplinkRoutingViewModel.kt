@@ -51,8 +51,8 @@ class DeeplinkRoutingViewModel
 
         fun handleDeeplink(sheetId: String) {
             viewModelScope.launch {
-                val normalizedSheetId = sheetId.trim()
-                if (normalizedSheetId.isEmpty()) return@launch
+                val normalizedSheetId = normalizeSheetId(sheetId)
+                if (normalizedSheetId == null) return@launch
 
                 val event = resolveDeeplink(normalizedSheetId)
                 _navigationEvents.emit(event)
@@ -138,5 +138,15 @@ class DeeplinkRoutingViewModel
             } else {
                 CatalogAccessError.CATALOG_NOT_AVAILABLE
             }
+        }
+
+        private fun normalizeSheetId(rawValue: String?): String? {
+            val normalized = rawValue?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+            val match = SHEETS_URL_REGEX.find(normalized)
+            return match?.groupValues?.getOrNull(1) ?: normalized
+        }
+
+        companion object {
+            private val SHEETS_URL_REGEX = Regex("""/spreadsheets/d/([a-zA-Z0-9-_]+)""")
         }
     }

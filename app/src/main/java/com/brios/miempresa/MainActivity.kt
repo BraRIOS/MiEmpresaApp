@@ -59,12 +59,20 @@ class MainActivity : FragmentActivity() {
     private fun extractSheetId(intent: Intent?): String? {
         val deeplink = intent?.data ?: return null
         if (deeplink.scheme != DEEPLINK_SCHEME || deeplink.host != DEEPLINK_HOST) return null
-        return deeplink.getQueryParameter(DEEPLINK_SHEET_ID_PARAM)?.trim()?.takeIf { it.isNotEmpty() }
+        val rawSheetId = deeplink.getQueryParameter(DEEPLINK_SHEET_ID_PARAM)?.trim()
+        return normalizeSheetId(rawSheetId)
+    }
+
+    private fun normalizeSheetId(rawValue: String?): String? {
+        val normalized = rawValue?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        val match = SHEETS_URL_REGEX.find(normalized)
+        return match?.groupValues?.getOrNull(1) ?: normalized
     }
 
     companion object {
         private const val DEEPLINK_SCHEME = "miempresa"
         private const val DEEPLINK_HOST = "catalogo"
         private const val DEEPLINK_SHEET_ID_PARAM = "sheetId"
+        private val SHEETS_URL_REGEX = Regex("""/spreadsheets/d/([a-zA-Z0-9-_]+)""")
     }
 }

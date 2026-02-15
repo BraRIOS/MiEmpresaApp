@@ -17,6 +17,8 @@ object AppDimensions {
     val smallIconSize = 20.dp
     val defaultIconSize = 24.dp
     val mediumIconSize = 32.dp
+
+    val mediumLargeIconSize = 40.dp
     val largeIconSize = 48.dp
     val extraLargeIconSize = 64.dp
 

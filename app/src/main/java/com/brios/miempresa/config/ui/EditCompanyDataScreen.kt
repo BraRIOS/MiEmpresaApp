@@ -54,7 +54,6 @@ import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray500
 import com.brios.miempresa.core.ui.components.CountryCodeDropdown
 
-private val cameraOverlaySize = 40.dp
 
 @Composable
 fun EditCompanyDataScreen(
@@ -178,7 +177,7 @@ fun EditCompanyDataContent(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
                             .offset(x = (-2).dp, y = (-2).dp)
-                            .size(cameraOverlaySize)
+                            .size(AppDimensions.mediumLargeIconSize)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primary)
                             .clickable { onPickLogo() },

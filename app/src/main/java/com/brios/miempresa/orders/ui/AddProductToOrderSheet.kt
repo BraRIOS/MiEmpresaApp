@@ -1,7 +1,11 @@
 package com.brios.miempresa.orders.ui
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,14 +19,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -34,12 +43,21 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.brios.miempresa.R
+import com.brios.miempresa.core.ui.components.QuantitySelector
+import com.brios.miempresa.core.ui.components.SearchBar
 import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
+import com.brios.miempresa.core.ui.theme.SlateGray200
 import com.brios.miempresa.core.ui.theme.SlateGray400
 import com.brios.miempresa.products.data.ProductEntity
 import java.text.NumberFormat
@@ -54,9 +72,8 @@ fun AddProductToOrderSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var searchQuery by rememberSaveable { mutableStateOf("") }
-    var selectedProduct by remember { mutableStateOf<ProductEntity?>(null) }
+    var selectedProductId by rememberSaveable { mutableStateOf<String?>(null) }
     var quantity by rememberSaveable { mutableIntStateOf(1) }
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR"))
 
     val filteredProducts = remember(products, searchQuery) {
         if (searchQuery.isBlank()) products
@@ -66,7 +83,7 @@ fun AddProductToOrderSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
     ) {
         Column(
             modifier = Modifier
@@ -74,129 +91,289 @@ fun AddProductToOrderSheet(
                 .padding(horizontal = AppDimensions.largePadding)
                 .padding(bottom = AppDimensions.extraLargePadding),
         ) {
-            Text(
-                text = stringResource(R.string.order_add_product_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-            )
-
-            Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
-
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(stringResource(R.string.productSearch)) },
-                singleLine = true,
-                shape = RoundedCornerShape(AppDimensions.inputCornerRadius),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.order_add_product_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(AppDimensions.defaultIconSize)
+                ) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = stringResource(R.string.action_close),
+                        tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(AppDimensions.largePadding))
+
+            SearchBar(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it },
+                placeholderText = stringResource(R.string.productSearch),
+                modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
+            Spacer(modifier = Modifier.height(AppDimensions.largePadding))
 
-            if (selectedProduct != null) {
-                // Quantity selector
-                val product = selectedProduct!!
-                Column(
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 32.dp)
+            ) {
+                items(filteredProducts, key = { it.id }) { product ->
+                    val isSelected = product.id == selectedProductId
+
+                    ProductItem(
+                        product = product,
+                        isSelected = isSelected,
+                        quantity = if (isSelected) quantity else 1,
+                        onSelect = {
+                            if (selectedProductId != product.id) {
+                                selectedProductId = product.id
+                                quantity = 1
+                            }
+                        },
+                        onQuantityChange = { quantity = it },
+                        onAdd = {
+                            onProductSelected(product, quantity)
+                            selectedProductId = null
+                            quantity = 1
+                        },
+                        onCancel = {
+                            selectedProductId = null
+                            quantity = 1
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ProductItem(
+    product: ProductEntity,
+    isSelected: Boolean,
+    quantity: Int,
+    onSelect: () -> Unit,
+    onQuantityChange: (Int) -> Unit,
+    onAdd: () -> Unit,
+    onCancel: () -> Unit
+) {
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR"))
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize()
+    ) {
+        Card(
+            onClick = onSelect,
+            shape = RoundedCornerShape(AppDimensions.largeCornerRadius),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+            ),
+            border = BorderStroke(if (isSelected) 2.dp else 1.dp, if (isSelected) MaterialTheme.colorScheme.primary else SlateGray200),
+            elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 4.dp else 0.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(AppDimensions.mediumPadding)
+            ) {
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = product.name,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = currencyFormat.format(product.price),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = SlateGray400,
-                    )
+                    ProductIcon(imageUrl = product.imageUrl)
+
+                    Spacer(modifier = Modifier.width(AppDimensions.mediumPadding))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = product.name,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = if (isSelected) 2 else 1,
+                            overflow = TextOverflow.Ellipsis,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        product.description?.let { desc ->
+                            if (desc.isNotBlank()) {
+                                Text(
+                                    text = desc,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    maxLines = if (isSelected) 3 else 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = currencyFormat.format(product.price),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                        )
+
+                        if (!isSelected) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                modifier = Modifier.size(32.dp).clickable { onSelect() }
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        Icons.Default.Add,
+                                        contentDescription = "Seleccionar",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (isSelected) {
+                    Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.3f),
+                                shape = RoundedCornerShape(AppDimensions.mediumCornerRadius)
+                            )
+                            .padding(AppDimensions.mediumPadding),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "CANTIDAD",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = SlateGray400,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+
+                        QuantitySelector(
+                            quantity = quantity,
+                            onQuantityChange = onQuantityChange,
+                            modifier = Modifier.height(36.dp)
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
 
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                    ) {
-                        IconButton(
-                            onClick = { if (quantity > 1) quantity-- },
-                        ) {
-                            Icon(Icons.Default.Remove, contentDescription = null)
-                        }
-                        Text(
-                            text = "$quantity",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.width(48.dp),
-                            textAlign = TextAlign.Center,
-                        )
-                        IconButton(
-                            onClick = { quantity++ },
-                        ) {
-                            Icon(Icons.Default.Add, contentDescription = null)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
-
-                    Button(
-                        onClick = {
-                            onProductSelected(product, quantity)
-                            selectedProduct = null
-                            quantity = 1
-                        },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(50),
+                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding)
                     ) {
-                        Text(stringResource(R.string.order_add_button))
-                    }
-                }
-            } else {
-                // Product list
-                LazyColumn(
-                    modifier = Modifier.height(300.dp),
-                    verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
-                ) {
-                    items(filteredProducts, key = { it.id }) { product ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    selectedProduct = product
-                                    quantity = 1
-                                }
-                                .padding(
-                                    vertical = AppDimensions.mediumSmallPadding,
-                                    horizontal = AppDimensions.smallPadding,
-                                ),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = product.name,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                product.description?.let {
-                                    Text(
-                                        text = it,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = SlateGray400,
-                                        maxLines = 1,
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.size(AppDimensions.smallPadding))
-                            Text(
-                                text = currencyFormat.format(product.price),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
+                        OutlinedButton(
+                            onClick = onCancel,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                            border = BorderStroke(1.dp, SlateGray200),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = SlateGray400
                             )
+                        ) {
+                            Text("Cancelar")
+                        }
+
+                        Button(
+                            onClick = onAdd,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Text("Agregar")
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ProductIcon(imageUrl: String?) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = SlateGray200.copy(alpha = 0.3f),
+        modifier = Modifier.size(48.dp)
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            if (imageUrl != null) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(imageUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.matchParentSize()
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Outlined.ShoppingBag,
+                    contentDescription = null,
+                    tint = SlateGray400
+                )
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun AddProductToOrderSheetPreview() {
+    MiEmpresaTheme {
+        val sampleProducts = listOf(
+            ProductEntity(
+                id = "1",
+                name = "Producto 1",
+                price = 100.0,
+                companyId = "company1",
+                description = "Descripción del producto 1"
+            ),
+            ProductEntity(
+                id = "2",
+                name = "Producto 2",
+                price = 200.0,
+                companyId = "company1",
+                description = "Descripción del producto 2"
+            ),
+            ProductEntity(
+                id = "3",
+                name = "Producto 3",
+                price = 300.0,
+                companyId = "company1",
+                description = "Descripción del producto 3"
+            )
+        )
+        AddProductToOrderSheet(
+            products = sampleProducts,
+            onProductSelected = { _, _ -> },
+            onDismiss = {}
+        )
     }
 }

@@ -68,6 +68,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
+import com.brios.miempresa.core.domain.model.defaultCountryCodes
 import com.brios.miempresa.core.ui.components.CompanyAvatar
 import com.brios.miempresa.core.ui.components.InfoCard
 import com.brios.miempresa.core.ui.theme.AppDimensions
@@ -287,6 +288,8 @@ private fun ReadonlyCompanyCard(form: ConfigFormState) {
                 } else {
                     "—"
                 },
+                emojiFlag =  if (form.whatsappNumber.isNotBlank())
+                    defaultCountryCodes.find { it.dialCode == form.whatsappCountryCode }?.emoji else null,
             )
             HorizontalDivider(color = SlateGray100)
             ReadonlyRow(
@@ -311,6 +314,7 @@ private fun ReadonlyCompanyCard(form: ConfigFormState) {
 private fun ReadonlyRow(
     label: String,
     value: String,
+    emojiFlag: String? = null,
 ) {
     Row(
         modifier = Modifier
@@ -331,7 +335,7 @@ private fun ReadonlyRow(
         )
         Spacer(modifier = Modifier.width(AppDimensions.mediumPadding))
         Text(
-            text = value,
+            text = if (emojiFlag != null) "$emojiFlag  $value" else value,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -615,7 +619,7 @@ private fun QrCodeBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.background,
     ) {
         Column(
             modifier = Modifier

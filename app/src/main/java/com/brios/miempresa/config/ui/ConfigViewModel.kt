@@ -81,7 +81,7 @@ class ConfigViewModel
         val uiState: StateFlow<ConfigUiState> = _uiState.asStateFlow()
 
         private val _events = MutableSharedFlow<ConfigEvent>(replay = 0)
-        val events: SharedFlow<ConfigEvent> = _events.asSharedFlow()
+        val events: SharedFlow<ConfigEvent> = _events.asSharedFlow() //TODO usar eventos para dar más información en la UI, snackbars, mensajes, etc.
 
         private val _isSyncing = MutableStateFlow(false)
         val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()

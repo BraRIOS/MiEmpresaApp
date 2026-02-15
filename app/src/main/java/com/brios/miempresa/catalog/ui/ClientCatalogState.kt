@@ -7,6 +7,7 @@ data class ClientCatalogUiData(
     val company: Company,
     val products: List<ProductEntity>,
     val categories: List<String>,
+    val categoryProductCount: Map<String, Int>,
     val selectedCategory: String?,
     val searchQuery: String,
     val cartCount: Int,

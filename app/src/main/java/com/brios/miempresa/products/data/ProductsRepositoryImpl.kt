@@ -8,6 +8,7 @@ import com.brios.miempresa.core.di.IoDispatcher
 import com.brios.miempresa.products.domain.ProductsRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
@@ -24,6 +25,32 @@ class ProductsRepositoryImpl
         @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) : ProductsRepository {
         override fun getAll(companyId: String): Flow<List<ProductEntity>> = productDao.getAllByCompanyFlow(companyId)
+
+        override fun getFiltered(
+            companyId: String,
+            searchQuery: String,
+            categoryId: String?,
+            isPublicFilter: Boolean?,
+        ): Flow<List<ProductEntity>> =
+            productDao.getFilteredByCompany(
+                companyId = companyId,
+                searchQuery = searchQuery,
+                categoryId = categoryId,
+                isPublicFilter = isPublicFilter,
+            )
+
+        override fun getCategoryCountsByFilter(
+            companyId: String,
+            searchQuery: String,
+            isPublicFilter: Boolean?,
+        ): Flow<Map<String, Int>> =
+            productDao.getCategoryCountsByFilter(
+                companyId = companyId,
+                searchQuery = searchQuery,
+                isPublicFilter = isPublicFilter,
+            ).map { counts ->
+                counts.associate { it.categoryId to it.productCount }
+            }
 
         override suspend fun getById(
             id: String,

@@ -8,7 +8,6 @@ import com.brios.miempresa.categories.domain.CategoriesRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.core.sync.SyncManager
 import com.brios.miempresa.core.sync.SyncType
-import com.brios.miempresa.products.data.ProductEntity
 import com.brios.miempresa.products.domain.ProductsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -54,62 +53,57 @@ class ProductsViewModel
             }
 
         val uiState: StateFlow<ProductsUiState> =
-            _companyId
-                .flatMapLatest { companyId ->
-                    if (companyId == null) {
-                        flowOf(ProductsUiState.Loading)
-                    } else {
-                        combine(
-                            productsRepository.getAll(companyId),
-                            categoriesRepository.getAll(companyId),
-                            _filters,
-                        ) { products, categories, filters ->
-                            val filtered = applyFilters(products, filters)
-                            Triple(filtered, categories, filters)
-                        }.map { (filtered, categories, filters) ->
-                            when {
-                                filtered.isEmpty() && filters == ProductFilters() ->
-                                    ProductsUiState.Empty
-                                filtered.isEmpty() ->
-                                    ProductsUiState.EmptyFiltered(filters, categories)
-                                else ->
-                                    ProductsUiState.Success(filtered, categories, filters)
-                            }
-                        }.catch { e ->
-                            emit(
-                                ProductsUiState.Error(
-                                    e.message ?: "Error loading products",
-                                ),
-                            )
+            combine(_companyId, _filters) { companyId, filters ->
+                companyId to filters
+            }.flatMapLatest { (companyId, filters) ->
+                if (companyId == null) {
+                    flowOf(ProductsUiState.Loading)
+                } else {
+                    combine(
+                        productsRepository.getFiltered(
+                            companyId = companyId,
+                            searchQuery = filters.searchQuery.trim(),
+                            categoryId = filters.categoryId,
+                            isPublicFilter = filters.publicFilter.toNullableBoolean(),
+                        ),
+                        categoriesRepository.getAll(companyId),
+                    ) { products, categories ->
+                        when {
+                            products.isEmpty() && filters == ProductFilters() ->
+                                ProductsUiState.Empty
+                            products.isEmpty() ->
+                                ProductsUiState.EmptyFiltered(filters, categories)
+                            else ->
+                                ProductsUiState.Success(products, categories, filters)
                         }
+                    }.catch { e ->
+                        emit(
+                            ProductsUiState.Error(
+                                e.message ?: "Error loading products",
+                            ),
+                        )
                     }
-                }.stateIn(
+                }
+            }.stateIn(
                     scope = viewModelScope,
                     started = SharingStarted.WhileSubscribed(5000),
                     initialValue = ProductsUiState.Loading,
                 )
 
-        // Product count by category, excluding category filter but applying other filters
         val productCountByCategory: StateFlow<Map<String, Int>> =
-            _companyId
-                .flatMapLatest { companyId ->
-                    if (companyId == null) {
-                        flowOf(emptyMap())
-                    } else {
-                        combine(
-                            productsRepository.getAll(companyId),
-                            _filters,
-                        ) { products, filters ->
-                            // Apply filters EXCEPT category filter
-                            val filtersWithoutCategory = filters.copy(categoryId = null)
-                            val filtered = applyFilters(products, filtersWithoutCategory)
-                            // Group by category and count
-                            filtered.groupBy { it.categoryId }
-                                .mapNotNull { (key, value) -> key?.let { it to value.size } }
-                                .toMap()
-                        }
-                    }
-                }.stateIn(
+            combine(_companyId, _filters) { companyId, filters ->
+                companyId to filters
+            }.flatMapLatest { (companyId, filters) ->
+                if (companyId == null) {
+                    flowOf(emptyMap())
+                } else {
+                    productsRepository.getCategoryCountsByFilter(
+                        companyId = companyId,
+                        searchQuery = filters.searchQuery.trim(),
+                        isPublicFilter = filters.publicFilter.toNullableBoolean(),
+                    )
+                }
+            }.stateIn(
                     scope = viewModelScope,
                     started = SharingStarted.WhileSubscribed(5000),
                     initialValue = emptyMap(),
@@ -124,28 +118,6 @@ class ProductsViewModel
                 val company = companyDao.getSelectedOwnedCompany()
                 _companyId.value = company?.id
             }
-        }
-
-        private fun applyFilters(
-            products: List<ProductEntity>,
-            filters: ProductFilters,
-        ): List<ProductEntity> {
-            var result = products
-            if (filters.searchQuery.isNotBlank()) {
-                result =
-                    result.filter {
-                        it.name.contains(filters.searchQuery, ignoreCase = true)
-                    }
-            }
-            if (filters.categoryId != null) {
-                result = result.filter { it.categoryId == filters.categoryId }
-            }
-            when (filters.publicFilter) {
-                PublicFilter.PUBLIC -> result = result.filter { it.isPublic }
-                PublicFilter.PRIVATE -> result = result.filter { !it.isPublic }
-                PublicFilter.ALL -> {}
-            }
-            return result
         }
 
         fun onSearchQueryChanged(query: String) {
@@ -189,4 +161,11 @@ class ProductsViewModel
                 _isRefreshing.value = false
             }
         }
+
+        private fun PublicFilter.toNullableBoolean(): Boolean? =
+            when (this) {
+                PublicFilter.ALL -> null
+                PublicFilter.PUBLIC -> true
+                PublicFilter.PRIVATE -> false
+            }
     }

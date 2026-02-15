@@ -51,13 +51,14 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
-import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.catalog.ui.components.CatalogProductCard
 import com.brios.miempresa.catalog.ui.components.CompanyHeader
+import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.core.ui.components.CategoryFilterChip
 import com.brios.miempresa.core.ui.components.CategorySelectorBottomSheet
@@ -68,6 +69,8 @@ import com.brios.miempresa.core.ui.components.SearchBar
 import com.brios.miempresa.core.ui.components.SearchBarVariant
 import com.brios.miempresa.core.ui.components.TriangleArrowRefreshIndicator
 import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
+import com.brios.miempresa.products.data.ProductEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,11 +84,46 @@ fun ClientCatalogScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+
+    ClientCatalogScreenContent(
+        uiState = uiState,
+        isRefreshing = isRefreshing,
+        onRefresh = viewModel::refreshCatalog,
+        onNavigateBack = onNavigateBack,
+        onNavigateToCart = onNavigateToCart,
+        onNavigateToHome = onNavigateToHome,
+        onNavigateToProductDetail = onNavigateToProductDetail,
+        onSearchQueryChange = viewModel::onSearchQueryChange,
+        onCategoryToggle = viewModel::onCategoryToggle,
+        onClearCategoryFilter = viewModel::clearCategoryFilter,
+        onClearFilters = viewModel::clearFilters,
+        onAddProductToCart = { viewModel.addProductToCart(it) },
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ClientCatalogScreenContent(
+    uiState: ClientCatalogState,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    onNavigateBack: () -> Unit,
+    onNavigateToCart: (String) -> Unit,
+    onNavigateToHome: () -> Unit,
+    onNavigateToProductDetail: (String) -> Unit,
+    onSearchQueryChange: (String) -> Unit,
+    onCategoryToggle: (String) -> Unit,
+    onClearCategoryFilter: () -> Unit,
+    onClearFilters: () -> Unit,
+    onAddProductToCart: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val pullToRefreshState = rememberPullToRefreshState()
 
     PullToRefreshBox(
         isRefreshing = isRefreshing,
-        onRefresh = viewModel::refreshCatalog,
+        onRefresh = onRefresh,
         modifier = modifier.background(MaterialTheme.colorScheme.background),
         state = pullToRefreshState,
         indicator = {
@@ -107,13 +145,13 @@ fun ClientCatalogScreen(
             }
 
             is ClientCatalogState.Error -> {
-                val message = (uiState as ClientCatalogState.Error).message
+                val message = uiState.message
                 EmptyStateView(
                     icon = Icons.Outlined.SearchOff,
                     title = message,
                     subtitle = "",
                     actionLabel = stringResource(R.string.deeplink_retry),
-                    onAction = viewModel::refreshCatalog,
+                    onAction = onRefresh,
                 )
             }
 
@@ -175,7 +213,7 @@ fun ClientCatalogScreen(
                     CatalogFilterRow(
                         query = data.searchQuery,
                         selectedCategory = data.selectedCategory,
-                        onQueryChange = viewModel::onSearchQueryChange,
+                        onQueryChange = onSearchQueryChange,
                         onCategoryClick = { showCategorySelector = true },
                     )
 
@@ -185,7 +223,7 @@ fun ClientCatalogScreen(
                         OfflineBanner()
                     }
 
-                    when (val state = uiState) {
+                    when (uiState) {
                         is ClientCatalogState.Success -> {
                             LazyVerticalGrid(
                                 state = gridState,
@@ -207,24 +245,24 @@ fun ClientCatalogScreen(
                                     ),
                             ) {
                                 items(
-                                    items = state.data.products,
+                                    items = uiState.data.products,
                                     key = { it.id },
                                 ) { product ->
                                     CatalogProductCard(
                                         product = product,
                                         onClick = { onNavigateToProductDetail(product.id) },
-                                        onAddToCart = { viewModel.addProductToCart(product.id) },
+                                        onAddToCart = { onAddProductToCart(product.id) },
                                     )
                                 }
                             }
                         }
 
                         is ClientCatalogState.Empty -> {
-                            if (state.hasActiveFilters) {
+                            if (uiState.hasActiveFilters) {
                                 NotFoundView(
                                     modifier = Modifier.weight(1f),
                                     message = stringResource(R.string.client_catalog_empty_filtered),
-                                    onAction = viewModel::clearFilters,
+                                    onAction = onClearFilters,
                                 )
                             } else {
                                 EmptyStateView(
@@ -243,11 +281,9 @@ fun ClientCatalogScreen(
                                 title = stringResource(R.string.client_catalog_offline_title),
                                 subtitle = stringResource(R.string.client_catalog_offline_subtitle),
                                 actionLabel = stringResource(R.string.deeplink_retry),
-                                onAction = viewModel::refreshCatalog,
+                                onAction = onRefresh,
                             )
                         }
-
-                        else -> Unit
                     }
 
                     if (data.isAdminHybrid) {
@@ -259,11 +295,13 @@ fun ClientCatalogScreen(
                     CategorySelectorBottomSheet(
                         categories = categoryOptions,
                         selectedCategoryId = data.selectedCategory,
+                        showItemCount = true,
+                        productCountByCategory = data.categoryProductCount,
                         onCategorySelected = { selectedCategory ->
                             when {
-                                selectedCategory.isNullOrBlank() -> viewModel.clearCategoryFilter()
-                                selectedCategory == data.selectedCategory -> viewModel.clearCategoryFilter()
-                                else -> viewModel.onCategoryToggle(selectedCategory)
+                                selectedCategory.isNullOrBlank() -> onClearCategoryFilter()
+                                selectedCategory == data.selectedCategory -> onClearCategoryFilter()
+                                else -> onCategoryToggle(selectedCategory)
                             }
                             showCategorySelector = false
                         },
@@ -309,7 +347,6 @@ private fun CatalogFilterRow(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceContainerLowest)
                 .padding(
                     horizontal = AppDimensions.mediumPadding,
                     vertical = AppDimensions.smallPadding,
@@ -434,3 +471,64 @@ private val ClientCatalogState.data: ClientCatalogUiData
             ClientCatalogState.Loading -> error("Loading state has no data")
             is ClientCatalogState.Error -> error("Error state has no data")
         }
+
+@Preview
+@Composable
+private fun ClientCatalogScreenPreview() {
+    val company = Company(
+        id = "1",
+        name = "Mi Empresa",
+        specialization = "Gestión de catálogos y pedidos",
+        address = "Calle Falsa 123",
+        businessHours = "09:00 - 18:00",
+        whatsappNumber = "123456789",
+        whatsappCountryCode = "+54",
+        isOwned = true
+    )
+    val products = listOf(
+        ProductEntity(
+            id = "1",
+            name = "Producto 1",
+            price = 100.0,
+            companyId = "1",
+            categoryName = "Categoria 1"
+        ),
+        ProductEntity(
+            id = "2",
+            name = "Producto 2",
+            price = 200.0,
+            companyId = "1",
+            categoryName = "Categoria 2"
+        )
+    )
+    val uiState = ClientCatalogState.Success(
+        data = ClientCatalogUiData(
+            company = company,
+            products = products,
+            categories = listOf("Categoria 1", "Categoria 2"),
+            categoryProductCount = mapOf("Categoria 1" to 1, "Categoria 2" to 1),
+            selectedCategory = null,
+            searchQuery = "",
+            cartCount = 2,
+            isOffline = false,
+            isAdminHybrid = false
+        )
+    )
+
+    MiEmpresaTheme {
+        ClientCatalogScreenContent(
+            uiState = uiState,
+            isRefreshing = false,
+            onRefresh = {},
+            onNavigateBack = {},
+            onNavigateToCart = {},
+            onNavigateToHome = {},
+            onNavigateToProductDetail = {},
+            onSearchQueryChange = {},
+            onCategoryToggle = {},
+            onClearCategoryFilter = {},
+            onClearFilters = {},
+            onAddProductToCart = {}
+        )
+    }
+}

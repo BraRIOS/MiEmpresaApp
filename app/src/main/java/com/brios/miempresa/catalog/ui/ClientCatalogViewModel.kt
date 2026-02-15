@@ -14,13 +14,17 @@ import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.products.data.ProductDao
 import com.brios.miempresa.products.data.ProductEntity
+import com.brios.miempresa.products.data.PublicCategoryCount
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,12 +32,16 @@ import javax.inject.Inject
 private data class CatalogSnapshot(
     val company: Company?,
     val products: List<ProductEntity>,
+    val categories: List<String>,
+    val categoryProductCount: Map<String, Int>,
+    val totalPublicProducts: Int,
     val cartCount: Int,
     val query: String,
     val selectedCategory: String?,
 )
 
 @HiltViewModel
+@OptIn(ExperimentalCoroutinesApi::class)
 class ClientCatalogViewModel
     @Inject
     constructor(
@@ -61,11 +69,40 @@ class ClientCatalogViewModel
                 companyDao.observeCompanyById(companyId)
             }
 
-        private val productsFlow =
+        private val filteredProductsFlow =
             if (companyId.isBlank()) {
                 flowOf(emptyList())
             } else {
-                productDao.getByCompanyIdPublic(companyId)
+                combine(searchQuery, selectedCategory) { query, category ->
+                    query.trim() to category
+                }.flatMapLatest { (query, category) ->
+                    productDao.getPublicFiltered(
+                        companyId = companyId,
+                        searchQuery = query,
+                        categoryName = category,
+                    )
+                }
+            }
+
+        private val categoryCountsFlow =
+            if (companyId.isBlank()) {
+                flowOf(emptyList())
+            } else {
+                searchQuery
+                    .map { it.trim() }
+                    .flatMapLatest { query ->
+                        productDao.getPublicCategoryCounts(
+                            companyId = companyId,
+                            searchQuery = query,
+                        )
+                    }
+            }
+
+        private val totalPublicProductsFlow =
+            if (companyId.isBlank()) {
+                flowOf(0)
+            } else {
+                productDao.observePublicCount(companyId)
             }
 
         private val cartCountFlow =
@@ -77,16 +114,29 @@ class ClientCatalogViewModel
 
         private val snapshotFlow =
             combine(
-                companyFlow,
-                productsFlow,
-                cartCountFlow,
+                combine(
+                    companyFlow,
+                    filteredProductsFlow,
+                    categoryCountsFlow,
+                    totalPublicProductsFlow,
+                    cartCountFlow,
+                ) { company, products, categoryCounts, totalPublicProducts, cartCount ->
+                    val categories = categoryCounts.map(PublicCategoryCount::categoryName)
+                    CatalogSnapshot(
+                        company = company,
+                        products = products,
+                        categories = categories,
+                        categoryProductCount = categoryCounts.associate { it.categoryName to it.productCount },
+                        totalPublicProducts = totalPublicProducts,
+                        cartCount = cartCount,
+                        query = "",
+                        selectedCategory = null,
+                    )
+                },
                 searchQuery,
                 selectedCategory,
-            ) { company, products, cartCount, query, category ->
-                CatalogSnapshot(
-                    company = company,
-                    products = products,
-                    cartCount = cartCount,
+            ) { snapshot, query, category ->
+                snapshot.copy(
                     query = query,
                     selectedCategory = category,
                 )
@@ -112,35 +162,16 @@ class ClientCatalogViewModel
                     }
                 }
 
-                if (errorMessage != null && snapshot.products.isEmpty() && !refreshing) {
+                if (errorMessage != null && snapshot.totalPublicProducts == 0 && !refreshing) {
                     return@combine ClientCatalogState.Error(errorMessage)
                 }
-
-                val normalizedQuery = snapshot.query.trim()
-                val categories =
-                    snapshot.products
-                        .mapNotNull { it.categoryName?.trim() }
-                        .filter { it.isNotEmpty() }
-                        .distinct()
-                        .sorted()
-
-                val filteredProducts =
-                    snapshot.products.filter { product ->
-                        val matchesCategory =
-                            snapshot.selectedCategory == null ||
-                                product.categoryName.equals(snapshot.selectedCategory, ignoreCase = true)
-                        val matchesQuery =
-                            normalizedQuery.isBlank() ||
-                                product.name.contains(normalizedQuery, ignoreCase = true) ||
-                                product.description?.contains(normalizedQuery, ignoreCase = true) == true
-                        matchesCategory && matchesQuery
-                    }
 
                 val commonData =
                     ClientCatalogUiData(
                         company = company,
-                        products = filteredProducts,
-                        categories = categories,
+                        products = snapshot.products,
+                        categories = snapshot.categories,
+                        categoryProductCount = snapshot.categoryProductCount,
                         selectedCategory = snapshot.selectedCategory,
                         searchQuery = snapshot.query,
                         cartCount = snapshot.cartCount,
@@ -148,11 +179,11 @@ class ClientCatalogViewModel
                         isAdminHybrid = adminHybrid,
                     )
 
-                if (filteredProducts.isNotEmpty()) {
+                if (snapshot.products.isNotEmpty()) {
                     ClientCatalogState.Success(data = commonData)
                 } else {
                     val hasActiveFilters = snapshot.selectedCategory != null || snapshot.query.isNotBlank()
-                    if (commonData.isOffline && snapshot.products.isEmpty()) {
+                    if (commonData.isOffline && snapshot.totalPublicProducts == 0) {
                         ClientCatalogState.Offline(data = commonData)
                     } else {
                         ClientCatalogState.Empty(

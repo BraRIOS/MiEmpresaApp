@@ -25,6 +25,42 @@ interface ProductDao {
     @Query("SELECT * FROM products WHERE companyId = :companyId AND deleted = 0")
     fun getAllByCompanyFlow(companyId: String): Flow<List<ProductEntity>>
 
+    @Query(
+        """
+        SELECT * FROM products
+        WHERE companyId = :companyId
+          AND deleted = 0
+          AND (:searchQuery = '' OR name LIKE '%' || :searchQuery || '%')
+          AND (:categoryId IS NULL OR categoryId = :categoryId)
+          AND (:isPublicFilter IS NULL OR isPublic = :isPublicFilter)
+        ORDER BY name COLLATE NOCASE ASC
+        """,
+    )
+    fun getFilteredByCompany(
+        companyId: String,
+        searchQuery: String,
+        categoryId: String?,
+        isPublicFilter: Boolean?,
+    ): Flow<List<ProductEntity>>
+
+    @Query(
+        """
+        SELECT categoryId, COUNT(*) AS productCount
+        FROM products
+        WHERE companyId = :companyId
+          AND deleted = 0
+          AND categoryId IS NOT NULL
+          AND (:searchQuery = '' OR name LIKE '%' || :searchQuery || '%')
+          AND (:isPublicFilter IS NULL OR isPublic = :isPublicFilter)
+        GROUP BY categoryId
+        """,
+    )
+    fun getCategoryCountsByFilter(
+        companyId: String,
+        searchQuery: String,
+        isPublicFilter: Boolean?,
+    ): Flow<List<CategoryProductCount>>
+
     @Query("SELECT * FROM products WHERE id = :id AND companyId = :companyId")
     suspend fun getById(
         id: String,
@@ -85,6 +121,45 @@ interface ProductDao {
     fun getByCompanyIdPublic(companyId: String): Flow<List<ProductEntity>>
 
     @Query(
+        """
+        SELECT * FROM products
+        WHERE companyId = :companyId
+          AND isPublic = 1
+          AND deleted = 0
+          AND (:searchQuery = '' OR name LIKE '%' || :searchQuery || '%' OR description LIKE '%' || :searchQuery || '%')
+          AND (:categoryName IS NULL OR categoryName = :categoryName)
+        ORDER BY name COLLATE NOCASE ASC
+        """,
+    )
+    fun getPublicFiltered(
+        companyId: String,
+        searchQuery: String,
+        categoryName: String?,
+    ): Flow<List<ProductEntity>>
+
+    @Query(
+        """
+        SELECT categoryName, COUNT(*) AS productCount
+        FROM products
+        WHERE companyId = :companyId
+          AND isPublic = 1
+          AND deleted = 0
+          AND categoryName IS NOT NULL
+          AND categoryName != ''
+          AND (:searchQuery = '' OR name LIKE '%' || :searchQuery || '%' OR description LIKE '%' || :searchQuery || '%')
+        GROUP BY categoryName
+        ORDER BY categoryName COLLATE NOCASE ASC
+        """,
+    )
+    fun getPublicCategoryCounts(
+        companyId: String,
+        searchQuery: String,
+    ): Flow<List<PublicCategoryCount>>
+
+    @Query("SELECT COUNT(*) FROM products WHERE companyId = :companyId AND isPublic = 1 AND deleted = 0")
+    fun observePublicCount(companyId: String): Flow<Int>
+
+    @Query(
         "SELECT * FROM products WHERE companyId = :companyId AND categoryName = :categoryName AND deleted = 0",
     )
     fun getProductsByCategory(
@@ -95,3 +170,13 @@ interface ProductDao {
     @Query("DELETE FROM products WHERE companyId = :companyId")
     suspend fun deleteByCompanyId(companyId: String)
 }
+
+data class CategoryProductCount(
+    val categoryId: String,
+    val productCount: Int,
+)
+
+data class PublicCategoryCount(
+    val categoryName: String,
+    val productCount: Int,
+)

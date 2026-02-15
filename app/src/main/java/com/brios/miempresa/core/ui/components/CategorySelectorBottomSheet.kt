@@ -132,7 +132,7 @@ fun CategorySelectorBottomSheet(
             ) {
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
-                if (showItemCount) {
+                if (showItemCount && selectedCategoryId != null) {
                     // "Limpiar filtros" button
                     TextButton(
                         onClick = { onCategorySelected(null) },

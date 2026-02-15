@@ -6,6 +6,19 @@ import kotlinx.coroutines.flow.Flow
 interface ProductsRepository {
     fun getAll(companyId: String): Flow<List<ProductEntity>>
 
+    fun getFiltered(
+        companyId: String,
+        searchQuery: String,
+        categoryId: String?,
+        isPublicFilter: Boolean?,
+    ): Flow<List<ProductEntity>>
+
+    fun getCategoryCountsByFilter(
+        companyId: String,
+        searchQuery: String,
+        isPublicFilter: Boolean?,
+    ): Flow<Map<String, Int>>
+
     suspend fun getById(
         id: String,
         companyId: String,

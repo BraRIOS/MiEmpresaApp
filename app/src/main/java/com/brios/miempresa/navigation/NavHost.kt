@@ -9,8 +9,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,6 +31,7 @@ import com.brios.miempresa.auth.ui.PostAuthDestination
 import com.brios.miempresa.auth.ui.SignInScreen
 import com.brios.miempresa.auth.ui.SignInViewModel
 import com.brios.miempresa.auth.ui.WelcomeScreen
+import com.brios.miempresa.cart.ui.CartScreen
 import com.brios.miempresa.catalog.domain.CatalogAccessError
 import com.brios.miempresa.catalog.ui.ClientCatalogScreen
 import com.brios.miempresa.catalog.ui.DeeplinkErrorScreen
@@ -41,7 +40,6 @@ import com.brios.miempresa.catalog.ui.DeeplinkRoutingViewModel
 import com.brios.miempresa.catalog.ui.MyStoresScreen
 import com.brios.miempresa.categories.ui.CategoryFormScreen
 import com.brios.miempresa.config.ui.EditCompanyDataScreen
-import com.brios.miempresa.core.ui.components.EmptyStateView
 import com.brios.miempresa.onboarding.ui.OnboardingScreen
 import com.brios.miempresa.orders.ui.OrderDetailScreen
 import com.brios.miempresa.orders.ui.OrderManualScreen
@@ -223,11 +221,29 @@ fun NavHostComposable(
         composable(
             route = "${MiEmpresaScreen.Cart.name}/{companyId}",
             arguments = listOf(navArgument("companyId") { type = NavType.StringType }),
-        ) {
-            EmptyStateView(
-                icon = Icons.Filled.ShoppingCart,
-                title = stringResource(R.string.client_cart_placeholder_title),
-                subtitle = stringResource(R.string.client_cart_placeholder_subtitle),
+        ) { backStackEntry ->
+            val companyId = backStackEntry.arguments?.getString("companyId").orEmpty()
+            CartScreen(
+                onNavigateBack = {
+                    if (!navController.popBackStack()) {
+                        val fallbackRoute =
+                            if (isAlreadySignedIn) {
+                                MiEmpresaScreen.Home.name
+                            } else {
+                                MiEmpresaScreen.Welcome.name
+                            }
+                        navController.navigate(fallbackRoute) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                },
+                onNavigateToCatalog = {
+                    if (companyId.isNotBlank()) {
+                        navController.navigate("${MiEmpresaScreen.ClientCatalog.name}/$companyId")
+                    } else {
+                        navController.navigate(MiEmpresaScreen.MyStores.name)
+                    }
+                },
             )
         }
         composable(route = MiEmpresaScreen.MyStores.name) {

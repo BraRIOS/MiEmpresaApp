@@ -68,6 +68,9 @@ class CartRepository
             cartItemDao.deleteAll(companyId)
         }
 
+        fun observeCartItems(companyId: String): Flow<List<CartItemWithProduct>> =
+            cartItemDao.observeAllWithProducts(companyId)
+
         fun observeCartCount(companyId: String): Flow<Int> =
             cartItemDao.observeItemCount(companyId)
 

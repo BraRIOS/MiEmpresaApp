@@ -72,6 +72,17 @@
     <string name="client_cart_placeholder_title">Carrito en construcción</string>
     <string name="client_cart_placeholder_subtitle">Vamos a habilitar el checkout del cliente en el siguiente batch.</string>
     <string name="cart">Carrito</string>
+    <string name="cart_title">Mi carrito</string>
+    <string name="cart_empty_title">Tu carrito está vacío</string>
+    <string name="cart_empty_subtitle">Agregá productos desde el catálogo para comenzar tu pedido.</string>
+    <string name="cart_error_subtitle">Volvé al catálogo para seguir comprando.</string>
+    <string name="cart_explore_catalog">Explorar catálogo</string>
+    <string name="cart_items_count">%1$d artículos</string>
+    <string name="cart_item_unit_price">%1$s c/u</string>
+    <string name="cart_item_subtotal">Subtotal: %1$s</string>
+    <string name="cart_checkout_whatsapp">Enviar pedido por WhatsApp</string>
+    <string name="cart_checkout_pending">La validación de precios se habilita en el siguiente batch.</string>
+    <string name="cart_cleared">Carrito vaciado</string>
     <string name="product_detail_title">Detalle del producto</string>
     <string name="product_detail_quantity">Cantidad</string>
     <string name="product_detail_add_to_cart">Agregar al carrito</string>

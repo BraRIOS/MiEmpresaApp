@@ -63,7 +63,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.brios.miempresa.R
@@ -293,7 +292,7 @@ private fun ProductDetailContent(
         }
 
         ProductDetailImage(
-            imageUrl = data.product.imageUrl,
+            imageUrl = resolveProductDetailImageSource(data.product),
             contentDescription = data.product.name,
         )
 
@@ -407,16 +406,6 @@ private fun ProductDetailImage(
     imageUrl: String?,
     contentDescription: String,
 ) {
-    val painter =
-        rememberAsyncImagePainter(
-            model =
-                ImageRequest
-                    .Builder(LocalContext.current)
-                    .data(imageUrl)
-                    .crossfade(true)
-                    .build(),
-        )
-
     Box(
         modifier =
             Modifier
@@ -425,30 +414,39 @@ private fun ProductDetailImage(
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh),
         contentAlignment = Alignment.Center,
     ) {
-        when (painter.state) {
-            is AsyncImagePainter.State.Success -> {
-                Image(
-                    painter = painter,
-                    contentDescription = null,
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .blur(radius = 20.dp)
-                            .alpha(0.55f),
-                    contentScale = ContentScale.Crop,
+        val resolvedUrl = imageUrl?.takeIf { it.isNotBlank() }
+        if (resolvedUrl == null) {
+            ProductImagePlaceholder()
+        } else {
+            val painter =
+                rememberAsyncImagePainter(
+                    model =
+                        ImageRequest
+                            .Builder(LocalContext.current)
+                            .data(resolvedUrl)
+                            .crossfade(true)
+                            .placeholder(R.drawable.miempresa_logo_glyph)
+                            .error(R.drawable.miempresa_logo_glyph)
+                            .fallback(R.drawable.miempresa_logo_glyph)
+                            .build(),
                 )
-                Image(
-                    painter = painter,
-                    contentDescription = contentDescription,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit,
-                )
-            }
 
-            is AsyncImagePainter.State.Error,
-            AsyncImagePainter.State.Empty,
-            is AsyncImagePainter.State.Loading,
-            -> ProductImagePlaceholder()
+            Image(
+                painter = painter,
+                contentDescription = null,
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .blur(radius = 20.dp)
+                        .alpha(0.55f),
+                contentScale = ContentScale.Crop,
+            )
+            Image(
+                painter = painter,
+                contentDescription = contentDescription,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit,
+            )
         }
     }
 }
@@ -538,6 +536,10 @@ private fun splitCategoryLabel(rawValue: String): Pair<String, String> {
     } else {
         "" to trimmed
     }
+}
+
+internal fun resolveProductDetailImageSource(product: ProductEntity): String? {
+    return product.localImagePath?.takeIf { it.isNotBlank() } ?: product.imageUrl?.takeIf { it.isNotBlank() }
 }
 
 private val previewCompany =

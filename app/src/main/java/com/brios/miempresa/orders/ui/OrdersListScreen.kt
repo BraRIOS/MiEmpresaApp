@@ -105,7 +105,7 @@ private fun OrderListContent(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO sort */ }) {
+                    IconButton(onClick = { }) {
                         Icon(
                             Icons.AutoMirrored.Filled.Sort,
                             contentDescription = stringResource(R.string.action_sort),

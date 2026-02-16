@@ -2,7 +2,6 @@ package com.brios.miempresa.config.ui
 
 import android.app.Activity
 import android.content.Intent
-import android.widget.Toast
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -44,6 +43,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -102,12 +103,13 @@ fun ConfigScreen(
 
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
     var showQrSheet by rememberSaveable { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 is ConfigEvent.ShowSnackbar -> {
-                    Toast.makeText(activity, event.message, Toast.LENGTH_SHORT).show()
+                    snackbarHostState.showSnackbar(event.message)
                 }
                 ConfigEvent.NavigateToWelcome -> onNavigateToWelcome()
                 ConfigEvent.NavigateToOrders -> onNavigateToOrders()
@@ -116,25 +118,34 @@ fun ConfigScreen(
         }
     }
 
-    ConfigScreenContent(
-        modifier = modifier,
-        form = form,
-        publicSheetId = publicSheetId,
-        isSyncing = isSyncing,
-        onNavigateToEditCompany = onNavigateToEditCompany,
-        onNavigateToOrders = viewModel::navigateToOrders,
-        onShareCode = { sheetId ->
-            val shareText = activity.getString(R.string.config_share_code_message, sheetId)
-            val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                putExtra(Intent.EXTRA_TEXT, shareText)
-                type = "text/plain"
-            }
-            activity.startActivity(Intent.createChooser(sendIntent, null))
-        },
-        onGenerateQr = viewModel::showShareSheet,
-        onSyncNow = viewModel::syncNow,
-        onLogoutClick = { showLogoutDialog = true },
-    )
+    Box(modifier = modifier.fillMaxSize()) {
+        ConfigScreenContent(
+            modifier = Modifier.fillMaxSize(),
+            form = form,
+            publicSheetId = publicSheetId,
+            isSyncing = isSyncing,
+            onNavigateToEditCompany = onNavigateToEditCompany,
+            onNavigateToOrders = viewModel::navigateToOrders,
+            onShareCode = { sheetId ->
+                val shareText = activity.getString(R.string.config_share_code_message, sheetId)
+                val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                    putExtra(Intent.EXTRA_TEXT, shareText)
+                    type = "text/plain"
+                }
+                activity.startActivity(Intent.createChooser(sendIntent, null))
+            },
+            onGenerateQr = viewModel::showShareSheet,
+            onSyncNow = viewModel::syncNow,
+            onLogoutClick = { showLogoutDialog = true },
+        )
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(AppDimensions.mediumPadding),
+        )
+    }
 
     if (showLogoutDialog) {
         AlertDialog(

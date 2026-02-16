@@ -10,9 +10,12 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.brios.miempresa.BuildConfig
 import com.brios.miempresa.core.sync.workers.PeriodicSyncWorker
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 enum class SyncType {
     ALL,
@@ -49,14 +52,20 @@ class SyncManager
             )
         }
 
-        fun syncNow(type: SyncType = SyncType.ALL) {
+        fun syncNow(type: SyncType = SyncType.ALL): UUID {
             val syncRequest =
                 OneTimeWorkRequestBuilder<PeriodicSyncWorker>()
                     .setInputData(workDataOf(SYNC_TYPE_KEY to type.name))
                     .addTag(SYNC_WORK_TAG)
                     .build()
             workManager.enqueue(syncRequest)
+            return syncRequest.id
         }
+
+        fun observeWorkState(workId: UUID): Flow<WorkInfo.State?> =
+            workManager
+                .getWorkInfoByIdFlow(workId)
+                .map { workInfo -> workInfo?.state }
 
         fun cancelAll() {
             val periodicCancellation = workManager.cancelUniqueWork(PERIODIC_SYNC_WORK_NAME)

@@ -47,7 +47,12 @@ class OnboardingViewModel
             const val MAX_BUSINESS_HOURS = 50
         }
 
-        private val _uiState = MutableStateFlow<OnboardingUiState>(OnboardingUiState.Loading)
+        private val _uiState =
+            MutableStateFlow<OnboardingUiState>(
+                OnboardingUiState.DiscoveringWorkspace(
+                    appContext.getString(R.string.onboarding_status_discovering),
+                ),
+            )
         val uiState: StateFlow<OnboardingUiState> = _uiState.asStateFlow()
 
         private val _events = MutableSharedFlow<OnboardingEvent>()

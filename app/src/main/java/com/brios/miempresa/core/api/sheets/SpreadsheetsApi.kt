@@ -28,7 +28,7 @@ import java.util.UUID
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
-// TODO: Restore after refactor
+// Legacy online-first API placeholders kept for future typed migration.
 // import com.brios.miempresa.categories.Category
 // import com.brios.miempresa.product.Product
 
@@ -39,7 +39,7 @@ class SpreadsheetsApi
         @ApplicationContext private val context: Context,
         @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) {
-        // TODO: Restore after refactor (online-first methods using Product/Category)
+        // Legacy online-first methods using Product/Category.
         // suspend fun readProductsFromSheet(spreadsheetId: String): List<Product> { ... }
         // suspend fun readProductFromSheet(spreadsheetId: String, rowIndex: Int): Product? { ... }
         // suspend fun addProductInSheet(spreadsheetId: String, product: Product, categories: List<Category>) { ... }

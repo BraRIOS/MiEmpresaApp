@@ -2,6 +2,7 @@ package com.brios.miempresa.config.ui
 
 import android.app.Activity
 import android.content.Context
+import androidx.work.WorkInfo
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
@@ -21,10 +22,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 data class ConfigFormState(
@@ -236,11 +239,31 @@ class ConfigViewModel
 
         fun syncNow() {
             viewModelScope.launch {
+                if (_isSyncing.value) return@launch
                 _isSyncing.value = true
-                syncManager.syncNow(SyncType.ALL)
-                kotlinx.coroutines.delay(2000)
+                _events.emit(ConfigEvent.ShowSnackbar(appContext.getString(R.string.sync_in_progress)))
+
+                val syncWorkId = syncManager.syncNow(SyncType.ALL)
+                val finalState =
+                    withTimeoutOrNull(SYNC_RESULT_TIMEOUT_MS) {
+                        syncManager
+                            .observeWorkState(syncWorkId)
+                            .filterNotNull()
+                            .first { state -> state.isFinished }
+                    }
+
                 _isSyncing.value = false
-                _events.emit(ConfigEvent.ShowSnackbar(appContext.getString(R.string.sync_completed)))
+
+                val messageRes =
+                    when (finalState) {
+                        WorkInfo.State.SUCCEEDED -> R.string.sync_completed
+                        WorkInfo.State.FAILED,
+                        WorkInfo.State.CANCELLED,
+                        -> R.string.sync_failed
+                        null -> R.string.sync_scheduled
+                        else -> R.string.sync_completed
+                    }
+                _events.emit(ConfigEvent.ShowSnackbar(appContext.getString(messageRes)))
             }
         }
 
@@ -261,5 +284,9 @@ class ConfigViewModel
             viewModelScope.launch {
                 _events.emit(ConfigEvent.ShowShareSheet)
             }
+        }
+
+        companion object {
+            private const val SYNC_RESULT_TIMEOUT_MS = 30_000L
         }
     }

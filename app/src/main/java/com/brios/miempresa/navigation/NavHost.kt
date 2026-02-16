@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -58,6 +59,12 @@ fun NavHostComposable(
     val isAlreadySignedIn = signInViewModel.getSignedInUser() != null
     var suppressDefaultStartupRouting by rememberSaveable { mutableStateOf(pendingDeeplinkSheetId != null) }
     var checkedVisitedStores by rememberSaveable { mutableStateOf(false) }
+    val navigationTapGuard = remember { NavigationTapGuard() }
+    val guardedNavigation: (() -> Unit) -> Unit = { action ->
+        if (navigationTapGuard.canNavigateNow()) {
+            action()
+        }
+    }
 
     LaunchedEffect(pendingDeeplinkSheetId) {
         pendingDeeplinkSheetId?.let { sheetId ->
@@ -187,15 +194,17 @@ fun NavHostComposable(
             val companyId = backStackEntry.arguments?.getString("companyId").orEmpty()
             ClientCatalogScreen(
                 onNavigateBack = {
-                    if (!navController.popBackStack()) {
-                        val fallbackRoute =
-                            if (isAlreadySignedIn) {
-                                MiEmpresaScreen.Home.name
-                            } else {
-                                MiEmpresaScreen.Welcome.name
+                    guardedNavigation {
+                        if (!navController.popBackStack()) {
+                            val fallbackRoute =
+                                if (isAlreadySignedIn) {
+                                    MiEmpresaScreen.Home.name
+                                } else {
+                                    MiEmpresaScreen.Welcome.name
+                                }
+                            navController.navigate(fallbackRoute) {
+                                popUpTo(0) { inclusive = true }
                             }
-                        navController.navigate(fallbackRoute) {
-                            popUpTo(0) { inclusive = true }
                         }
                     }
                 },
@@ -227,15 +236,17 @@ fun NavHostComposable(
             val companyId = backStackEntry.arguments?.getString("companyId").orEmpty()
             CartScreen(
                 onNavigateBack = {
-                    if (!navController.popBackStack()) {
-                        val fallbackRoute =
-                            if (isAlreadySignedIn) {
-                                MiEmpresaScreen.Home.name
-                            } else {
-                                MiEmpresaScreen.Welcome.name
+                    guardedNavigation {
+                        if (!navController.popBackStack()) {
+                            val fallbackRoute =
+                                if (isAlreadySignedIn) {
+                                    MiEmpresaScreen.Home.name
+                                } else {
+                                    MiEmpresaScreen.Welcome.name
+                                }
+                            navController.navigate(fallbackRoute) {
+                                popUpTo(0) { inclusive = true }
                             }
-                        navController.navigate(fallbackRoute) {
-                            popUpTo(0) { inclusive = true }
                         }
                     }
                 },
@@ -288,7 +299,7 @@ fun NavHostComposable(
         ) { backStackEntry ->
             val detailCompanyId = backStackEntry.arguments?.getString("companyId").orEmpty()
             ProductDetailScreen(
-                onNavigateBack = { navController.popBackStack() },
+                onNavigateBack = { guardedNavigation { navController.popBackStack() } },
                 onNavigateToEdit = { productId ->
                     navController.navigate("${MiEmpresaScreen.Product.name}/$productId")
                 },
@@ -407,7 +418,7 @@ fun NavHostComposable(
                         popUpTo(0) { inclusive = true }
                     }
                 },
-                onNavigateBack = { navController.popBackStack() },
+                onNavigateBack = { guardedNavigation { navController.popBackStack() } },
                 onSignOutRequested = {
                     signInViewModel.signOut(activity)
                     navController.navigate(MiEmpresaScreen.Welcome.name) {
@@ -447,7 +458,7 @@ fun NavHostComposable(
         }
         composable(route = "${MiEmpresaScreen.Product.name}/add") {
             ProductFormScreen(
-                onNavigateBack = { navController.popBackStack() },
+                onNavigateBack = { guardedNavigation { navController.popBackStack() } },
                 onNavigateToAddCategory = {
                     navController.navigate("${MiEmpresaScreen.Categories.name}/add")
                 },
@@ -458,7 +469,7 @@ fun NavHostComposable(
             arguments = listOf(navArgument("productId") { type = NavType.StringType }),
         ) {
             ProductFormScreen(
-                onNavigateBack = { navController.popBackStack() },
+                onNavigateBack = { guardedNavigation { navController.popBackStack() } },
                 onNavigateToAddCategory = {
                     navController.navigate("${MiEmpresaScreen.Categories.name}/add")
                 },
@@ -466,7 +477,7 @@ fun NavHostComposable(
         }
         composable(route = "${MiEmpresaScreen.Categories.name}/add") {
             CategoryFormScreen(
-                onNavigateBack = { navController.popBackStack() },
+                onNavigateBack = { guardedNavigation { navController.popBackStack() } },
             )
         }
         composable(
@@ -474,17 +485,17 @@ fun NavHostComposable(
             arguments = listOf(navArgument("categoryId") { type = NavType.StringType }),
         ) {
             CategoryFormScreen(
-                onNavigateBack = { navController.popBackStack() },
+                onNavigateBack = { guardedNavigation { navController.popBackStack() } },
             )
         }
         composable(route = MiEmpresaScreen.EditCompanyData.name) {
             EditCompanyDataScreen(
-                onNavigateBack = { navController.popBackStack() },
+                onNavigateBack = { guardedNavigation { navController.popBackStack() } },
             )
         }
         composable(route = MiEmpresaScreen.PedidosList.name) {
             OrdersListScreen(
-                onNavigateBack = { navController.popBackStack() },
+                onNavigateBack = { guardedNavigation { navController.popBackStack() } },
                 onNavigateToCreateOrder = {
                     navController.navigate(MiEmpresaScreen.PedidoManual.name)
                 },
@@ -495,8 +506,8 @@ fun NavHostComposable(
         }
         composable(route = MiEmpresaScreen.PedidoManual.name) {
             OrderManualScreen(
-                onOrderCreated = { navController.popBackStack() },
-                onNavigateBack = { navController.popBackStack() },
+                onOrderCreated = { guardedNavigation { navController.popBackStack() } },
+                onNavigateBack = { guardedNavigation { navController.popBackStack() } },
             )
         }
         composable(
@@ -504,7 +515,7 @@ fun NavHostComposable(
             arguments = listOf(navArgument("orderId") { type = NavType.StringType }),
         ) {
             OrderDetailScreen(
-                onNavigateBack = { navController.popBackStack() },
+                onNavigateBack = { guardedNavigation { navController.popBackStack() } },
             )
         }
     }

@@ -4,8 +4,6 @@ import com.brios.miempresa.products.data.ProductEntity
 import kotlinx.coroutines.flow.Flow
 
 interface ProductsRepository {
-    fun getAll(companyId: String): Flow<List<ProductEntity>>
-
     fun getFiltered(
         companyId: String,
         searchQuery: String,

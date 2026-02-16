@@ -296,10 +296,32 @@ class OnboardingViewModel
         }
 
         fun retryWorkspaceCreation() {
-            // TODO Sprint 3: Implement incremental retry that resumes from failed step
-            // Currently restarts from scratch; folder creation is idempotent but
-            // spreadsheet creation may leave orphaned sheets in Drive on retry.
-            startWorkspaceCreation()
+            viewModelScope.launch {
+                val failedStep =
+                    (_uiState.value as? OnboardingUiState.WizardStep2)
+                        ?.currentStep
+                        ?.let { stepName -> runCatching { WorkspaceStep.valueOf(stepName) }.getOrNull() }
+
+                val canResumeFromExisting =
+                    failedStep == WorkspaceStep.CREATE_PRIVATE_SHEET ||
+                        failedStep == WorkspaceStep.CREATE_PUBLIC_SHEET
+
+                if (canResumeFromExisting) {
+                    val companyName = formState.companyName.trim()
+                    val existingCompany =
+                        repository
+                            .getOwnedCompanies()
+                            .firstOrNull { company ->
+                                company.name.equals(companyName, ignoreCase = true) && company.driveFolderId != null
+                            }
+                    if (existingCompany != null) {
+                        createSpreadsheetsForExisting(existingCompany)
+                        return@launch
+                    }
+                }
+
+                startWorkspaceCreation()
+            }
         }
 
         fun navigateToHome() {

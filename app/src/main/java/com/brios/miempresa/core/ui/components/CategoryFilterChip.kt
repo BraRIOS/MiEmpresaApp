@@ -1,6 +1,6 @@
 package com.brios.miempresa.core.ui.components
 
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.AssistChip
@@ -23,7 +23,7 @@ fun CategoryFilterChip(
     modifier: Modifier = Modifier,
 ) {
     AssistChip(
-        modifier = modifier.widthIn(min = AppDimensions.categoryFilterChipWidth),
+        modifier = modifier.width(AppDimensions.categoryFilterChipWidth),
         onClick = onClick,
         label = {
             Text(

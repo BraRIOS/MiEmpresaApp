@@ -212,7 +212,7 @@ fun EditCompanyDataContent(
 
             // WhatsApp (required)
             FormFieldGroup(
-                label = stringResource(R.string.config_label_whatsapp),
+                label = stringResource(R.string.whatsapp_label),
                 required = true,
             ) {
                 Row(

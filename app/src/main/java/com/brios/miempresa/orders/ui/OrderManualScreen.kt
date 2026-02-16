@@ -276,7 +276,7 @@ private fun OrderManualContent(
                         }
 
                         FormFieldGroup(
-                            label = stringResource(R.string.order_label_phone).uppercase(),
+                            label = stringResource(R.string.whatsapp_label).uppercase(),
                             required = true,
                         ) {
                             Row(

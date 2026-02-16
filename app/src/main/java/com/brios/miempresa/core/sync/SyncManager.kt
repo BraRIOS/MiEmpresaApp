@@ -5,6 +5,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.brios.miempresa.BuildConfig
@@ -38,10 +39,11 @@ class SyncManager
                     TimeUnit.MINUTES,
                 )
                     .setConstraints(constraints)
+                    .addTag(SYNC_WORK_TAG)
                     .build()
 
             workManager.enqueueUniquePeriodicWork(
-                "periodic_sync",
+                PERIODIC_SYNC_WORK_NAME,
                 ExistingPeriodicWorkPolicy.KEEP,
                 syncRequest,
             )
@@ -51,15 +53,41 @@ class SyncManager
             val syncRequest =
                 OneTimeWorkRequestBuilder<PeriodicSyncWorker>()
                     .setInputData(workDataOf(SYNC_TYPE_KEY to type.name))
+                    .addTag(SYNC_WORK_TAG)
                     .build()
             workManager.enqueue(syncRequest)
         }
 
         fun cancelAll() {
-            workManager.cancelUniqueWork("periodic_sync")
+            val periodicCancellation = workManager.cancelUniqueWork(PERIODIC_SYNC_WORK_NAME)
+            val syncTagCancellation = workManager.cancelAllWorkByTag(SYNC_WORK_TAG)
+            runCatching { periodicCancellation.result.get() }
+            runCatching { syncTagCancellation.result.get() }
+            waitForSyncWorkToStop()
+        }
+
+        private fun waitForSyncWorkToStop() {
+            val timeoutAt = System.currentTimeMillis() + WORK_CANCEL_TIMEOUT_MS
+            while (System.currentTimeMillis() < timeoutAt) {
+                val hasActiveSyncWork =
+                    runCatching { workManager.getWorkInfosByTag(SYNC_WORK_TAG).get() }
+                        .getOrDefault(emptyList())
+                        .any { info ->
+                            info.state == WorkInfo.State.ENQUEUED ||
+                                info.state == WorkInfo.State.RUNNING ||
+                                info.state == WorkInfo.State.BLOCKED
+                        }
+
+                if (!hasActiveSyncWork) return
+                runCatching { Thread.sleep(WORK_CANCEL_POLL_INTERVAL_MS) }.getOrElse { return }
+            }
         }
 
         companion object {
             const val SYNC_TYPE_KEY = "sync_type"
+            private const val PERIODIC_SYNC_WORK_NAME = "periodic_sync"
+            private const val SYNC_WORK_TAG = "sync_work"
+            private const val WORK_CANCEL_TIMEOUT_MS = 5_000L
+            private const val WORK_CANCEL_POLL_INTERVAL_MS = 100L
         }
     }

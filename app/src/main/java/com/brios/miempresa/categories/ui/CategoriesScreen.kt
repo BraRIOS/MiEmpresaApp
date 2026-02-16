@@ -56,13 +56,14 @@ fun CategoriesContent(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val isOffline by viewModel.isOffline.collectAsStateWithLifecycle()
 
     CategoriesContentInternal(
         modifier = modifier.fillMaxSize(),
         uiState = uiState,
         searchQuery = searchQuery,
         isRefreshing = isRefreshing,
-        isOffline = viewModel.isOffline,
+        isOffline = isOffline,
         onRefresh = viewModel::refresh,
         onSearchQueryChanged = viewModel::onSearchQueryChanged,
         onDeleteCategory = viewModel::deleteCategory,

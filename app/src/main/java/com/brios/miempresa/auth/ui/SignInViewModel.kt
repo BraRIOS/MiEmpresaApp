@@ -7,8 +7,10 @@ import com.brios.miempresa.R
 import com.brios.miempresa.auth.domain.AuthRepository
 import com.brios.miempresa.auth.domain.AuthState
 import com.brios.miempresa.core.data.local.daos.CompanyDao
+import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.core.domain.LogoutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -56,12 +58,13 @@ class SignInViewModel
 
         fun signOut(activity: Activity) =
             viewModelScope.launch {
-                // Reset navigation state FIRST (synchronously) to avoid race conditions
-                _postAuthDestination.value = null
-                _authState.value = null
-                _signInState.value = SignInState()
-                // Then clean up data (can be async)
-                logoutUseCase(activity)
+                try {
+                    logoutUseCase(activity)
+                } finally {
+                    _postAuthDestination.value = null
+                    _authState.value = null
+                    _signInState.value = SignInState()
+                }
             }
 
         fun resetSignInState() {
@@ -69,9 +72,15 @@ class SignInViewModel
         }
 
         fun determinePostAuthDestination() {
-            // Always route through Onboarding — it handles Drive discovery,
-            // company selection, and workspace validation
-            _postAuthDestination.value = PostAuthDestination.Onboarding
+            viewModelScope.launch {
+                val ownedCompanies = companyDao.getOwnedCompaniesList()
+                _postAuthDestination.value =
+                    if (ownedCompanies.size > 1 && ownedCompanies.none { it.selected }) {
+                        PostAuthDestination.CompanySelector
+                    } else {
+                        PostAuthDestination.Onboarding
+                    }
+            }
         }
 
         fun consumePostAuthDestination() {
@@ -125,4 +134,6 @@ class SignInViewModel
         fun getCompanies() = companyDao.getCompanies()
 
         fun getSelectedCompany() = companyDao.getSelectedCompany()
+
+        fun observeSelectedCompany(): Flow<Company?> = companyDao.observeSelectedCompany()
     }

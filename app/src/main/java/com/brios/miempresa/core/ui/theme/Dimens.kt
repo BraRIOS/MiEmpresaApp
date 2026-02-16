@@ -55,7 +55,10 @@ object AppDimensions {
     val smallFabIconSize = 20.dp
 
     // Chips
-    val categoryFilterChipWidth = 120.dp
+    val categoryFilterChipWidth = 128.dp
+
+    //SearchBar
+    val searchBarHeight = 48.dp
 
     // Screen-specific
     object SignInScreen {
@@ -90,10 +93,8 @@ object AppDimensions {
         val stepCheckIconSize = 20.dp
         val stepSpinnerIconSize = 24.dp
         val stepPendingDotSize = 10.dp
-        val stepVerticalSpacing = 32.dp
         val stepCircleToTextGap = 20.dp
         val connectorLineWidth = 2.dp
-        val connectorLineStartPx = 24 // center of 48dp circle
     }
 
     object OnboardingSuccess {
@@ -108,5 +109,9 @@ object AppDimensions {
 
     object Config {
         val companyLogoSize = 128.dp
+    }
+
+    object ClientCatalog {
+        val productItemTextHeight = 96.dp
     }
 }

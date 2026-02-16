@@ -27,6 +27,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -50,10 +51,11 @@ import com.brios.miempresa.cart.domain.CartEvent
 import com.brios.miempresa.cart.domain.CartUiState
 import com.brios.miempresa.cart.domain.PriceValidationResult
 import com.brios.miempresa.cart.domain.WhatsAppHelper
-import com.brios.miempresa.cart.ui.components.CartItemCard
 import com.brios.miempresa.cart.ui.components.CartSummary
 import com.brios.miempresa.core.ui.components.EmptyStateView
 import com.brios.miempresa.core.ui.components.MiEmpresaDialog
+import com.brios.miempresa.core.ui.components.OrderProductListItem
+import com.brios.miempresa.core.ui.components.OrderProductPriceChange
 import com.brios.miempresa.core.ui.theme.AppDimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,6 +79,7 @@ fun CartScreen(
     var showOrderSentDialog by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
+        viewModel.validateOnEnter()
         viewModel.events.collect { event ->
             when (event) {
                 is CartEvent.ShowSnackbar -> snackbarHostState.showSnackbar(event.message)
@@ -97,9 +100,12 @@ fun CartScreen(
     DisposableEffect(lifecycleOwner, pendingConfirmationOnReturn) {
         val observer =
             LifecycleEventObserver { _, event ->
-                if (event == Lifecycle.Event.ON_RESUME && pendingConfirmationOnReturn) {
-                    showOrderSentDialog = true
-                    pendingConfirmationOnReturn = false
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    viewModel.validateOnEnter()
+                    if (pendingConfirmationOnReturn) {
+                        showOrderSentDialog = true
+                        pendingConfirmationOnReturn = false
+                    }
                 }
             }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -244,6 +250,8 @@ fun CartScreen(
                                 message = stringResource(R.string.cart_banner_offline_blocked),
                                 containerColor = MaterialTheme.colorScheme.errorContainer,
                                 contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                                actionLabel = stringResource(R.string.deeplink_retry),
+                                onAction = viewModel::retryValidation,
                             )
                         }
                         null,
@@ -261,15 +269,29 @@ fun CartScreen(
                         verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
                     ) {
                         items(
-                            items = state.items,
-                            key = { it.id },
-                        ) { item ->
-                            CartItemCard(
-                                item = item,
+                        items = state.items,
+                        key = { it.id },
+                    ) { item ->
+                            OrderProductListItem(
+                                name = item.productName,
+                                price = item.productPrice,
+                                quantity = item.quantity,
+                                imageUrl = item.productImageUrl,
                                 onQuantityChange = { quantity -> viewModel.updateQuantity(item.id, quantity) },
                                 onRemove = { viewModel.removeItem(item.id) },
-                                priceChange = priceChangesByProductId[item.productId],
-                                isUnavailable = unavailableProducts.containsKey(item.productId),
+                                priceChange =
+                                    priceChangesByProductId[item.productId]?.let { change ->
+                                        OrderProductPriceChange(
+                                            oldPrice = change.oldPrice,
+                                            newPrice = change.newPrice,
+                                        )
+                                    },
+                                unavailableLabel =
+                                    if (unavailableProducts.containsKey(item.productId)) {
+                                        stringResource(R.string.cart_item_unavailable)
+                                    } else {
+                                        null
+                                    },
                             )
                         }
                     }
@@ -300,6 +322,8 @@ private fun ValidationBanner(
     containerColor: androidx.compose.ui.graphics.Color,
     contentColor: androidx.compose.ui.graphics.Color,
     modifier: Modifier = Modifier,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -325,7 +349,16 @@ private fun ValidationBanner(
                 text = message,
                 style = MaterialTheme.typography.bodySmall,
                 color = contentColor,
+                modifier = Modifier.weight(1f),
             )
+            if (actionLabel != null && onAction != null) {
+                TextButton(onClick = onAction) {
+                    Text(
+                        text = actionLabel,
+                        color = contentColor,
+                    )
+                }
+            }
         }
     }
 }

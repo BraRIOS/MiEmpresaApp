@@ -4,8 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import androidx.room.Update
 import com.brios.miempresa.core.data.local.entities.Company
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +29,9 @@ interface CompanyDao {
 
     @Query("SELECT * FROM companies WHERE selected = 1 LIMIT 1")
     fun getSelectedCompany(): LiveData<Company?>
+
+    @Query("SELECT * FROM companies WHERE selected = 1 LIMIT 1")
+    fun observeSelectedCompany(): Flow<Company?>
 
     @Query("SELECT * FROM companies WHERE selected = 1 AND isOwned = 1 LIMIT 1")
     suspend fun getSelectedOwnedCompany(): Company?
@@ -57,7 +60,7 @@ interface CompanyDao {
     @Query("SELECT COUNT(*) FROM companies WHERE isOwned = 1")
     suspend fun getOwnedCompanyCount(): Int
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun insertCompany(company: Company)
 
     // Client flow queries

@@ -9,12 +9,17 @@ interface OrdersRepository {
 
     suspend fun getOrderById(id: String, companyId: String): OrderEntity?
 
-    fun getOrderItems(orderId: String): Flow<List<OrderItemEntity>>
+    fun getOrderItems(
+        orderId: String,
+        companyId: String,
+    ): Flow<List<OrderItemEntity>>
 
     suspend fun createOrder(
         order: OrderEntity,
         items: List<OrderItemEntity>,
     )
+
+    suspend fun downloadFromSheets(companyId: String)
 
     suspend fun syncPendingChanges(companyId: String)
 }

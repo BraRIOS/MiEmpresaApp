@@ -4,7 +4,6 @@
     <string name="home_title">Productos</string>
     <string name="categories_title">Categorías</string>
     <string name="add_product">Agregar Producto</string>
-    <string name="sign_in_success">Inicio de sesión exitoso</string>
     <string name="sign_in_error">Inicio de sesión fallido</string>
     <string name="not_authorized">Sin autorización</string>
     <string name="authorization_failed">Falló la autorización</string>
@@ -48,11 +47,20 @@
     <string name="my_stores_add_by_code">Agregar por código</string>
     <string name="my_stores_add_store_title">Agregar tienda</string>
     <string name="my_stores_code_label">Código de la empresa</string>
-    <string name="my_stores_code_helper">El código te lo comparte el dueño</string>
+    <string name="my_stores_code_helper">El código te lo comparte el dueño o encargado</string>
     <string name="my_stores_add_store_button">Agregar tienda</string>
     <string name="my_stores_last_visit">Última visita: %1$s</string>
     <string name="my_stores_no_results">No encontramos tiendas con ese nombre</string>
     <string name="my_stores_back_to_business">Volver a mi negocio</string>
+    <string name="my_stores_switch_cart_title">Cambiar de tienda</string>
+    <string name="my_stores_switch_cart_message">Ya tenés productos en el carrito de %1$s. Si continuás, ese carrito se vaciará.</string>
+    <string name="my_stores_switch_cart_confirm">Continuar y vaciar</string>
+    <string name="my_stores_conversion_title">¿Tenés una empresa? Gestionala desde acá.</string>
+    <string name="my_stores_conversion_action">Crear mi empresa</string>
+    <string name="my_stores_help_icon">Ayuda</string>
+    <string name="my_stores_help_title">¿Cómo funciona?</string>
+    <string name="my_stores_help_message">Escaneá el QR del catálogo o ingresá el código que te comparte el dueño o encargado. Si tenés una empresa, podés crear tu cuenta para gestionarla desde la app.</string>
+    <string name="my_stores_help_confirm">Entendido</string>
     <string name="switch_company">Cambiar empresa</string>
     <string name="create_another_company">Crear otra empresa</string>
     <string name="deeplink_error_no_internet_first_visit">Necesitás conexión para la primera visita a este catálogo.</string>
@@ -69,6 +77,9 @@
     <string name="client_catalog_offline_subtitle">Conectate a internet para descargar el catálogo por primera vez.</string>
     <string name="client_catalog_admin_hybrid_hint">Estás explorando una tienda visitada.</string>
     <string name="client_catalog_go_my_business">Volver a mi empresa</string>
+    <string name="client_catalog_return_business_title">Volver a mi negocio</string>
+    <string name="client_catalog_return_business_message">Tenés productos en el carrito de %1$s. Si volvés a tu negocio, ese carrito se vaciará.</string>
+    <string name="client_catalog_return_business_confirm">Volver y vaciar</string>
     <string name="client_cart_placeholder_title">Carrito en construcción</string>
     <string name="client_cart_placeholder_subtitle">Vamos a habilitar el checkout del cliente en el siguiente batch.</string>
     <string name="cart">Carrito</string>
@@ -81,7 +92,6 @@
     <string name="cart_item_unit_price">%1$s c/u</string>
     <string name="cart_item_subtotal">Subtotal: %1$s</string>
     <string name="cart_item_previous_price">Antes: %1$s</string>
-    <string name="cart_item_new_price">Ahora: %1$s</string>
     <string name="cart_item_unavailable">Ya no disponible</string>
     <string name="cart_checkout_whatsapp">Enviar pedido por WhatsApp</string>
     <string name="cart_checkout_pending">La validación de precios se habilita en el siguiente batch.</string>
@@ -101,7 +111,7 @@
     <string name="product_detail_subtotal">Subtotal: %1$s</string>
     <string name="client_catalog_placeholder_title">Catálogo del cliente</string>
     <string name="client_catalog_placeholder_subtitle">Sincronización lista para %1$s. La pantalla completa del catálogo se implementa en el siguiente batch.</string>
-    <string name="my_stores_placeholder_subtitle">Tus tiendas visitadas aparecerán acá después de abrir un catálogo por enlace.</string>
+    <string name="my_stores_placeholder_subtitle">Escaneá el QR del catálogo o ingresá manualmente el código que comparte el dueño o encargado.</string>
 
     <!-- Empty states -->
     <string name="empty_state_products">Aún no tenés productos</string>
@@ -204,7 +214,6 @@
     <string name="search">Buscar</string>
     <string name="config_title">Configuración</string>
     <string name="config_section_actions">ACCIONES</string>
-    <string name="config_label_whatsapp">WhatsApp de pedidos</string>
     <string name="config_label_specialization">Especialización</string>
     <string name="config_label_address">Dirección</string>
     <string name="config_label_hours">Horarios</string>
@@ -233,7 +242,7 @@
     <string name="orders_empty_title">Aún no registraste pedidos</string>
     <string name="orders_empty_subtitle">Gestioná las ventas de tu empresa registrando tu primer pedido.</string>
     <string name="order_placeholder_customer">Nombre del cliente</string>
-    <string name="order_label_phone">WhatsApp</string>
+    <string name="whatsapp_label">WhatsApp</string>
     <string name="order_placeholder_notes">Notas adicionales…</string>
     <string name="order_section_products">PRODUCTOS</string>
     <string name="order_add_product">Agregar</string>

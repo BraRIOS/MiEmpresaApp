@@ -1,10 +1,12 @@
 package com.brios.miempresa.catalog.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,13 +14,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
@@ -27,7 +30,6 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -46,9 +48,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,7 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
-import com.brios.miempresa.catalog.ui.components.CatalogProductCard
+import com.brios.miempresa.catalog.ui.components.CatalogProductItem
 import com.brios.miempresa.catalog.ui.components.CompanyHeader
 import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.core.data.local.entities.Company
@@ -66,7 +65,6 @@ import com.brios.miempresa.core.ui.components.EmptyStateView
 import com.brios.miempresa.core.ui.components.NotFoundView
 import com.brios.miempresa.core.ui.components.OfflineBanner
 import com.brios.miempresa.core.ui.components.SearchBar
-import com.brios.miempresa.core.ui.components.SearchBarVariant
 import com.brios.miempresa.core.ui.components.TriangleArrowRefreshIndicator
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
@@ -98,11 +96,11 @@ fun ClientCatalogScreen(
         onClearCategoryFilter = viewModel::clearCategoryFilter,
         onClearFilters = viewModel::clearFilters,
         onAddProductToCart = { viewModel.addProductToCart(it) },
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ClientCatalogScreenContent(
     uiState: ClientCatalogState,
@@ -135,7 +133,7 @@ fun ClientCatalogScreenContent(
         },
     ) {
         when (uiState) {
-            is ClientCatalogState.Loading -> {
+            ClientCatalogState.Loading -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
@@ -145,10 +143,9 @@ fun ClientCatalogScreenContent(
             }
 
             is ClientCatalogState.Error -> {
-                val message = uiState.message
                 EmptyStateView(
                     icon = Icons.Outlined.SearchOff,
-                    title = message,
+                    title = uiState.message,
                     subtitle = "",
                     actionLabel = stringResource(R.string.deeplink_retry),
                     onAction = onRefresh,
@@ -160,29 +157,23 @@ fun ClientCatalogScreenContent(
             is ClientCatalogState.Offline,
             -> {
                 val data = uiState.data
-                val gridState = rememberLazyGridState()
-                val collapseRangePx = with(LocalDensity.current) { 180.dp.toPx() }
-                val collapseFraction by
-                    remember(gridState, collapseRangePx, uiState) {
+                val listState = rememberLazyListState()
+                val showCollapsedTitle by
+                    remember(listState, uiState) {
                         derivedStateOf {
-                            if (uiState !is ClientCatalogState.Success) {
-                                0f
-                            } else if (gridState.firstVisibleItemIndex > 0) {
-                                1f
-                            } else {
-                                (gridState.firstVisibleItemScrollOffset / collapseRangePx).coerceIn(0f, 1f)
-                            }
+                            uiState is ClientCatalogState.Success &&
+                                (listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 72)
                         }
                     }
-                val showCollapsedTitle = uiState is ClientCatalogState.Success && collapseFraction > 0.45f
                 var showCategorySelector by rememberSaveable(data.company.id) { mutableStateOf(false) }
                 val categoryOptions =
                     remember(data.categories, data.company.id) {
-                        data.categories.map { categoryName ->
+                        data.categories.map { rawCategory ->
+                            val (emoji, name) = splitCategoryLabel(rawCategory)
                             Category(
-                                id = categoryName,
-                                name = categoryName,
-                                iconEmoji = "",
+                                id = rawCategory,
+                                name = name,
+                                iconEmoji = emoji,
                                 companyId = data.company.id,
                             )
                         }
@@ -198,96 +189,37 @@ fun ClientCatalogScreenContent(
                         onNavigateToCart = { onNavigateToCart(data.company.id) },
                     )
 
-                    if (uiState is ClientCatalogState.Success) {
-                        CollapsibleCompanyHeader(
-                            company = data.company,
-                            visibleFraction = 1f - collapseFraction,
-                        )
-                    } else {
-                        CompanyHeader(
-                            company = data.company,
-                            modifier = Modifier.padding(top = AppDimensions.smallPadding),
-                        )
-                    }
-
-                    CatalogFilterRow(
-                        query = data.searchQuery,
-                        selectedCategory = data.selectedCategory,
-                        onQueryChange = onSearchQueryChange,
-                        onCategoryClick = { showCategorySelector = true },
-                    )
-
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-                    if (data.isOffline) {
-                        OfflineBanner()
-                    }
-
                     when (uiState) {
                         is ClientCatalogState.Success -> {
-                            LazyVerticalGrid(
-                                state = gridState,
-                                columns = GridCells.Fixed(2),
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
-                                horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
-                                contentPadding =
-                                    PaddingValues(
-                                        start = AppDimensions.mediumPadding,
-                                        end = AppDimensions.mediumPadding,
-                                        top = AppDimensions.smallPadding,
-                                        bottom =
-                                            if (data.isAdminHybrid) {
-                                                AppDimensions.extraLargePadding * 3
-                                            } else {
-                                                AppDimensions.largePadding
-                                            },
-                                    ),
-                            ) {
-                                items(
-                                    items = uiState.data.products,
-                                    key = { it.id },
-                                ) { product ->
-                                    CatalogProductCard(
-                                        product = product,
-                                        onClick = { onNavigateToProductDetail(product.id) },
-                                        onAddToCart = { onAddProductToCart(product.id) },
-                                    )
-                                }
-                            }
+                            CatalogSuccessContent(
+                                data = data,
+                                listState = listState,
+                                onSearchQueryChange = onSearchQueryChange,
+                                onCategoryClick = { showCategorySelector = true },
+                                onNavigateToProductDetail = onNavigateToProductDetail,
+                                onAddProductToCart = onAddProductToCart,
+                            )
                         }
 
-                        is ClientCatalogState.Empty -> {
-                            if (uiState.hasActiveFilters) {
-                                NotFoundView(
-                                    modifier = Modifier.weight(1f),
-                                    message = stringResource(R.string.client_catalog_empty_filtered),
-                                    onAction = onClearFilters,
-                                )
-                            } else {
-                                EmptyStateView(
-                                    modifier = Modifier.weight(1f),
-                                    icon = Icons.Filled.ShoppingBag,
-                                    title = stringResource(R.string.client_catalog_empty_title),
-                                    subtitle = stringResource(R.string.client_catalog_empty_subtitle),
-                                )
-                            }
-                        }
-
-                        is ClientCatalogState.Offline -> {
-                            EmptyStateView(
-                                modifier = Modifier.weight(1f),
-                                icon = Icons.Outlined.CloudOff,
-                                title = stringResource(R.string.client_catalog_offline_title),
-                                subtitle = stringResource(R.string.client_catalog_offline_subtitle),
-                                actionLabel = stringResource(R.string.deeplink_retry),
-                                onAction = onRefresh,
+                        is ClientCatalogState.Empty,
+                        is ClientCatalogState.Offline,
+                        -> {
+                            CatalogStaticContent(
+                                state = uiState,
+                                onSearchQueryChange = onSearchQueryChange,
+                                onCategoryClick = { showCategorySelector = true },
+                                onRefresh = onRefresh,
+                                onClearFilters = onClearFilters,
                             )
                         }
                     }
 
                     if (data.isAdminHybrid) {
-                        AdminHybridReturnBanner(onClick = onNavigateToHome)
+                        AdminHybridReturnBanner(
+                            onClick = {
+                                onNavigateToHome()
+                            },
+                        )
                     }
                 }
 
@@ -308,31 +240,154 @@ fun ClientCatalogScreenContent(
                         onDismiss = { showCategorySelector = false },
                     )
                 }
+
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ColumnScope.CatalogSuccessContent(
+    data: ClientCatalogUiData,
+    listState: androidx.compose.foundation.lazy.LazyListState,
+    onSearchQueryChange: (String) -> Unit,
+    onCategoryClick: () -> Unit,
+    onNavigateToProductDetail: (String) -> Unit,
+    onAddProductToCart: (String) -> Unit,
+) {
+    val productRows = remember(data.products) { data.products.chunked(2) }
+
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.weight(1f),
+        contentPadding =
+            PaddingValues(
+                bottom =
+                    if (data.isAdminHybrid) {
+                        AppDimensions.extraLargePadding * 3
+                    } else {
+                        AppDimensions.largePadding
+                    },
+            ),
+    ) {
+        item("company-header") {
+            CompanyHeader(
+                company = data.company,
+                modifier = Modifier.padding(top = AppDimensions.mediumPadding, bottom = AppDimensions.smallPadding),
+                )
+        }
+
+        stickyHeader("catalog-filters") {
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.background),
+            ) {
+                CatalogFilterRow(
+                    query = data.searchQuery,
+                    selectedCategory = data.selectedCategory,
+                    onQueryChange = onSearchQueryChange,
+                    onCategoryClick = onCategoryClick,
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            }
+        }
+
+        if (data.isOffline) {
+            item("offline-banner") { OfflineBanner() }
+        }
+
+        items(
+            items = productRows,
+            key = { row -> row.first().id },
+        ) { rowProducts ->
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = AppDimensions.mediumPadding)
+                        .padding(top = AppDimensions.mediumPadding),
+                horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding)
+            ) {
+                rowProducts.forEach { product ->
+                    CatalogProductItem(
+                        product = product,
+                        onClick = { onNavigateToProductDetail(product.id) },
+                        onAddToCart = { onAddProductToCart(product.id) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                if (rowProducts.size == 1) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
         }
     }
 }
 
 @Composable
-private fun CollapsibleCompanyHeader(
-    company: Company,
-    visibleFraction: Float,
+private fun ColumnScope.CatalogStaticContent(
+    state: ClientCatalogState,
+    onSearchQueryChange: (String) -> Unit,
+    onCategoryClick: () -> Unit,
+    onRefresh: () -> Unit,
+    onClearFilters: () -> Unit,
 ) {
-    val clampedFraction = visibleFraction.coerceIn(0f, 1f)
-    if (clampedFraction <= 0f) return
-
-    Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(220.dp * clampedFraction)
-                .clipToBounds()
-                .alpha(clampedFraction),
+    val data = state.data
+    Column(
+        modifier = Modifier.weight(1f),
     ) {
         CompanyHeader(
-            company = company,
+            company = data.company,
             modifier = Modifier.padding(top = AppDimensions.smallPadding),
         )
+
+        CatalogFilterRow(
+            query = data.searchQuery,
+            selectedCategory = data.selectedCategory,
+            onQueryChange = onSearchQueryChange,
+            onCategoryClick = onCategoryClick,
+        )
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+        if (data.isOffline) {
+            OfflineBanner()
+        }
+
+        when (state) {
+            is ClientCatalogState.Empty -> {
+                if (state.hasActiveFilters) {
+                    NotFoundView(
+                        modifier = Modifier.weight(1f),
+                        message = stringResource(R.string.client_catalog_empty_filtered),
+                        onAction = onClearFilters,
+                    )
+                } else {
+                    EmptyStateView(
+                        modifier = Modifier.weight(1f),
+                        icon = Icons.Filled.ShoppingBag,
+                        title = stringResource(R.string.client_catalog_empty_title),
+                        subtitle = stringResource(R.string.client_catalog_empty_subtitle),
+                    )
+                }
+            }
+
+            is ClientCatalogState.Offline -> {
+                EmptyStateView(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Outlined.CloudOff,
+                    title = stringResource(R.string.client_catalog_offline_title),
+                    subtitle = stringResource(R.string.client_catalog_offline_subtitle),
+                    actionLabel = stringResource(R.string.deeplink_retry),
+                    onAction = onRefresh,
+                )
+            }
+
+            else -> Unit
+        }
     }
 }
 
@@ -348,20 +403,20 @@ private fun CatalogFilterRow(
             Modifier
                 .fillMaxWidth()
                 .padding(
-                    horizontal = AppDimensions.mediumPadding,
                     vertical = AppDimensions.smallPadding,
+                    horizontal = AppDimensions.mediumPadding,
                 ),
-        horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         SearchBar(
             query = query,
             onQueryChange = onQueryChange,
             placeholderText = stringResource(R.string.search_products),
-            variant = SearchBarVariant.Filled,
             modifier = Modifier.weight(1f),
         )
         CategoryFilterChip(
+            modifier = Modifier.height(AppDimensions.searchBarHeight),
             selectedCategoryName = selectedCategory,
             onClick = onCategoryClick,
         )
@@ -405,18 +460,26 @@ private fun CatalogTopBar(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.weight(1f),
             )
-            IconButton(onClick = onNavigateToCart) {
-                BadgedBox(
-                    badge = {
-                        if (cartCount > 0) {
-                            Badge { Text(text = cartCount.toString()) }
-                        }
-                    },
-                ) {
+            Box(contentAlignment = Alignment.Center) {
+                IconButton(onClick = onNavigateToCart) {
                     Icon(
                         imageVector = Icons.Filled.ShoppingCart,
                         contentDescription = stringResource(R.string.cart),
                     )
+                }
+                if (cartCount > 0) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = (-2).dp, y = 2.dp)
+                                .background(MaterialTheme.colorScheme.surfaceContainerLowest, CircleShape)
+                                .padding(2.dp),
+                    ) {
+                        Badge {
+                            Text(text = cartCount.toString())
+                        }
+                    }
                 }
             }
         }
@@ -462,6 +525,22 @@ private fun AdminHybridReturnBanner(
     }
 }
 
+private fun splitCategoryLabel(rawValue: String): Pair<String, String> {
+    val trimmed = rawValue.trim()
+    val separatorIndex = trimmed.indexOf(' ')
+    if (separatorIndex <= 0) {
+        return "" to trimmed
+    }
+    val prefix = trimmed.substring(0, separatorIndex)
+    val suffix = trimmed.substring(separatorIndex + 1).trim()
+    val looksLikeEmojiPrefix = prefix.length <= 4 && prefix.any { !it.isLetterOrDigit() }
+    return if (looksLikeEmojiPrefix && suffix.isNotBlank()) {
+        prefix to suffix
+    } else {
+        "" to trimmed
+    }
+}
+
 private val ClientCatalogState.data: ClientCatalogUiData
     get() =
         when (this) {
@@ -475,45 +554,56 @@ private val ClientCatalogState.data: ClientCatalogUiData
 @Preview
 @Composable
 private fun ClientCatalogScreenPreview() {
-    val company = Company(
-        id = "1",
-        name = "Mi Empresa",
-        specialization = "Gestión de catálogos y pedidos",
-        address = "Calle Falsa 123",
-        businessHours = "09:00 - 18:00",
-        whatsappNumber = "123456789",
-        whatsappCountryCode = "+54",
-        isOwned = true
-    )
-    val products = listOf(
-        ProductEntity(
+    val company =
+        Company(
             id = "1",
-            name = "Producto 1",
-            price = 100.0,
-            companyId = "1",
-            categoryName = "Categoria 1"
-        ),
-        ProductEntity(
-            id = "2",
-            name = "Producto 2",
-            price = 200.0,
-            companyId = "1",
-            categoryName = "Categoria 2"
+            name = "Mi Empresa",
+            specialization = "Gestión de catálogos y pedidos",
+            address = "Calle Falsa 123",
+            businessHours = "09:00 - 18:00",
+            whatsappNumber = "123456789",
+            whatsappCountryCode = "+54",
+            isOwned = true,
         )
-    )
-    val uiState = ClientCatalogState.Success(
-        data = ClientCatalogUiData(
-            company = company,
-            products = products,
-            categories = listOf("Categoria 1", "Categoria 2"),
-            categoryProductCount = mapOf("Categoria 1" to 1, "Categoria 2" to 1),
-            selectedCategory = null,
-            searchQuery = "",
-            cartCount = 2,
-            isOffline = false,
-            isAdminHybrid = false
+    val products =
+        listOf(
+            ProductEntity(
+                id = "1",
+                name = "Producto with a very large name that must fit in 3 lines",
+                price = 100.0,
+                companyId = "1",
+                categoryName = "🥤 Categoria 1",
+            ),
+            ProductEntity(
+                id = "2",
+                name = "Producto 2",
+                price = 200.0,
+                companyId = "1",
+                categoryName = "🍔 Categoria 2",
+            ),
+            ProductEntity(
+                id = "3",
+                name = "Producto 3",
+                price = 200.0,
+                companyId = "1",
+                categoryName = "🍔 Categoria 1",
+            ),
         )
-    )
+    val uiState =
+        ClientCatalogState.Success(
+            data =
+                ClientCatalogUiData(
+                    company = company,
+                    products = products,
+                    categories = listOf("🥤 Categoria 1", "🍔 Categoria 2"),
+                    categoryProductCount = mapOf("🥤 Categoria 1" to 1, "🍔 Categoria 2" to 1),
+                    selectedCategory = null,
+                    searchQuery = "",
+                    cartCount = 2,
+                    isOffline = false,
+                    isAdminHybrid = false,
+                ),
+        )
 
     MiEmpresaTheme {
         ClientCatalogScreenContent(
@@ -528,7 +618,7 @@ private fun ClientCatalogScreenPreview() {
             onCategoryToggle = {},
             onClearCategoryFilter = {},
             onClearFilters = {},
-            onAddProductToCart = {}
+            onAddProductToCart = {},
         )
     }
 }

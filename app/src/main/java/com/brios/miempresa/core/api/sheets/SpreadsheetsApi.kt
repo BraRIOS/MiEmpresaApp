@@ -125,7 +125,7 @@ class SpreadsheetsApi
                 try {
                     request.execute()?.getValues() ?: emptyList()
                 } catch (e: GoogleJsonResponseException) {
-                    if (apiKey.isNullOrBlank() && e.statusCode in setOf(400, 401, 403)) {
+                    if (e.statusCode in setOf(400, 401, 403)) {
                         readPublicRangeFromCsv(
                             spreadsheetId = spreadsheetId,
                             range = range,

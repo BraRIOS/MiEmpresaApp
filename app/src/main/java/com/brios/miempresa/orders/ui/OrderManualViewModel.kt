@@ -176,6 +176,7 @@ class OrderManualViewModel
                         OrderItemEntity(
                             id = "${orderId}_$index",
                             orderId = orderId,
+                            companyId = companyId,
                             productId = item.productId,
                             productName = item.productName,
                             priceAtOrder = item.price,

@@ -39,7 +39,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -58,6 +57,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
@@ -79,7 +79,7 @@ fun DrawerComposable(
 ) {
     val viewModel = signInViewModel ?: if (!LocalInspectionMode.current) hiltViewModel() else null
     val user = viewModel?.getSignedInUser()
-    val selectedCompanyState = viewModel?.getSelectedCompany()?.observeAsState()
+    val selectedCompanyState = viewModel?.observeSelectedCompany()?.collectAsStateWithLifecycle(initialValue = null)
     val selectedCompany: Company? by selectedCompanyState ?: remember { mutableStateOf(null) }
     val context = LocalActivity.current
     DrawerContent(drawerState, user, selectedCompany, context, viewModel, navController, content)
@@ -288,7 +288,6 @@ private fun DrawerContent(
                 TextButton(onClick = {
                     showLogoutDialog = false
                     if (signInViewModel != null && context != null) {
-                        signInViewModel.resetStates()
                         signInViewModel.signOut(context)
                         navController.navigate(MiEmpresaScreen.Welcome.name) {
                             popUpTo(0) { inclusive = true }

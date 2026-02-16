@@ -2,6 +2,7 @@ package com.brios.miempresa.config.ui
 
 import android.app.Activity
 import android.content.Intent
+import android.widget.Toast
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -47,6 +48,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -101,13 +103,26 @@ fun ConfigScreen(
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
     var showQrSheet by rememberSaveable { mutableStateOf(false) }
 
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is ConfigEvent.ShowSnackbar -> {
+                    Toast.makeText(activity, event.message, Toast.LENGTH_SHORT).show()
+                }
+                ConfigEvent.NavigateToWelcome -> onNavigateToWelcome()
+                ConfigEvent.NavigateToOrders -> onNavigateToOrders()
+                ConfigEvent.ShowShareSheet -> showQrSheet = true
+            }
+        }
+    }
+
     ConfigScreenContent(
         modifier = modifier,
         form = form,
         publicSheetId = publicSheetId,
         isSyncing = isSyncing,
         onNavigateToEditCompany = onNavigateToEditCompany,
-        onNavigateToOrders = onNavigateToOrders,
+        onNavigateToOrders = viewModel::navigateToOrders,
         onShareCode = { sheetId ->
             val shareText = activity.getString(R.string.config_share_code_message, sheetId)
             val sendIntent = Intent(Intent.ACTION_SEND).apply {
@@ -116,7 +131,7 @@ fun ConfigScreen(
             }
             activity.startActivity(Intent.createChooser(sendIntent, null))
         },
-        onGenerateQr = { showQrSheet = true },
+        onGenerateQr = viewModel::showShareSheet,
         onSyncNow = viewModel::syncNow,
         onLogoutClick = { showLogoutDialog = true },
     )
@@ -132,7 +147,6 @@ fun ConfigScreen(
                 TextButton(onClick = {
                     showLogoutDialog = false
                     viewModel.signOut(activity)
-                    onNavigateToWelcome()
                 }) {
                     Text(stringResource(R.string.config_logout_confirm))
                 }
@@ -282,7 +296,7 @@ private fun ReadonlyCompanyCard(form: ConfigFormState) {
             )
             HorizontalDivider(color = SlateGray100)
             ReadonlyRow(
-                label = stringResource(R.string.config_label_whatsapp).uppercase(),
+                label = stringResource(R.string.whatsapp_label).uppercase(),
                 value = if (form.whatsappNumber.isNotBlank()) {
                     "${form.whatsappCountryCode} ${form.whatsappNumber}"
                 } else {
@@ -320,7 +334,7 @@ private fun ReadonlyRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(
-                horizontal = AppDimensions.mediumPadding,
+                horizontal = AppDimensions.smallPadding,
                 vertical = AppDimensions.mediumSmallPadding,
             ),
         horizontalArrangement = Arrangement.SpaceBetween,

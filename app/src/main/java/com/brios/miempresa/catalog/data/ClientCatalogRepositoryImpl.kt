@@ -4,6 +4,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.room.withTransaction
 import com.brios.miempresa.BuildConfig
+import com.brios.miempresa.cart.data.CartItemDao
 import com.brios.miempresa.catalog.domain.CatalogAccessError
 import com.brios.miempresa.catalog.domain.CatalogSyncException
 import com.brios.miempresa.catalog.domain.ClientCatalogRepository
@@ -34,6 +35,7 @@ class ClientCatalogRepositoryImpl
         private val spreadsheetsApi: SpreadsheetsApi,
         private val companyDao: CompanyDao,
         private val productDao: ProductDao,
+        private val cartItemDao: CartItemDao,
         private val database: MiEmpresaDatabase,
         private val connectivityManager: ConnectivityManager,
         @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -98,12 +100,38 @@ class ClientCatalogRepositoryImpl
                         rows = productRows,
                         now = now,
                     )
+                val protectedCartProductIds =
+                    cartItemDao
+                        .getAll(companyId)
+                        .map { it.productId }
+                        .toSet()
 
                 database.withTransaction {
                     companyDao.insertCompany(company)
-                    productDao.deleteByCompanyId(companyId)
+                    val incomingIds = products.map(ProductEntity::id).toSet()
                     if (products.isNotEmpty()) {
                         productDao.upsertAll(products)
+                    }
+                    val staleIds =
+                        productDao
+                            .getPublicIdsByCompany(companyId)
+                            .filterNot(incomingIds::contains)
+                    if (staleIds.isNotEmpty()) {
+                        val preserveForCartIds = staleIds.filter(protectedCartProductIds::contains)
+                        val deleteIds = staleIds.filterNot(protectedCartProductIds::contains)
+
+                        if (preserveForCartIds.isNotEmpty()) {
+                            productDao.markPublicDeletedByIds(
+                                companyId = companyId,
+                                ids = preserveForCartIds,
+                            )
+                        }
+                        if (deleteIds.isNotEmpty()) {
+                            productDao.deletePublicByIds(
+                                companyId = companyId,
+                                ids = deleteIds,
+                            )
+                        }
                     }
                 }
 

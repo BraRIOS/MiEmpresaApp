@@ -1,7 +1,5 @@
 package com.brios.miempresa.catalog.ui
 
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,6 +10,7 @@ import com.brios.miempresa.catalog.domain.CatalogSyncException
 import com.brios.miempresa.catalog.domain.ClientCatalogRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.core.data.local.entities.Company
+import com.brios.miempresa.core.network.NetworkMonitor
 import com.brios.miempresa.products.data.ProductDao
 import com.brios.miempresa.products.data.ProductEntity
 import com.brios.miempresa.products.data.PublicCategoryCount
@@ -51,7 +50,7 @@ class ClientCatalogViewModel
         private val cartItemDao: CartItemDao,
         private val cartRepository: CartRepository,
         private val clientCatalogRepository: ClientCatalogRepository,
-        private val connectivityManager: ConnectivityManager,
+        private val networkMonitor: NetworkMonitor,
     ) : ViewModel() {
         private val companyId: String = savedStateHandle.get<String>("companyId").orEmpty()
         private val searchQuery = MutableStateFlow("")
@@ -59,6 +58,13 @@ class ClientCatalogViewModel
         private val refreshErrorMessage = MutableStateFlow<String?>(null)
         private val isAdminHybrid = MutableStateFlow(false)
         private val _isRefreshing = MutableStateFlow(false)
+        private val isOnlineFlow =
+            networkMonitor.observeOnlineStatus()
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5_000),
+                    initialValue = networkMonitor.isOnlineNow(),
+                )
 
         val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
@@ -148,7 +154,8 @@ class ClientCatalogViewModel
                 refreshErrorMessage,
                 isAdminHybrid,
                 _isRefreshing,
-            ) { snapshot, errorMessage, adminHybrid, refreshing ->
+                isOnlineFlow,
+            ) { snapshot, errorMessage, adminHybrid, refreshing, isOnline ->
                 if (companyId.isBlank()) {
                     return@combine ClientCatalogState.Error("No pudimos abrir este catálogo")
                 }
@@ -175,7 +182,7 @@ class ClientCatalogViewModel
                         selectedCategory = snapshot.selectedCategory,
                         searchQuery = snapshot.query,
                         cartCount = snapshot.cartCount,
-                        isOffline = !isOnline(),
+                        isOffline = !isOnline,
                         isAdminHybrid = adminHybrid,
                     )
 
@@ -201,8 +208,10 @@ class ClientCatalogViewModel
         init {
             viewModelScope.launch {
                 isAdminHybrid.value = companyDao.getOwnedCompanyCount() > 0
+                if (companyId.isNotBlank() && productDao.getPublicCount(companyId) == 0) {
+                    refreshCatalog()
+                }
             }
-            refreshCatalog()
         }
 
         fun onSearchQueryChange(value: String) {
@@ -278,9 +287,4 @@ class ClientCatalogViewModel
             return error.message ?: "No pudimos sincronizar el catálogo"
         }
 
-        private fun isOnline(): Boolean {
-            val network = connectivityManager.activeNetwork ?: return false
-            val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
-            return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-        }
     }

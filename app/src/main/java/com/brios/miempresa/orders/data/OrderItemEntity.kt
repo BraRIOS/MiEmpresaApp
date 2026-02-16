@@ -16,12 +16,14 @@ import androidx.room.PrimaryKey
         ),
     ],
     indices = [
-        Index(value = ["orderId"]),
+        Index(value = ["orderId", "companyId"]),
+        Index(value = ["companyId"]),
     ],
 )
 data class OrderItemEntity(
     @PrimaryKey val id: String,
     val orderId: String,
+    val companyId: String,
     val productId: String?,
     val productName: String,
     val priceAtOrder: Double,

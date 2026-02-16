@@ -24,7 +24,7 @@ import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 fun MiEmpresaDialog(
     title: String,
     confirmLabel: String,
-    dismissLabel: String,
+    dismissLabel: String? = null,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
     icon: ImageVector = Icons.Outlined.Info,
@@ -60,6 +60,7 @@ fun MiEmpresaDialog(
                     )
                 }
             }
+
             else -> null
         },
         confirmButton = {
@@ -71,13 +72,14 @@ fun MiEmpresaDialog(
             }
         },
         dismissButton = {
-            OutlinedButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.outlinedButtonColors()
-                    .copy(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
-            ) {
-                Text(dismissLabel)
-            }
+            if (dismissLabel != null)
+                OutlinedButton(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.outlinedButtonColors()
+                        .copy(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
+                ) {
+                    Text(dismissLabel)
+                }
         },
         containerColor = MaterialTheme.colorScheme.background,
     )

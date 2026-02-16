@@ -117,9 +117,6 @@ interface ProductDao {
     )
 
     // Client flow queries
-    @Query("SELECT * FROM products WHERE companyId = :companyId AND isPublic = 1 AND deleted = 0")
-    fun getByCompanyIdPublic(companyId: String): Flow<List<ProductEntity>>
-
     @Query(
         """
         SELECT * FROM products
@@ -159,13 +156,35 @@ interface ProductDao {
     @Query("SELECT COUNT(*) FROM products WHERE companyId = :companyId AND isPublic = 1 AND deleted = 0")
     fun observePublicCount(companyId: String): Flow<Int>
 
-    @Query(
-        "SELECT * FROM products WHERE companyId = :companyId AND categoryName = :categoryName AND deleted = 0",
-    )
-    fun getProductsByCategory(
+    @Query("SELECT COUNT(*) FROM products WHERE companyId = :companyId AND isPublic = 1 AND deleted = 0")
+    suspend fun getPublicCount(companyId: String): Int
+
+    @Query("SELECT id FROM products WHERE companyId = :companyId AND isPublic = 1")
+    suspend fun getPublicIdsByCompany(companyId: String): List<String>
+
+    @Query("DELETE FROM products WHERE companyId = :companyId AND isPublic = 1")
+    suspend fun deleteAllPublicByCompany(companyId: String)
+
+    @Query("DELETE FROM products WHERE companyId = :companyId AND isPublic = 1 AND id IN (:ids)")
+    suspend fun deletePublicByIds(
         companyId: String,
-        categoryName: String,
-    ): Flow<List<ProductEntity>>
+        ids: List<String>,
+    )
+
+    @Query(
+        """
+        UPDATE products
+        SET deleted = 1,
+            dirty = 0
+        WHERE companyId = :companyId
+          AND isPublic = 1
+          AND id IN (:ids)
+        """,
+    )
+    suspend fun markPublicDeletedByIds(
+        companyId: String,
+        ids: List<String>,
+    )
 
     @Query("DELETE FROM products WHERE companyId = :companyId")
     suspend fun deleteByCompanyId(companyId: String)

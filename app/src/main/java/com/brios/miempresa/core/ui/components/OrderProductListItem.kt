@@ -29,6 +29,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,6 +43,11 @@ import com.brios.miempresa.core.ui.theme.SlateGray400
 import java.text.NumberFormat
 import java.util.Locale
 
+data class OrderProductPriceChange(
+    val oldPrice: Double,
+    val newPrice: Double,
+)
+
 @Composable
 fun OrderProductListItem(
     name: String,
@@ -51,7 +57,9 @@ fun OrderProductListItem(
     onQuantityChange: (Int) -> Unit,
     onRemove: () -> Unit,
     modifier: Modifier = Modifier,
-    isCard: Boolean = true
+    isCard: Boolean = true,
+    priceChange: OrderProductPriceChange? = null,
+    unavailableLabel: String? = null,
 ) {
     if (isCard) {
         Card(
@@ -68,7 +76,9 @@ fun OrderProductListItem(
                 quantity = quantity,
                 imageUrl = imageUrl,
                 onQuantityChange = onQuantityChange,
-                onRemove = onRemove
+                onRemove = onRemove,
+                priceChange = priceChange,
+                unavailableLabel = unavailableLabel,
             )
         }
     } else {
@@ -79,7 +89,9 @@ fun OrderProductListItem(
             imageUrl = imageUrl,
             onQuantityChange = onQuantityChange,
             onRemove = onRemove,
-            modifier = modifier
+            modifier = modifier,
+            priceChange = priceChange,
+            unavailableLabel = unavailableLabel,
         )
     }
 }
@@ -92,7 +104,9 @@ private fun OrderProductContent(
     imageUrl: String?,
     onQuantityChange: (Int) -> Unit,
     onRemove: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    priceChange: OrderProductPriceChange? = null,
+    unavailableLabel: String? = null,
 ) {
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR"))
 
@@ -154,6 +168,19 @@ private fun OrderProductContent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
+                    if (priceChange != null) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = stringResource(R.string.cart_item_previous_price, currencyFormat.format(priceChange.oldPrice)),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textDecoration = TextDecoration.LineThrough,
+                            )
+                        }
+                    }
                     Text(
                         text = currencyFormat.format(price * quantity),
                         style = MaterialTheme.typography.bodyLarge,
@@ -167,11 +194,20 @@ private fun OrderProductContent(
                     )
                 }
 
-                QuantitySelector(
-                    quantity = quantity,
-                    onQuantityChange = onQuantityChange,
-                    modifier = Modifier.height(32.dp)
-                )
+                if (unavailableLabel != null) {
+                    Text(
+                        text = unavailableLabel,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                } else {
+                    QuantitySelector(
+                        quantity = quantity,
+                        onQuantityChange = onQuantityChange,
+                        modifier = Modifier.height(32.dp)
+                    )
+                }
             }
         }
     }
@@ -214,7 +250,7 @@ private fun OrderProductListItemPreview() {
     MiEmpresaTheme {
         OrderProductListItem(
             name = "Café con Leche",
-            price = 550.0,
+            price = 156800.0,
             quantity = 2,
             imageUrl = null,
             onQuantityChange = {},
@@ -238,6 +274,95 @@ private fun OrderProductListTilePreview() {
             onRemove = {},
             modifier = Modifier.padding(16.dp),
             isCard = false
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OrderProductListItemPriceChangePreview() {
+    MiEmpresaTheme {
+        OrderProductListItem(
+            name = "Café con Leche (Oferta)",
+            price = 1500.0,
+            quantity = 2,
+            imageUrl = null,
+            onQuantityChange = {},
+            onRemove = {},
+            modifier = Modifier.padding(16.dp),
+            isCard = true,
+            priceChange = OrderProductPriceChange(oldPrice = 2000.0, newPrice = 1500.0)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OrderProductListItemUnavailablePreview() {
+    MiEmpresaTheme {
+        OrderProductListItem(
+            name = "Producto Agotado",
+            price = 500.0,
+            quantity = 1,
+            imageUrl = null,
+            onQuantityChange = {},
+            onRemove = {},
+            modifier = Modifier.padding(16.dp),
+            isCard = true,
+            unavailableLabel = "Sin stock"
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OrderProductListTilePriceChangePreview() {
+    MiEmpresaTheme {
+        OrderProductListItem(
+            name = "Café con Leche (Lista)",
+            price = 1500.0,
+            quantity = 1,
+            imageUrl = null,
+            onQuantityChange = {},
+            onRemove = {},
+            modifier = Modifier.padding(16.dp),
+            isCard = false,
+            priceChange = OrderProductPriceChange(oldPrice = 1800.0, newPrice = 1500.0)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OrderProductListTileUnavailablePreview() {
+    MiEmpresaTheme {
+        OrderProductListItem(
+            name = "Producto No Disponible",
+            price = 1200.0,
+            quantity = 1,
+            imageUrl = null,
+            onQuantityChange = {},
+            onRemove = {},
+            modifier = Modifier.padding(16.dp),
+            isCard = false,
+            unavailableLabel = "No disponible"
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun OrderProductListItemLongNamePreview() {
+    MiEmpresaTheme {
+        OrderProductListItem(
+            name = "Este es un nombre de producto muy largo que debería ocupar más de dos líneas para probar el comportamiento de elipsis en la interfaz de usuario",
+            price = 1500.0,
+            quantity = 1,
+            imageUrl = null,
+            onQuantityChange = {},
+            onRemove = {},
+            modifier = Modifier.padding(16.dp),
+            isCard = true
         )
     }
 }

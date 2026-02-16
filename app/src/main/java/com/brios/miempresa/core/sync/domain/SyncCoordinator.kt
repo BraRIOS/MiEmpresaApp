@@ -35,6 +35,13 @@ class SyncCoordinator
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to download products", e)
                 }
+                try {
+                    ordersRepository.downloadFromSheets(companyId)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to download orders", e)
+                }
 
                 try {
                     categoriesRepository.syncPendingChanges(companyId)
@@ -109,6 +116,13 @@ class SyncCoordinator
         suspend fun syncOrders(): Result<Unit> {
             val companyId = getActiveCompanyId() ?: return Result.success(Unit)
             return try {
+                try {
+                    ordersRepository.downloadFromSheets(companyId)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to download orders", e)
+                }
                 ordersRepository.syncPendingChanges(companyId)
                 Result.success(Unit)
             } catch (e: CancellationException) {

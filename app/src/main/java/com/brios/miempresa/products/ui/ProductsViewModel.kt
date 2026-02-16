@@ -1,11 +1,10 @@
 package com.brios.miempresa.products.ui
 
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.categories.domain.CategoriesRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
+import com.brios.miempresa.core.network.NetworkMonitor
 import com.brios.miempresa.core.sync.SyncManager
 import com.brios.miempresa.core.sync.SyncType
 import com.brios.miempresa.products.domain.ProductsRepository
@@ -33,7 +32,7 @@ class ProductsViewModel
         private val categoriesRepository: CategoriesRepository,
         private val companyDao: CompanyDao,
         private val syncManager: SyncManager,
-        private val connectivityManager: ConnectivityManager,
+        private val networkMonitor: NetworkMonitor,
     ) : ViewModel() {
         private val _filters = MutableStateFlow(ProductFilters())
         val filters: StateFlow<ProductFilters> = _filters.asStateFlow()
@@ -43,14 +42,14 @@ class ProductsViewModel
         private val _isRefreshing = MutableStateFlow(false)
         val isRefreshing: StateFlow<Boolean> = _isRefreshing
 
-        val isOffline: Boolean
-            get() {
-                val network = connectivityManager.activeNetwork ?: return true
-                val capabilities =
-                    connectivityManager.getNetworkCapabilities(network)
-                        ?: return true
-                return !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            }
+        val isOffline: StateFlow<Boolean> =
+            networkMonitor.observeOnlineStatus()
+                .map { isOnline -> !isOnline }
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5_000),
+                    initialValue = !networkMonitor.isOnlineNow(),
+                )
 
         val uiState: StateFlow<ProductsUiState> =
             combine(_companyId, _filters) { companyId, filters ->

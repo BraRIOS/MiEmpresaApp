@@ -2,13 +2,13 @@ package com.brios.miempresa.cart.domain
 
 sealed class PriceValidationResult {
     /**
-     * ✅ Case 1: Data is fresh (<24h) or no changes detected after sync
+     * ✅ Case 1: No changes detected after cart validation sync
      * UX: Enable "Send Order" button, no banners
      */
     data object AllValid : PriceValidationResult()
 
     /**
-     * 🟡 Case 2a: Prices updated after sync (stale + online + price changes)
+     * 🟡 Case 2a: Prices updated after cart validation sync
      * UX: Yellow banner "Prices updated", show old→new, enable button
      */
     data class PricesUpdated(
@@ -27,7 +27,7 @@ sealed class PriceValidationResult {
     ) : PriceValidationResult()
 
     /**
-     * 🔴 Case 3: Data stale (>24h) and offline
+     * 🔴 Case 3: Validation blocked while offline
      * UX: Disable "Send Order" button, red banner "Connection required"
      */
     data object Blocked : PriceValidationResult()

@@ -8,10 +8,13 @@ import com.brios.miempresa.orders.data.OrderEntity
 import com.brios.miempresa.orders.data.OrderItemEntity
 import com.brios.miempresa.orders.domain.OrdersRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,6 +26,7 @@ data class OrderDetailState(
 )
 
 @HiltViewModel
+@OptIn(ExperimentalCoroutinesApi::class)
 class OrderDetailViewModel
     @Inject
     constructor(
@@ -31,18 +35,27 @@ class OrderDetailViewModel
         private val companyDao: CompanyDao,
     ) : ViewModel() {
         private val orderId: String = checkNotNull(savedStateHandle["orderId"])
+        private val companyIdFlow = MutableStateFlow<String?>(null)
 
         private val _state = MutableStateFlow(OrderDetailState())
         val state: StateFlow<OrderDetailState> = _state.asStateFlow()
 
         val items: StateFlow<List<OrderItemEntity>> =
-            ordersRepository.getOrderItems(orderId)
+            companyIdFlow
+                .flatMapLatest { companyId ->
+                    if (companyId.isNullOrBlank()) {
+                        flowOf(emptyList())
+                    } else {
+                        ordersRepository.getOrderItems(orderId, companyId)
+                    }
+                }
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
         init {
             viewModelScope.launch {
                 val company = companyDao.getSelectedOwnedCompany()
                 val companyId = company?.id ?: return@launch
+                companyIdFlow.value = companyId
                 val order = ordersRepository.getOrderById(orderId, companyId)
                 _state.value = _state.value.copy(order = order, isLoading = false)
             }

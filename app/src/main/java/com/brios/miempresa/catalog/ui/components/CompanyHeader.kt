@@ -29,14 +29,9 @@ fun CompanyHeader(
 ) {
     Column(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = AppDimensions.mediumPadding,
-                    vertical = AppDimensions.smallPadding,
-                ),
+            modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+        verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding, Alignment.CenterVertically),
     ) {
         CompanyAvatar(
             companyName = company.name,

@@ -13,6 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.compose.rememberNavController
+import com.brios.miempresa.core.util.normalizeSheetId
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.navigation.NavHostComposable
 import dagger.hilt.android.AndroidEntryPoint
@@ -57,22 +58,33 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun extractSheetId(intent: Intent?): String? {
-        val deeplink = intent?.data ?: return null
-        if (deeplink.scheme != DEEPLINK_SCHEME || deeplink.host != DEEPLINK_HOST) return null
-        val rawSheetId = deeplink.getQueryParameter(DEEPLINK_SHEET_ID_PARAM)?.trim()
-        return normalizeSheetId(rawSheetId)
-    }
-
-    private fun normalizeSheetId(rawValue: String?): String? {
-        val normalized = rawValue?.trim()?.takeIf { it.isNotEmpty() } ?: return null
-        val match = SHEETS_URL_REGEX.find(normalized)
-        return match?.groupValues?.getOrNull(1) ?: normalized
+        intent ?: return null
+        val deeplinkPayload =
+            intent.data
+                ?.takeIf { it.scheme == DEEPLINK_SCHEME && it.host == DEEPLINK_HOST }
+                ?.let { deeplink ->
+                    deeplink.getQueryParameter(DEEPLINK_SHEET_ID_PARAM)?.trim() ?: deeplink.toString()
+                }
+        return extractSheetIdFromIncomingPayload(
+            action = intent.action,
+            deeplinkPayload = deeplinkPayload,
+            sharedTextPayload = intent.getStringExtra(Intent.EXTRA_TEXT),
+        )
     }
 
     companion object {
         private const val DEEPLINK_SCHEME = "miempresa"
         private const val DEEPLINK_HOST = "catalogo"
         private const val DEEPLINK_SHEET_ID_PARAM = "sheetId"
-        private val SHEETS_URL_REGEX = Regex("""/spreadsheets/d/([a-zA-Z0-9-_]+)""")
     }
+}
+
+internal fun extractSheetIdFromIncomingPayload(
+    action: String?,
+    deeplinkPayload: String?,
+    sharedTextPayload: String?,
+): String? {
+    val primaryPayload = if (action == Intent.ACTION_SEND) sharedTextPayload else deeplinkPayload
+    val fallbackPayload = if (action == Intent.ACTION_SEND) deeplinkPayload else sharedTextPayload
+    return normalizeSheetId(primaryPayload ?: fallbackPayload)
 }

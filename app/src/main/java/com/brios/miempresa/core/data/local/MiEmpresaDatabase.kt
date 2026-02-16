@@ -27,7 +27,7 @@ import com.brios.miempresa.products.data.ProductEntity
         OrderEntity::class,
         OrderItemEntity::class,
     ],
-    version = 13,
+    version = 14,
     exportSchema = false,
 )
 abstract class MiEmpresaDatabase : RoomDatabase() {
@@ -103,6 +103,28 @@ abstract class MiEmpresaDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE order_items ADD COLUMN companyId TEXT NOT NULL DEFAULT ''")
+                db.execSQL(
+                    """
+                    UPDATE order_items
+                    SET companyId = COALESCE(
+                        (SELECT companyId FROM orders WHERE orders.id = order_items.orderId),
+                        ''
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("DROP INDEX IF EXISTS index_order_items_orderId")
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_order_items_orderId_companyId ON order_items (orderId, companyId)",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_order_items_companyId ON order_items (companyId)",
+                )
+            }
+        }
+
         fun getDatabase(context: Context): MiEmpresaDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance =
@@ -110,7 +132,7 @@ abstract class MiEmpresaDatabase : RoomDatabase() {
                         context.applicationContext,
                         MiEmpresaDatabase::class.java,
                         "miempresa_database",
-                    ).addMigrations(MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
+                    ).addMigrations(MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14)
                         .fallbackToDestructiveMigration(false)
                         .build()
                 INSTANCE = instance

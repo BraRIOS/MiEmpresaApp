@@ -24,8 +24,6 @@ class ProductsRepositoryImpl
         private val driveApi: DriveApi,
         @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) : ProductsRepository {
-        override fun getAll(companyId: String): Flow<List<ProductEntity>> = productDao.getAllByCompanyFlow(companyId)
-
         override fun getFiltered(
             companyId: String,
             searchQuery: String,
@@ -93,7 +91,11 @@ class ProductsRepositoryImpl
                 val privateSheetId = company.privateSheetId ?: return@withContext
                 val publicSheetId = company.publicSheetId
 
+                val dirtyProducts = productDao.getDirty(companyId)
                 val allProducts = productDao.getAllByCompany(companyId).filter { !it.deleted }
+                if (!shouldRewriteProductsPrivateSheet(allProducts.isNotEmpty(), dirtyProducts.isNotEmpty())) {
+                    return@withContext
+                }
 
                 val privateRows =
                     allProducts.mapIndexed { index, p ->
@@ -123,11 +125,19 @@ class ProductsRepositoryImpl
                     val categoryCache = categoryDao.getAll(companyId).associateBy { it.id }
                     val publicRows =
                         allProducts.filter { it.isPublic }.map { p ->
+                            val categoryLabel =
+                                categoryCache[p.categoryId]?.let { category ->
+                                    if (category.iconEmoji.isNotBlank()) {
+                                        "${category.iconEmoji} ${category.name}"
+                                    } else {
+                                        category.name
+                                    }
+                                } ?: ""
                             listOf<Any>(
                                 p.name,
                                 p.description ?: "",
                                 p.price,
-                                categoryCache[p.categoryId]?.name ?: "",
+                                categoryLabel,
                                 p.imageUrl ?: "",
                             )
                         }
@@ -140,7 +150,7 @@ class ProductsRepositoryImpl
                     )
                 }
 
-                val dirtyIds = productDao.getDirty(companyId).map { it.id }
+                val dirtyIds = dirtyProducts.map { it.id }
                 if (dirtyIds.isNotEmpty()) {
                     productDao.markSynced(
                         ids = dirtyIds,
@@ -292,3 +302,8 @@ class ProductsRepositoryImpl
                 listOf("Name", "Description", "Price", "Category", "ImageUrl")
         }
     }
+
+internal fun shouldRewriteProductsPrivateSheet(
+    hasActiveRows: Boolean,
+    hasDirtyRows: Boolean,
+): Boolean = hasActiveRows || hasDirtyRows

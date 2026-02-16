@@ -42,7 +42,7 @@ interface CartItemDao {
             p.price as productPrice,
             p.imageUrl as productImageUrl
         FROM cart_items c
-        INNER JOIN products p ON c.productId = p.id
+        INNER JOIN products p ON c.productId = p.id AND c.companyId = p.companyId
         WHERE c.companyId = :companyId
         ORDER BY c.addedAt DESC
         """,
@@ -60,7 +60,7 @@ interface CartItemDao {
             p.price as productPrice,
             p.imageUrl as productImageUrl
         FROM cart_items c
-        INNER JOIN products p ON c.productId = p.id
+        INNER JOIN products p ON c.productId = p.id AND c.companyId = p.companyId
         WHERE c.companyId = :companyId
         ORDER BY c.addedAt DESC
         """,
@@ -84,4 +84,7 @@ interface CartItemDao {
 
     @Query("SELECT CAST(COALESCE(SUM(quantity), 0) AS INTEGER) FROM cart_items WHERE companyId = :companyId")
     fun observeItemCount(companyId: String): Flow<Int>
+
+    @Query("SELECT companyId FROM cart_items GROUP BY companyId HAVING SUM(quantity) > 0")
+    suspend fun getCompaniesWithItems(): List<String>
 }

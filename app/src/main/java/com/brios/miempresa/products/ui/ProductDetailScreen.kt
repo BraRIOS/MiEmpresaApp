@@ -1,8 +1,10 @@
 package com.brios.miempresa.products.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -46,15 +48,20 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.SubcomposeAsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.brios.miempresa.R
 import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.core.ui.components.DeleteDialog
@@ -331,23 +338,51 @@ private fun ProductDetailImage(
     imageUrl: String?,
     contentDescription: String,
 ) {
+    val painter =
+        rememberAsyncImagePainter(
+            model =
+                ImageRequest
+                    .Builder(LocalContext.current)
+                    .data(imageUrl)
+                    .crossfade(true)
+                    .build(),
+        )
+
     Box(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .height(280.dp)
+                .aspectRatio(4f / 5f)
                 .padding(horizontal = AppDimensions.mediumPadding)
-                .clip(RoundedCornerShape(AppDimensions.mediumCornerRadius)),
+                .clip(RoundedCornerShape(AppDimensions.mediumCornerRadius))
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
         contentAlignment = Alignment.Center,
     ) {
-        SubcomposeAsyncImage(
-            model = imageUrl,
-            contentDescription = contentDescription,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-            loading = { ProductImagePlaceholder() },
-            error = { ProductImagePlaceholder() },
-        )
+        when (painter.state) {
+            is AsyncImagePainter.State.Success -> {
+                Image(
+                    painter = painter,
+                    contentDescription = null,
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .blur(radius = 20.dp)
+                            .alpha(0.55f),
+                    contentScale = ContentScale.Crop,
+                )
+                Image(
+                    painter = painter,
+                    contentDescription = contentDescription,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit,
+                )
+            }
+
+            is AsyncImagePainter.State.Error,
+            AsyncImagePainter.State.Empty,
+            is AsyncImagePainter.State.Loading,
+            -> ProductImagePlaceholder()
+        }
     }
 }
 

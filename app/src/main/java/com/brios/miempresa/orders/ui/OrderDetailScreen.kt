@@ -252,7 +252,7 @@ private fun OrderDetailContent(
                             )
                             InfoRow(
                                 icon = Icons.Outlined.Call,
-                                label = stringResource(R.string.order_label_phone),
+                                label = stringResource(R.string.whatsapp_label),
                                 value = order.customerPhone ?: "—",
                                 showDivider = true,
                             )
@@ -461,8 +461,8 @@ private fun OrderDetailPreview() {
                     totalAmount = 12200.0,
                 ),
                 items = listOf(
-                    OrderItemEntity("i1", "1", "p1", "Vino Malbec Reserva", 4500.0, 2),
-                    OrderItemEntity("i2", "1", "p2", "Aceite Extra Virgen", 3200.0, 1),
+                    OrderItemEntity("i1", "1", "c1", "p1", "Vino Malbec Reserva", 4500.0, 2),
+                    OrderItemEntity("i2", "1", "c1", "p2", "Aceite Extra Virgen", 3200.0, 1),
                 ),
                 isLoading = false,
             ),

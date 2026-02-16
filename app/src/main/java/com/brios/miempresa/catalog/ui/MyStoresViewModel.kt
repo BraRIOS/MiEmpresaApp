@@ -2,11 +2,14 @@ package com.brios.miempresa.catalog.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.brios.miempresa.cart.data.CartItemDao
+import com.brios.miempresa.cart.data.CartRepository
 import com.brios.miempresa.catalog.domain.CatalogAccessError
 import com.brios.miempresa.catalog.domain.CatalogSyncException
 import com.brios.miempresa.catalog.domain.ClientCatalogRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.core.data.local.entities.Company
+import com.brios.miempresa.core.util.normalizeSheetId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +34,12 @@ data class MyStoresUiState(
 sealed interface MyStoresEvent {
     data class NavigateToCatalog(val companyId: String) : MyStoresEvent
 
+    data class ConfirmCartReplacement(
+        val targetCompanyId: String,
+        val cartCompanyId: String,
+        val cartCompanyName: String,
+    ) : MyStoresEvent
+
     data class ShowSnackbar(val message: String) : MyStoresEvent
 }
 
@@ -40,6 +49,8 @@ class MyStoresViewModel
     constructor(
         private val companyDao: CompanyDao,
         private val clientCatalogRepository: ClientCatalogRepository,
+        private val cartItemDao: CartItemDao,
+        private val cartRepository: CartRepository,
     ) : ViewModel() {
         private val searchQuery = MutableStateFlow("")
         private val isAdminHybridContext = MutableStateFlow(false)
@@ -94,7 +105,7 @@ class MyStoresViewModel
 
         fun openStore(companyId: String) {
             viewModelScope.launch {
-                _events.emit(MyStoresEvent.NavigateToCatalog(companyId))
+                emitStoreNavigation(companyId)
             }
         }
 
@@ -112,12 +123,48 @@ class MyStoresViewModel
                 runCatching {
                     clientCatalogRepository.syncPublicSheet(sheetId).getOrThrow()
                 }.onSuccess { company ->
-                    _events.emit(MyStoresEvent.NavigateToCatalog(company.id))
+                    emitStoreNavigation(company.id)
                 }.onFailure { throwable ->
                     _events.emit(MyStoresEvent.ShowSnackbar(mapError(throwable)))
                 }
                 isAddingStore.value = false
             }
+        }
+
+        fun confirmStoreSwitch(
+            targetCompanyId: String,
+            cartCompanyId: String,
+        ) {
+            viewModelScope.launch {
+                runCatching {
+                    cartRepository.clearCart(cartCompanyId)
+                }.onSuccess {
+                    _events.emit(MyStoresEvent.NavigateToCatalog(targetCompanyId))
+                }.onFailure {
+                    _events.emit(MyStoresEvent.ShowSnackbar("No pudimos cambiar de tienda"))
+                }
+            }
+        }
+
+        private suspend fun emitStoreNavigation(targetCompanyId: String) {
+            val cartCompanyId =
+                cartItemDao
+                    .getCompaniesWithItems()
+                    .firstOrNull { it != targetCompanyId }
+
+            if (cartCompanyId == null) {
+                _events.emit(MyStoresEvent.NavigateToCatalog(targetCompanyId))
+                return
+            }
+
+            val cartCompanyName = companyDao.getCompanyById(cartCompanyId)?.name ?: "otra tienda"
+            _events.emit(
+                MyStoresEvent.ConfirmCartReplacement(
+                    targetCompanyId = targetCompanyId,
+                    cartCompanyId = cartCompanyId,
+                    cartCompanyName = cartCompanyName,
+                ),
+            )
         }
 
         private fun mapError(error: Throwable): String {
@@ -130,15 +177,5 @@ class MyStoresViewModel
                 }
             }
             return error.message ?: "No pudimos agregar la tienda"
-        }
-
-        private fun normalizeSheetId(rawValue: String?): String? {
-            val normalized = rawValue?.trim()?.takeIf { it.isNotEmpty() } ?: return null
-            val match = SHEETS_URL_REGEX.find(normalized)
-            return match?.groupValues?.getOrNull(1) ?: normalized
-        }
-
-        companion object {
-            private val SHEETS_URL_REGEX = Regex("""/spreadsheets/d/([a-zA-Z0-9-_]+)""")
         }
     }

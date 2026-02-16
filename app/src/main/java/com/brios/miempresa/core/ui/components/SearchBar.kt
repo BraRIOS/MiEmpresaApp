@@ -76,7 +76,7 @@ fun SearchBar(
                     Modifier
                 },
             )
-            .height(48.dp)
+            .height(AppDimensions.searchBarHeight)
             .then(
                 when (variant) {
                     SearchBarVariant.Outlined -> {

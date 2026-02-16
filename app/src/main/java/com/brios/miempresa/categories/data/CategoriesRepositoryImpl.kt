@@ -59,6 +59,10 @@ class CategoriesRepositoryImpl
                 val privateSheetId = company.privateSheetId ?: return@withContext
 
                 val allCategories = categoryDao.getAll(companyId)
+                val dirtyCategories = categoryDao.getDirty(companyId)
+                if (!shouldRewriteCategoriesPrivateSheet(allCategories.isNotEmpty(), dirtyCategories.isNotEmpty())) {
+                    return@withContext
+                }
                 val rows =
                     allCategories.mapIndexed { index, cat ->
                         val rowNum = index + 2
@@ -74,7 +78,6 @@ class CategoriesRepositoryImpl
                 )
                 sheetsApi.hideColumns(privateSheetId, CATEGORIES_TAB, listOf(0))
 
-                val dirtyCategories = categoryDao.getDirty(companyId)
                 val deletedIds = dirtyCategories.filter { it.deleted }.map { it.id }
                 val syncedIds = dirtyCategories.filter { !it.deleted }.map { it.id }
 
@@ -150,3 +153,8 @@ class CategoriesRepositoryImpl
             private val CATEGORIES_HEADERS = listOf("CategoryID", "Name", "ProductCount", "IconEmoji")
         }
     }
+
+internal fun shouldRewriteCategoriesPrivateSheet(
+    hasActiveRows: Boolean,
+    hasDirtyRows: Boolean,
+): Boolean = hasActiveRows || hasDirtyRows

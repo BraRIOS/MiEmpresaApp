@@ -1,12 +1,12 @@
 package com.brios.miempresa.cart.data
 
-import android.net.ConnectivityManager
 import android.util.Log
 import com.brios.miempresa.cart.domain.PriceChange
 import com.brios.miempresa.cart.domain.PriceValidationResult
 import com.brios.miempresa.cart.domain.UnavailableProduct
 import com.brios.miempresa.core.api.sheets.SpreadsheetsApi
 import com.brios.miempresa.core.data.local.daos.CompanyDao
+import com.brios.miempresa.core.network.NetworkMonitor
 import com.brios.miempresa.products.data.ProductDao
 import com.brios.miempresa.products.data.ProductEntity
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +22,7 @@ class CartRepository
         private val companyDao: CompanyDao,
         private val productDao: ProductDao,
         private val sheetsApi: SpreadsheetsApi,
-        private val connectivityManager: ConnectivityManager,
+        private val networkMonitor: NetworkMonitor,
     ) {
         suspend fun addItem(
             companyId: String,
@@ -75,36 +75,29 @@ class CartRepository
         fun observeCartCount(companyId: String): Flow<Int> =
             cartItemDao.observeItemCount(companyId)
 
+        fun observeOnlineStatus(): Flow<Boolean> = networkMonitor.observeOnlineStatus()
+
+        fun isOnlineNow(): Boolean = networkMonitor.isOnlineNow()
+
         suspend fun validateCartPrices(
             companyId: String,
             spreadsheetId: String,
         ): PriceValidationResult {
-            // 1. Get last sync timestamp
-            val company = companyDao.getCompanyById(companyId) ?: return PriceValidationResult.Blocked
-            val lastSynced = company.lastSyncedAt ?: 0L
-            val ageHours = (System.currentTimeMillis() - lastSynced) / (1000L * 60L * 60L)
-
-            // 2. Case 1: Fresh (<24h)
-            // Handle clock skew or invalid timestamp
-            if (ageHours < 0) {
-                Log.w("CartRepository", "lastSyncedAt is in future, treating as stale")
-                // Treat as stale, proceed to online check
-            } else if (ageHours <= 24) {
+            // Require a valid company and cart before validating.
+            if (companyDao.getCompanyById(companyId) == null) {
+                return PriceValidationResult.Blocked
+            }
+            val cartItems = cartItemDao.getAll(companyId)
+            if (cartItems.isEmpty()) {
                 return PriceValidationResult.AllValid
             }
 
-            // 3. Case 3: Stale + Offline
+            // Cart validation always performs a partial sync for cart items.
             if (!isOnline()) {
                 return PriceValidationResult.Blocked
             }
 
-            // 4. Case 2: Stale + Online - Perform partial sync
             return try {
-                val cartItems = cartItemDao.getAll(companyId)
-                if (cartItems.isEmpty()) {
-                    return PriceValidationResult.AllValid
-                }
-
                 val productIds = cartItems.map { it.productId }
                 val localProducts = productDao.getByIds(productIds, companyId)
 
@@ -138,9 +131,7 @@ class CartRepository
         }
 
         private fun isOnline(): Boolean {
-            val network = connectivityManager.activeNetwork ?: return false
-            val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
-            return capabilities.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            return networkMonitor.isOnlineNow()
         }
 
         private fun detectPriceChanges(

@@ -15,6 +15,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -39,6 +40,7 @@ class CartViewModel
         private val cartRepository: CartRepository,
         private val companyDao: CompanyDao,
     ) : ViewModel() {
+        private var validationJob: Job? = null
         private val routeCompanyId: String = savedStateHandle.get<String>("companyId").orEmpty()
 
         private val companyIdFlow: StateFlow<String?> =
@@ -57,6 +59,13 @@ class CartViewModel
 
         private val validationResult = MutableStateFlow<PriceValidationResult?>(null)
         private val isValidating = MutableStateFlow(false)
+        private val isOnlineFlow =
+            cartRepository.observeOnlineStatus()
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5_000),
+                    initialValue = cartRepository.isOnlineNow(),
+                )
 
         val uiState: StateFlow<CartUiState> =
             companyIdFlow
@@ -69,7 +78,8 @@ class CartViewModel
                             companyDao.observeCompanyById(companyId),
                             validationResult,
                             isValidating,
-                        ) { cartItems, company, validation, validating ->
+                            isOnlineFlow,
+                        ) { cartItems, company, validation, validating, isOnline ->
                             val items =
                                 cartItems.map { item ->
                                     CartItem(
@@ -89,15 +99,22 @@ class CartViewModel
                                 items.isEmpty() -> CartUiState.Empty
                                 company == null -> CartUiState.Error("No pudimos cargar la tienda")
                                 else -> {
+                                    val effectiveValidation =
+                                        if (!isOnline) {
+                                            PriceValidationResult.Blocked
+                                        } else {
+                                            validation
+                                        }
                                     val blocked =
-                                        validation is PriceValidationResult.Blocked ||
-                                            validation is PriceValidationResult.ItemsUnavailable
+                                        !isOnline ||
+                                            effectiveValidation is PriceValidationResult.Blocked ||
+                                            effectiveValidation is PriceValidationResult.ItemsUnavailable
                                     CartUiState.Success(
                                         items = items,
                                         totalItems = items.sumOf { it.quantity },
                                         totalPrice = items.sumOf { it.subtotal },
                                         companyName = company.name,
-                                        validationResult = validation,
+                                        validationResult = effectiveValidation,
                                         blocked = blocked,
                                     )
                                 }
@@ -128,6 +145,18 @@ class CartViewModel
                     started = SharingStarted.WhileSubscribed(5_000),
                     initialValue = 0,
                 )
+
+        init {
+            var wasOnline = isOnlineFlow.value
+            viewModelScope.launch {
+                isOnlineFlow.collect { isOnline ->
+                    if (isOnline && !wasOnline) {
+                        runCartValidation(showLoading = false)
+                    }
+                    wasOnline = isOnline
+                }
+            }
+        }
 
         fun addProduct(
             productId: String,
@@ -193,6 +222,48 @@ class CartViewModel
                     _events.emit(CartEvent.ShowError(error.message ?: "No pudimos vaciar el carrito"))
                 }
             }
+        }
+
+        fun validateOnEnter() {
+            runCartValidation(showLoading = false)
+        }
+
+        fun retryValidation() {
+            runCartValidation(showLoading = true)
+        }
+
+        private fun runCartValidation(showLoading: Boolean) {
+            if (validationJob?.isActive == true) return
+            validationJob =
+                viewModelScope.launch {
+                val companyId = companyIdFlow.value
+                if (companyId.isNullOrBlank()) return@launch
+
+                val company = companyDao.getCompanyById(companyId) ?: return@launch
+                val publicSheetId = company.publicSheetId
+                if (cartRepository.getCartItems(companyId).isEmpty()) {
+                    validationResult.value = null
+                    return@launch
+                }
+
+                if (publicSheetId.isNullOrBlank()) {
+                    validationResult.value = PriceValidationResult.Blocked
+                    return@launch
+                }
+
+                if (showLoading) {
+                    isValidating.value = true
+                }
+                try {
+                    validationResult.value = cartRepository.validateCartPrices(companyId, publicSheetId)
+                } catch (error: Throwable) {
+                    if (error is CancellationException) throw error
+                } finally {
+                    if (showLoading) {
+                        isValidating.value = false
+                    }
+                }
+                }
         }
 
         fun validateAndCheckout() {

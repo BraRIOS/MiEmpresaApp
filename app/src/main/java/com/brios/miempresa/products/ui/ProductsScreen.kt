@@ -67,6 +67,7 @@ fun ProductsContent(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val filters by viewModel.filters.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val isOffline by viewModel.isOffline.collectAsStateWithLifecycle()
     val productCountByCategory by viewModel.productCountByCategory.collectAsStateWithLifecycle()
 
     ProductsContentInternal(
@@ -74,7 +75,7 @@ fun ProductsContent(
         uiState = uiState,
         filters = filters,
         isRefreshing = isRefreshing,
-        isOffline = viewModel.isOffline,
+        isOffline = isOffline,
         productCountByCategory = productCountByCategory,
         onRefresh = viewModel::refresh,
         onSearchQueryChanged = viewModel::onSearchQueryChanged,

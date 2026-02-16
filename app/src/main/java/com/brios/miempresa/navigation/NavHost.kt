@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -56,7 +55,6 @@ fun NavHostComposable(
 ) {
     val signInViewModel = hiltViewModel<SignInViewModel>()
     val deeplinkRoutingViewModel = hiltViewModel<DeeplinkRoutingViewModel>()
-    val selectedCompany = signInViewModel.getSelectedCompany().observeAsState().value
     val isAlreadySignedIn = signInViewModel.getSignedInUser() != null
     var suppressDefaultStartupRouting by rememberSaveable { mutableStateOf(pendingDeeplinkSheetId != null) }
     var checkedVisitedStores by rememberSaveable { mutableStateOf(false) }
@@ -135,18 +133,22 @@ fun NavHostComposable(
     val postAuthDest by signInViewModel.postAuthDestination.collectAsStateWithLifecycle()
 
     LaunchedEffect(postAuthDest) {
-        when (postAuthDest) {
-            is PostAuthDestination.Onboarding,
-            is PostAuthDestination.CompanySelector,
-            -> {
-                navController.navigate(MiEmpresaScreen.Onboarding.name) {
-                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+            when (postAuthDest) {
+                is PostAuthDestination.Onboarding -> {
+                    navController.navigate(MiEmpresaScreen.Onboarding.name) {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    }
+                    signInViewModel.consumePostAuthDestination()
                 }
-                signInViewModel.consumePostAuthDestination()
-            }
-            is PostAuthDestination.Home -> {
-                navController.navigate(MiEmpresaScreen.Home.name) {
-                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                is PostAuthDestination.CompanySelector -> {
+                    navController.navigate("${MiEmpresaScreen.Onboarding.name}?mode=selector") {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    }
+                    signInViewModel.consumePostAuthDestination()
+                }
+                is PostAuthDestination.Home -> {
+                    navController.navigate(MiEmpresaScreen.Home.name) {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 }
                 signInViewModel.consumePostAuthDestination()
             }
@@ -239,9 +241,15 @@ fun NavHostComposable(
                 },
                 onNavigateToCatalog = {
                     if (companyId.isNotBlank()) {
-                        navController.navigate("${MiEmpresaScreen.ClientCatalog.name}/$companyId")
+                        navController.navigate("${MiEmpresaScreen.ClientCatalog.name}/$companyId") {
+                            popUpTo("${MiEmpresaScreen.Cart.name}/$companyId") { inclusive = true }
+                            launchSingleTop = true
+                        }
                     } else {
-                        navController.navigate(MiEmpresaScreen.MyStores.name)
+                        navController.navigate(MiEmpresaScreen.MyStores.name) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
                     }
                 },
             )
@@ -262,10 +270,8 @@ fun NavHostComposable(
                 onNavigateToCatalog = { companyId ->
                     navController.navigate("${MiEmpresaScreen.ClientCatalog.name}/$companyId")
                 },
-                onNavigateToHome = {
-                    navController.navigate(MiEmpresaScreen.Home.name) {
-                        popUpTo(0) { inclusive = true }
-                    }
+                onNavigateToSignIn = {
+                    navController.navigate(MiEmpresaScreen.SignIn.name)
                 },
             )
         }
@@ -325,13 +331,11 @@ fun NavHostComposable(
             val authState by signInViewModel.authStateFlow.collectAsStateWithLifecycle()
             val activity = LocalActivity.current as Activity
 
-            val signInSuccess = stringResource(R.string.sign_in_success)
             val authorizationSuccess = stringResource(R.string.authorization_success)
             val authorizationFailed = stringResource(R.string.authorization_failed)
 
             LaunchedEffect(key1 = signInState.isSignInSuccessful) {
                 if (signInState.isSignInSuccessful) {
-                    Toast.makeText(applicationContext, signInSuccess, Toast.LENGTH_LONG).show()
                     signInViewModel.authorizeDriveAndSheets(activity)
                     signInViewModel.resetSignInState()
                 }
@@ -412,12 +416,7 @@ fun NavHostComposable(
                     navController.navigate("${MiEmpresaScreen.Product.name}/add")
                 },
                 onNavigateToProductDetail = { productId ->
-                    val selectedCompanyId = selectedCompany?.id
-                    if (selectedCompanyId.isNullOrBlank()) {
-                        navController.navigate("${MiEmpresaScreen.Product.name}/$productId")
-                    } else {
-                        navController.navigate("${MiEmpresaScreen.ProductDetail.name}/$productId/$selectedCompanyId?mode=admin")
-                    }
+                    navController.navigate("${MiEmpresaScreen.Product.name}/$productId")
                 },
                 onNavigateToAddCategory = {
                     navController.navigate("${MiEmpresaScreen.Categories.name}/add")

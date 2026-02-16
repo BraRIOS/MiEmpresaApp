@@ -500,7 +500,7 @@ fun ProductFormContent(
                 Column(modifier = Modifier.fillMaxWidth()) {
                     // Description
                     SimpleFormField(
-                        label = stringResource(R.string.description_label),
+                        label = stringResource(R.string.description_label).uppercase(),
                         value = description,
                         onValueChange = onDescriptionChanged,
                         placeholder = stringResource(R.string.description_placeholder),

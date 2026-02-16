@@ -35,7 +35,6 @@ import java.util.Locale
 
 @Composable
 fun CartSummary(
-    totalItems: Int,
     totalPrice: Double,
     onCheckout: () -> Unit,
     enabled: Boolean = true,
@@ -70,12 +69,6 @@ fun CartSummary(
                     fontWeight = FontWeight.ExtraBold,
                 )
             }
-
-            Text(
-                text = stringResource(R.string.cart_items_count, totalItems),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
 
             OutlinedButton(
                 onClick = onCheckout,

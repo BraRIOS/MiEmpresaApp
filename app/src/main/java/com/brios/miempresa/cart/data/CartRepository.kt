@@ -102,7 +102,19 @@ class CartRepository
                 val localProducts = productDao.getByIds(productIds, companyId)
 
                 // Fetch updated products from Sheets (PARTIAL SYNC)
-                val updatedProducts = sheetsApi.getProductsByIds(spreadsheetId, productIds, companyId)
+                val updatedProductsById = sheetsApi.getProductsByIds(spreadsheetId, productIds, companyId)
+                val updatedProducts =
+                    if (updatedProductsById.size == productIds.distinct().size) {
+                        updatedProductsById
+                    } else {
+                        val publicProducts = sheetsApi.readPublicProducts(spreadsheetId, companyId)
+                        recoverMissingProductsByName(
+                            requestedIds = productIds.toSet(),
+                            localProducts = localProducts,
+                            syncedProducts = updatedProductsById,
+                            publicProducts = publicProducts,
+                        )
+                    }
 
                 // Detect partial API response
                 if (updatedProducts.size != productIds.size) {
@@ -198,3 +210,41 @@ class CartRepository
             }
         }
     }
+
+internal fun recoverMissingProductsByName(
+    requestedIds: Set<String>,
+    localProducts: List<ProductEntity>,
+    syncedProducts: List<ProductEntity>,
+    publicProducts: List<ProductEntity>,
+): List<ProductEntity> {
+    if (requestedIds.isEmpty()) return syncedProducts
+
+    val resolvedProducts = syncedProducts.associateBy { it.id }.toMutableMap()
+    val localProductsById = localProducts.associateBy { it.id }
+    val publicProductsByName = publicProducts.groupBy { normalizeProductName(it.name) }
+    val missingIds = requestedIds.filterNot(resolvedProducts::containsKey)
+
+    missingIds.forEach { missingId ->
+        val localProduct = localProductsById[missingId] ?: return@forEach
+        val nameMatches = publicProductsByName[normalizeProductName(localProduct.name)].orEmpty()
+        val categoryMatches =
+            nameMatches.filter { candidate ->
+                normalizeCategoryName(candidate.categoryName) == normalizeCategoryName(localProduct.categoryName)
+            }
+        val resolvedCandidate =
+            when {
+                categoryMatches.size == 1 -> categoryMatches.first()
+                nameMatches.size == 1 -> nameMatches.first()
+                else -> null
+            }
+        if (resolvedCandidate != null) {
+            resolvedProducts[missingId] = resolvedCandidate.copy(id = missingId)
+        }
+    }
+
+    return resolvedProducts.values.toList()
+}
+
+private fun normalizeProductName(value: String): String = value.trim().lowercase()
+
+private fun normalizeCategoryName(value: String?): String = value?.trim()?.lowercase().orEmpty()

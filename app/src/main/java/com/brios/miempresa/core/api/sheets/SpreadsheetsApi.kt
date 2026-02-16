@@ -341,14 +341,12 @@ class SpreadsheetsApi
             private val PUBLIC_PRICE_CLEAN_REGEX = Regex("[^0-9,.-]")
         }
 
-        suspend fun getProductsByIds(
+        suspend fun readPublicProducts(
             spreadsheetId: String,
-            productIds: List<String>,
             companyId: String,
         ): List<ProductEntity> {
             return withContext(ioDispatcher) {
                 try {
-                    val requestedIds = productIds.toSet()
                     val rows = readPublicRange(spreadsheetId = spreadsheetId, range = "Products!A2:E")
                     val now = System.currentTimeMillis()
 
@@ -359,8 +357,6 @@ class SpreadsheetsApi
                         val categoryName = row.getOrNull(3)?.toString()?.trim()?.takeIf { it.isNotEmpty() }
                         val imageUrl = normalizePublicImageUrl(row.getOrNull(4)?.toString()?.trim())
                         val resolvedId = buildPublicProductId(companyId, index, name, categoryName)
-
-                        if (resolvedId !in requestedIds) return@mapIndexedNotNull null
 
                         ProductEntity(
                             id = resolvedId,
@@ -376,6 +372,25 @@ class SpreadsheetsApi
                             lastSyncedAt = now,
                         )
                     }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.e("SpreadsheetsApi", "Failed to read public products", e)
+                    emptyList()
+                }
+            }
+        }
+
+        suspend fun getProductsByIds(
+            spreadsheetId: String,
+            productIds: List<String>,
+            companyId: String,
+        ): List<ProductEntity> {
+            return withContext(ioDispatcher) {
+                try {
+                    val requestedIds = productIds.toSet()
+                    readPublicProducts(spreadsheetId = spreadsheetId, companyId = companyId)
+                        .filter { it.id in requestedIds }
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {

@@ -12,17 +12,22 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.QrCode
+import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -37,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
@@ -49,6 +55,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -60,6 +67,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.catalog.ui.components.AddStoreSheet
 import com.brios.miempresa.catalog.ui.components.StoreCard
+import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.core.ui.components.EmptyStateView
 import com.brios.miempresa.core.ui.components.MiEmpresaDialog
 import com.brios.miempresa.core.ui.components.NotFoundView
@@ -155,7 +163,7 @@ fun MyStoresScreen(
                 FloatingActionButton(
                     onClick = { showAddStoreSheet = true },
                     containerColor = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = AppDimensions.extraLargePadding),
+                    modifier = Modifier.padding(bottom = 88.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Add,
@@ -293,6 +301,7 @@ private fun MyStoresContent(
                             actionLabel = stringResource(R.string.my_stores_add_by_code),
                             onAction = onAddByCode,
                         )
+                        Spacer(Modifier.weight(if (!uiState.isAdminHybridContext) 0.3f else 0.2f))
                     }
 
                     else -> {
@@ -317,53 +326,70 @@ private fun MyStoresConversionBanner(
         modifier = modifier.fillMaxWidth(),
         colors =
             CardDefaults.cardColors(
-                containerColor = Color.Transparent,
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
             ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = MaterialTheme.shapes.large,
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        shape = RoundedCornerShape(20.dp),
     ) {
         Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush =
-                            Brush.linearGradient(
-                                colors =
-                                    listOf(
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.20f),
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                                    ),
-                            ),
+            modifier = Modifier.fillMaxWidth().background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        MaterialTheme.colorScheme.surface,
                     )
-                    .padding(AppDimensions.mediumPadding),
+                )
+            )
         ) {
+            // Decorative background elements
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = 62.dp, y = (-62).dp)
+                    .size(160.dp)
+                    .background(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                Color.Transparent
+                            )
+                        ),
+                        shape = CircleShape
+                    )
+            )
+
+            Icon(
+                imageVector = Icons.Outlined.ShoppingBag,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .offset(x = 40.dp, y = 20.dp)
+                    .rotate(12f)
+                    .size(110.dp)
+            )
+
             Column(
-                verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(
-                        modifier =
-                            Modifier
-                                .background(
-                                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                                    shape = MaterialTheme.shapes.small,
-                                )
-                                .padding(AppDimensions.smallPadding),
+                Row(horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding)) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        shadowElevation = 2.dp
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Storefront,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
+                        Box(modifier = Modifier.padding(10.dp)) {
+                            Icon(
+                                imageVector = Icons.Outlined.Storefront,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
                     }
+
                     Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Text(
                             text = stringResource(R.string.my_stores_conversion_title),
@@ -373,11 +399,12 @@ private fun MyStoresConversionBanner(
                         )
                         Text(
                             text = stringResource(R.string.my_stores_conversion_subtitle),
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
+
                 Button(
                     onClick = onNavigateToSignIn,
                     modifier = Modifier.fillMaxWidth(),
@@ -386,15 +413,18 @@ private fun MyStoresConversionBanner(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary,
                         ),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
                         text = stringResource(R.string.my_stores_conversion_action),
                         fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(vertical = 4.dp)
                     )
-                    Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
@@ -432,6 +462,50 @@ private fun MyStoresScreenAdminEmptyPreview() {
     MiEmpresaTheme {
         MyStoresContent(
             uiState = MyStoresUiState(isLoading = false, isAdminHybridContext = true),
+            onSearchQueryChange = {},
+            onStoreClick = {},
+            onAddByCode = {},
+            onClearSearch = {},
+            onNavigateToSignIn = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MyStoresScreenPopulatedPreview() {
+    val companies = listOf(
+        Company(
+            id = "1",
+            name = "Panadería Los Andes",
+            address = "Av. San Martín 402, Mendoza",
+            lastVisited = System.currentTimeMillis() - 7200000,
+            logoUrl = null
+        ),
+        Company(
+            id = "2",
+            name = "Mercado Central",
+            address = "Calle Falsa 123",
+            lastVisited = System.currentTimeMillis() - 86400000,
+            logoUrl = null
+        ),
+        Company(
+            id = "3",
+            name = "Patitas Felices",
+            specialization = "Accesorios y alimento",
+            lastVisited = System.currentTimeMillis() - 172800000,
+            logoUrl = null
+        )
+    )
+
+    MiEmpresaTheme {
+        MyStoresContent(
+            uiState = MyStoresUiState(
+                isLoading = false,
+                isAdminHybridContext = false,
+                stores = companies,
+                filteredStores = companies
+            ),
             onSearchQueryChange = {},
             onStoreClick = {},
             onAddByCode = {},

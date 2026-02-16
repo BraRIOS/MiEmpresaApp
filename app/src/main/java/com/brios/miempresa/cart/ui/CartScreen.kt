@@ -1,16 +1,19 @@
 package com.brios.miempresa.cart.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
@@ -39,9 +42,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -122,6 +128,7 @@ fun CartScreen(
         modifier = modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
+            val state = uiState as? CartUiState.Success
             Row(
                 modifier =
                     Modifier
@@ -140,13 +147,25 @@ fun CartScreen(
                     text = stringResource(R.string.cart_title),
                     style = MaterialTheme.typography.titleLarge,
                 )
+                if (state != null) {
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        text = stringResource(R.string.items_count, state.totalItems),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(AppDimensions.smallCornerRadius))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                            .padding(horizontal = AppDimensions.smallPadding, vertical = AppDimensions.extraSmallPadding),
+                    )
+                }
             }
         },
         bottomBar = {
             val state = uiState as? CartUiState.Success
             if (state != null) {
                 CartSummary(
-                    totalItems = state.totalItems,
                     totalPrice = state.totalPrice,
                     onCheckout = viewModel::validateAndCheckout,
                     enabled = !state.blocked,

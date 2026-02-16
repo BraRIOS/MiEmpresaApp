@@ -80,7 +80,7 @@ fun CatalogProductItem(
                     onClick = onAddToCart,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(AppDimensions.smallPadding)
+                        .padding(AppDimensions.extraSmallPadding)
                         .size(AppDimensions.smallFabSize)
                         .shadow(AppDimensions.smallBorderWidth, CircleShape)
                         .background(MaterialTheme.colorScheme.surface, CircleShape),
@@ -96,8 +96,9 @@ fun CatalogProductItem(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(AppDimensions.ClientCatalog.productItemTextHeight)
-                    .padding(vertical = AppDimensions.mediumPadding, horizontal = AppDimensions.extraSmallPadding),
+                    .padding(top = AppDimensions.mediumPadding)
+                    .padding(horizontal = AppDimensions.extraSmallPadding)
+                    .height(AppDimensions.ClientCatalog.productItemTextHeight),
                 verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
             ) {
                 Text(

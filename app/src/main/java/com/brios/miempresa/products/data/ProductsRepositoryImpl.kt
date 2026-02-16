@@ -92,7 +92,11 @@ class ProductsRepositoryImpl
                 val publicSheetId = company.publicSheetId
 
                 val dirtyProducts = productDao.getDirty(companyId)
-                val allProducts = productDao.getAllByCompany(companyId).filter { !it.deleted }
+                val allProducts =
+                    productDao
+                        .getAllByCompany(companyId)
+                        .filter { !it.deleted }
+                        .sortedBy { it.id }
                 if (!shouldRewriteProductsPrivateSheet(allProducts.isNotEmpty(), dirtyProducts.isNotEmpty())) {
                     return@withContext
                 }

@@ -112,6 +112,6 @@ object AppDimensions {
     }
 
     object ClientCatalog {
-        val productItemTextHeight = 96.dp
+        val productItemTextHeight = 68.dp
     }
 }

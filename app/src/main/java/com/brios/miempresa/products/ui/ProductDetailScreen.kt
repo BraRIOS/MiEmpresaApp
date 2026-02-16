@@ -34,6 +34,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -104,33 +105,76 @@ fun ProductDetailScreen(
 
     val successState = uiState as? ProductDetailUiState.Success
 
+    ProductDetailScreenContent(
+        uiState = uiState,
+        cartCount = cartCount,
+        snackbarHostState = snackbarHostState,
+        onNavigateBack = onNavigateBack,
+        onNavigateToCart = {
+            successState?.data?.company?.id?.let(onNavigateToCart)
+        },
+        onEdit = { successState?.data?.product?.id?.let(onNavigateToEdit) },
+        onDelete = { showDeleteDialog = true },
+        onQuantityChange = viewModel::onQuantityChange,
+        onAddToCart = viewModel::addToCart,
+        onRefresh = viewModel::refresh,
+        modifier = modifier
+    )
+
+    if (showDeleteDialog && successState != null) {
+        DeleteDialog(
+            itemName = successState.data.product.name,
+            title = stringResource(R.string.delete_product),
+            onDismiss = { showDeleteDialog = false },
+            onConfirm = {
+                showDeleteDialog = false
+                viewModel.deleteProduct()
+            },
+        )
+    }
+}
+
+@Composable
+fun ProductDetailScreenContent(
+    uiState: ProductDetailUiState,
+    cartCount: Int,
+    snackbarHostState: SnackbarHostState,
+    onNavigateBack: () -> Unit,
+    onNavigateToCart: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    onQuantityChange: (Int) -> Unit,
+    onAddToCart: () -> Unit,
+    onRefresh: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val successState = uiState as? ProductDetailUiState.Success
+    val data = successState?.data
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             ProductDetailTopBar(
-                title = successState?.data?.company?.name ?: stringResource(R.string.product_detail_title),
+                title = stringResource(R.string.product_detail_title),
                 onNavigateBack = onNavigateBack,
-                showCartAction = successState?.data?.mode == ProductDetailMode.CLIENT,
+                showCartAction = data?.mode == ProductDetailMode.CLIENT,
                 cartCount = cartCount,
-                onNavigateToCart = {
-                    successState?.data?.company?.id?.let(onNavigateToCart)
-                },
+                onNavigateToCart = onNavigateToCart,
             )
         },
         bottomBar = {
-            val data = successState?.data
             if (data != null && data.mode == ProductDetailMode.CLIENT) {
                 ProductDetailClientBottomAction(
                     quantity = data.quantity,
                     price = data.product.price,
-                    onQuantityChange = viewModel::onQuantityChange,
-                    onAddToCart = viewModel::addToCart,
+                    onQuantityChange = onQuantityChange,
+                    onAddToCart = onAddToCart,
                 )
             }
         },
     ) { innerPadding ->
-        when (val state = uiState) {
+        when (uiState) {
             ProductDetailUiState.Loading -> {
                 Box(
                     modifier =
@@ -147,34 +191,22 @@ fun ProductDetailScreen(
                 EmptyStateView(
                     modifier = Modifier.padding(innerPadding),
                     icon = Icons.Outlined.SearchOff,
-                    title = state.message,
+                    title = uiState.message,
                     subtitle = "",
                     actionLabel = stringResource(R.string.deeplink_retry),
-                    onAction = viewModel::refresh,
+                    onAction = onRefresh,
                 )
             }
 
             is ProductDetailUiState.Success -> {
                 ProductDetailContent(
-                    data = state.data,
+                    data = uiState.data,
                     modifier = Modifier.padding(innerPadding),
-                    onEdit = { onNavigateToEdit(state.data.product.id) },
-                    onDelete = { showDeleteDialog = true },
+                    onEdit = onEdit,
+                    onDelete = onDelete,
                 )
             }
         }
-    }
-
-    if (showDeleteDialog && successState != null) {
-        DeleteDialog(
-            itemName = successState.data.product.name,
-            title = stringResource(R.string.delete_product),
-            onDismiss = { showDeleteDialog = false },
-            onConfirm = {
-                showDeleteDialog = false
-                viewModel.deleteProduct()
-            },
-        )
     }
 }
 
@@ -269,31 +301,47 @@ private fun ProductDetailContent(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = AppDimensions.mediumPadding),
-            verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
+                    .padding(horizontal = AppDimensions.mediumPadding, vertical = AppDimensions.mediumPadding),
+            verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding)
         ) {
-            Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
-            Text(
-                text = data.product.name,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = data.product.name,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+
+                data.product.categoryName
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { rawCategory ->
+                        val (emoji, name) = splitCategoryLabel(rawCategory)
+                        CategoryBadge(
+                            emoji = emoji,
+                            name = name,
+                            onClick = {  },
+                        )
+                    }
+            }
+
             Text(
                 text = currencyFormatter.format(data.product.price),
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
             )
 
-            data.product.categoryName
-                ?.takeIf { it.isNotBlank() }
-                ?.let { rawCategory ->
-                    val (emoji, name) = splitCategoryLabel(rawCategory)
-                    CategoryBadge(
-                        emoji = emoji,
-                        name = name,
-                    )
-                }
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = AppDimensions.smallPadding),
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+
+            Text(
+                text = stringResource(R.string.description_label),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
 
             data.product.description
                 ?.takeIf { it.isNotBlank() }
@@ -314,7 +362,9 @@ private fun ProductDetailContent(
                     ) {
                         Button(
                             onClick = onEdit,
-                            modifier = Modifier.weight(1f).height(56.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(56.dp),
                             shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                         ) {
                             Icon(
@@ -327,7 +377,9 @@ private fun ProductDetailContent(
 
                         OutlinedButton(
                             onClick = onDelete,
-                            modifier = Modifier.weight(1f).height(56.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(56.dp),
                             shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                             border = BorderStroke(AppDimensions.smallBorderWidth, SlateGray200),
                             colors =
@@ -431,7 +483,7 @@ private fun ProductDetailClientBottomAction(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
         shadowElevation = 8.dp,
     ) {
         Row(
@@ -448,17 +500,16 @@ private fun ProductDetailClientBottomAction(
                 onQuantityChange = onQuantityChange,
                 minQuantity = 1,
                 maxQuantity = 99,
+                modifier = Modifier.height(AppDimensions.largeIconSize),
+                iconSize = AppDimensions.mediumLargeIconSize,
             )
             Button(
                 onClick = onAddToCart,
-                modifier = Modifier.weight(1f).height(56.dp),
-                shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(AppDimensions.largeIconSize),
+                shape = RoundedCornerShape(AppDimensions.largeCornerRadius),
             ) {
-                Icon(
-                    imageVector = Icons.Filled.AddShoppingCart,
-                    contentDescription = null,
-                )
-                Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
                 Text(
                     text =
                         stringResource(
@@ -500,7 +551,7 @@ private val previewCompany =
 private val previewProduct =
     ProductEntity(
         id = "product-1",
-        name = "Producto de ejemplo",
+        name = "Producto de ejemplo con nombre bastante largo simulando caracteristicas en el título",
         price = 12345.0,
         companyId = "company-1",
         description = "Descripción de ejemplo para detalle de producto.",
@@ -512,16 +563,24 @@ private val previewProduct =
 @Composable
 private fun ProductDetailAdminPreview() {
     MiEmpresaTheme {
-        ProductDetailContent(
-            data =
-                ProductDetailUiData(
+        ProductDetailScreenContent(
+            uiState = ProductDetailUiState.Success(
+                data = ProductDetailUiData(
                     product = previewProduct,
                     company = previewCompany,
                     mode = ProductDetailMode.ADMIN,
                     quantity = 1,
-                ),
+                )
+            ),
+            cartCount = 0,
+            snackbarHostState = remember { SnackbarHostState() },
+            onNavigateBack = {},
+            onNavigateToCart = {},
             onEdit = {},
             onDelete = {},
+            onQuantityChange = {},
+            onAddToCart = {},
+            onRefresh = {}
         )
     }
 }
@@ -530,16 +589,24 @@ private fun ProductDetailAdminPreview() {
 @Composable
 private fun ProductDetailClientPreview() {
     MiEmpresaTheme {
-        ProductDetailContent(
-            data =
-                ProductDetailUiData(
+        ProductDetailScreenContent(
+            uiState = ProductDetailUiState.Success(
+                data = ProductDetailUiData(
                     product = previewProduct,
                     company = previewCompany,
                     mode = ProductDetailMode.CLIENT,
                     quantity = 2,
-                ),
+                )
+            ),
+            cartCount = 3,
+            snackbarHostState = remember { SnackbarHostState() },
+            onNavigateBack = {},
+            onNavigateToCart = {},
             onEdit = {},
             onDelete = {},
+            onQuantityChange = {},
+            onAddToCart = {},
+            onRefresh = {}
         )
     }
 }
@@ -548,17 +615,25 @@ private fun ProductDetailClientPreview() {
 @Composable
 private fun ProductDetailClientOfflinePreview() {
     MiEmpresaTheme {
-        ProductDetailContent(
-            data =
-                ProductDetailUiData(
+        ProductDetailScreenContent(
+            uiState = ProductDetailUiState.Success(
+                data = ProductDetailUiData(
                     product = previewProduct,
                     company = previewCompany,
                     mode = ProductDetailMode.CLIENT,
                     quantity = 1,
                     showOfflineWarning = true,
-                ),
+                )
+            ),
+            cartCount = 0,
+            snackbarHostState = remember { SnackbarHostState() },
+            onNavigateBack = {},
+            onNavigateToCart = {},
             onEdit = {},
             onDelete = {},
+            onQuantityChange = {},
+            onAddToCart = {},
+            onRefresh = {}
         )
     }
 }
@@ -567,16 +642,24 @@ private fun ProductDetailClientOfflinePreview() {
 @Composable
 private fun ProductDetailClientHighQuantityPreview() {
     MiEmpresaTheme {
-        ProductDetailContent(
-            data =
-                ProductDetailUiData(
+        ProductDetailScreenContent(
+            uiState = ProductDetailUiState.Success(
+                data = ProductDetailUiData(
                     product = previewProduct,
                     company = previewCompany,
                     mode = ProductDetailMode.CLIENT,
                     quantity = 15,
-                ),
+                )
+            ),
+            cartCount = 5,
+            snackbarHostState = remember { SnackbarHostState() },
+            onNavigateBack = {},
+            onNavigateToCart = {},
             onEdit = {},
             onDelete = {},
+            onQuantityChange = {},
+            onAddToCart = {},
+            onRefresh = {}
         )
     }
 }

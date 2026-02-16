@@ -479,7 +479,6 @@ private fun CatalogTopBar(
                         modifier =
                             Modifier
                                 .align(Alignment.TopEnd)
-                                .offset(x = (-2).dp, y = 2.dp)
                                 .background(MaterialTheme.colorScheme.surfaceContainerLowest, CircleShape)
                                 .padding(2.dp),
                     ) {

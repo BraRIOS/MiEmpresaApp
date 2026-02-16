@@ -11,14 +11,16 @@ import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.products.data.ProductEntity
 import com.brios.miempresa.products.domain.ProductsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 enum class ProductDetailMode(val routeValue: String) {
     ADMIN("admin"),
@@ -72,9 +74,12 @@ class ProductDetailViewModel
         private val requestedCompanyId: String = savedStateHandle.get<String>("companyId").orEmpty()
         private val mode: ProductDetailMode = ProductDetailMode.fromRoute(savedStateHandle.get("mode"))
         private var resolvedCompanyId: String? = null
+        private var cartCountJob: Job? = null
 
         private val _uiState = MutableStateFlow<ProductDetailUiState>(ProductDetailUiState.Loading)
         val uiState: StateFlow<ProductDetailUiState> = _uiState.asStateFlow()
+        private val _cartCount = MutableStateFlow(0)
+        val cartCount: StateFlow<Int> = _cartCount.asStateFlow()
 
         private val _events = MutableSharedFlow<ProductDetailEvent>(replay = 0)
         val events: SharedFlow<ProductDetailEvent> = _events.asSharedFlow()
@@ -88,6 +93,7 @@ class ProductDetailViewModel
                 _uiState.value = ProductDetailUiState.Loading
                 val companyId = resolveCompanyId()
                 if (companyId == null || productId.isBlank()) {
+                    _cartCount.value = 0
                     _uiState.value = ProductDetailUiState.Error("No pudimos abrir este producto")
                     return@launch
                 }
@@ -96,10 +102,12 @@ class ProductDetailViewModel
                 val company = companyDao.getCompanyById(companyId)
                 val product = productsRepository.getById(productId, companyId)
                 if (company == null || product == null || product.deleted) {
+                    _cartCount.value = 0
                     _uiState.value = ProductDetailUiState.Error("No encontramos este producto")
                     return@launch
                 }
 
+                observeCartCount(companyId)
                 _uiState.value =
                     ProductDetailUiState.Success(
                         ProductDetailUiData(
@@ -111,6 +119,21 @@ class ProductDetailViewModel
                         ),
                     )
             }
+        }
+
+        private fun observeCartCount(companyId: String) {
+            cartCountJob?.cancel()
+            if (mode != ProductDetailMode.CLIENT) {
+                _cartCount.value = 0
+                return
+            }
+
+            cartCountJob =
+                viewModelScope.launch {
+                    cartRepository.observeCartCount(companyId).collect { count ->
+                        _cartCount.value = count
+                    }
+                }
         }
 
         fun onQuantityChange(newQuantity: Int) {

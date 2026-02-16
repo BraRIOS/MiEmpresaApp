@@ -128,7 +128,11 @@ fun ClientCatalogScreenContent(
             TriangleArrowRefreshIndicator(
                 state = pullToRefreshState,
                 isRefreshing = isRefreshing,
-                modifier = Modifier.align(Alignment.TopCenter),
+                modifier =
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .statusBarsPadding()
+                        .padding(top = AppDimensions.extraLargePadding * 2),
             )
         },
     ) {
@@ -413,7 +417,10 @@ private fun CatalogFilterRow(
             query = query,
             onQueryChange = onQueryChange,
             placeholderText = stringResource(R.string.search_products),
-            modifier = Modifier.weight(1f),
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .padding(end = AppDimensions.smallPadding),
         )
         CategoryFilterChip(
             modifier = Modifier.height(AppDimensions.searchBarHeight),

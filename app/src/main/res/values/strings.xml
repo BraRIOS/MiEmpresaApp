@@ -56,6 +56,7 @@
     <string name="my_stores_switch_cart_message">Ya tenés productos en el carrito de %1$s. Si continuás, ese carrito se vaciará.</string>
     <string name="my_stores_switch_cart_confirm">Continuar y vaciar</string>
     <string name="my_stores_conversion_title">¿Tenés una empresa? Gestionala desde acá.</string>
+    <string name="my_stores_conversion_subtitle">Creá tu catálogo y compartilo.</string>
     <string name="my_stores_conversion_action">Crear mi empresa</string>
     <string name="my_stores_help_icon">Ayuda</string>
     <string name="my_stores_help_title">¿Cómo funciona?</string>
@@ -108,6 +109,7 @@
     <string name="product_detail_title">Detalle del producto</string>
     <string name="product_detail_quantity">Cantidad</string>
     <string name="product_detail_add_to_cart">Agregar al carrito</string>
+    <string name="product_detail_add_with_subtotal">Añadir %1$s</string>
     <string name="product_detail_subtotal">Subtotal: %1$s</string>
     <string name="client_catalog_placeholder_title">Catálogo del cliente</string>
     <string name="client_catalog_placeholder_subtitle">Sincronización lista para %1$s. La pantalla completa del catálogo se implementa en el siguiente batch.</string>

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material3.CircularProgressIndicator
@@ -77,6 +78,7 @@ fun CartScreen(
 
     var pendingConfirmationOnReturn by rememberSaveable { mutableStateOf(false) }
     var showOrderSentDialog by rememberSaveable { mutableStateOf(false) }
+    var hasHandledFirstResume by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
         viewModel.validateOnEnter()
@@ -101,7 +103,11 @@ fun CartScreen(
         val observer =
             LifecycleEventObserver { _, event ->
                 if (event == Lifecycle.Event.ON_RESUME) {
-                    viewModel.validateOnEnter()
+                    if (hasHandledFirstResume) {
+                        viewModel.validateOnEnter()
+                    } else {
+                        hasHandledFirstResume = true
+                    }
                     if (pendingConfirmationOnReturn) {
                         showOrderSentDialog = true
                         pendingConfirmationOnReturn = false
@@ -234,14 +240,14 @@ fun CartScreen(
                         }
                         is PriceValidationResult.ItemsUnavailable -> {
                             ValidationBanner(
-                                icon = Icons.Outlined.WifiOff,
+                                icon = Icons.Outlined.Inventory2,
                                 message =
                                     stringResource(
                                         R.string.cart_banner_items_unavailable,
                                         validation.unavailableProducts.size,
                                     ),
-                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                             )
                         }
                         PriceValidationResult.Blocked -> {

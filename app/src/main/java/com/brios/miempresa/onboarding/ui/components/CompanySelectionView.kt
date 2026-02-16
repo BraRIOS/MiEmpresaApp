@@ -140,7 +140,10 @@ fun CompanySelectionView(
                         onQueryChange = { searchText = it },
                         placeholderText = stringResource(R.string.search),
                         variant = SearchBarVariant.Outlined,
-                        modifier = Modifier.padding(bottom = AppDimensions.mediumPadding)
+                        modifier =
+                            Modifier
+                                .padding(horizontal = AppDimensions.mediumPadding)
+                                .padding(bottom = AppDimensions.mediumPadding),
                     )
 
                     HorizontalDivider(

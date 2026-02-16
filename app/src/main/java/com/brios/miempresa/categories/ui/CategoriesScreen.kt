@@ -117,6 +117,7 @@ private fun CategoriesContentInternal(
                     query = searchQuery,
                     onQueryChange = onSearchQueryChanged,
                     placeholderText = stringResource(R.string.search_categories),
+                    modifier = Modifier.padding(horizontal = AppDimensions.mediumPadding),
                 )
 
                 if (uiState is CategoriesUiState.Success && uiState.categories.isNotEmpty()) {

@@ -69,13 +69,6 @@ fun SearchBar(
         onValueChange = onQueryChange,
         modifier = modifier
             .fillMaxWidth()
-            .then(
-                if (variant == SearchBarVariant.Outlined) {
-                    Modifier.padding(horizontal = AppDimensions.mediumPadding)
-                } else {
-                    Modifier
-                },
-            )
             .height(AppDimensions.searchBarHeight)
             .then(
                 when (variant) {

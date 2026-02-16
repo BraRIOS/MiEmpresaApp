@@ -147,6 +147,7 @@ private fun ProductsContentInternal(
                     query = filters.searchQuery,
                     onQueryChange = onSearchQueryChanged,
                     placeholderText = stringResource(R.string.search_products),
+                    modifier = Modifier.padding(horizontal = AppDimensions.mediumPadding),
                 )
 
                 when (uiState) {

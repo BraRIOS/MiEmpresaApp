@@ -1,6 +1,7 @@
 package com.brios.miempresa.catalog.ui
 
 import android.text.format.DateUtils
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,15 +14,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Storefront
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,7 +38,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
@@ -46,9 +49,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
@@ -143,27 +149,13 @@ fun MyStoresScreen(
                 ),
                 windowInsets = WindowInsets.safeDrawing,
             )
-            Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .statusBarsPadding()
-                        .padding(horizontal = AppDimensions.smallPadding, vertical = AppDimensions.smallPadding),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-
-
-
-
-
-            }
         },
         floatingActionButton = {
             if (showFab) {
                 FloatingActionButton(
                     onClick = { showAddStoreSheet = true },
                     containerColor = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = AppDimensions.largePadding),
+                    modifier = Modifier.padding(bottom = AppDimensions.extraLargePadding),
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Add,
@@ -325,31 +317,86 @@ private fun MyStoresConversionBanner(
         modifier = modifier.fillMaxWidth(),
         colors =
             CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                containerColor = Color.Transparent,
             ),
-        shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = MaterialTheme.shapes.large,
     ) {
-        Row(
+        Box(
             modifier =
                 Modifier
                     .fillMaxWidth()
+                    .background(
+                        brush =
+                            Brush.linearGradient(
+                                colors =
+                                    listOf(
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.20f),
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                                    ),
+                            ),
+                    )
                     .padding(AppDimensions.mediumPadding),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Storefront,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                text = stringResource(R.string.my_stores_conversion_title),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-            )
-            TextButton(onClick = onNavigateToSignIn) {
-                Text(text = stringResource(R.string.my_stores_conversion_action))
+            Column(
+                verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .background(
+                                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                                    shape = MaterialTheme.shapes.small,
+                                )
+                                .padding(AppDimensions.smallPadding),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Storefront,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.my_stores_conversion_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = stringResource(R.string.my_stores_conversion_subtitle),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                Button(
+                    onClick = onNavigateToSignIn,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                        ),
+                ) {
+                    Text(
+                        text = stringResource(R.string.my_stores_conversion_action),
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                    )
+                }
             }
         }
     }

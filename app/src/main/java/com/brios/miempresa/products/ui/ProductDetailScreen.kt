@@ -7,25 +7,29 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AddShoppingCart
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.SearchOff
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -50,7 +54,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -64,6 +67,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.brios.miempresa.R
 import com.brios.miempresa.core.data.local.entities.Company
+import com.brios.miempresa.core.ui.components.CategoryBadge
 import com.brios.miempresa.core.ui.components.DeleteDialog
 import com.brios.miempresa.core.ui.components.EmptyStateView
 import com.brios.miempresa.core.ui.components.OfflineBanner
@@ -80,10 +84,12 @@ import java.util.Locale
 fun ProductDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToEdit: (String) -> Unit,
+    onNavigateToCart: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: ProductDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val cartCount by viewModel.cartCount.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -105,6 +111,11 @@ fun ProductDetailScreen(
             ProductDetailTopBar(
                 title = successState?.data?.company?.name ?: stringResource(R.string.product_detail_title),
                 onNavigateBack = onNavigateBack,
+                showCartAction = successState?.data?.mode == ProductDetailMode.CLIENT,
+                cartCount = cartCount,
+                onNavigateToCart = {
+                    successState?.data?.company?.id?.let(onNavigateToCart)
+                },
             )
         },
         bottomBar = {
@@ -113,6 +124,7 @@ fun ProductDetailScreen(
                 ProductDetailClientBottomAction(
                     quantity = data.quantity,
                     price = data.product.price,
+                    onQuantityChange = viewModel::onQuantityChange,
                     onAddToCart = viewModel::addToCart,
                 )
             }
@@ -146,7 +158,6 @@ fun ProductDetailScreen(
                 ProductDetailContent(
                     data = state.data,
                     modifier = Modifier.padding(innerPadding),
-                    onQuantityChange = viewModel::onQuantityChange,
                     onEdit = { onNavigateToEdit(state.data.product.id) },
                     onDelete = { showDeleteDialog = true },
                 )
@@ -171,6 +182,9 @@ fun ProductDetailScreen(
 private fun ProductDetailTopBar(
     title: String,
     onNavigateBack: () -> Unit,
+    showCartAction: Boolean,
+    cartCount: Int,
+    onNavigateToCart: () -> Unit,
 ) {
     Row(
         modifier =
@@ -190,15 +204,43 @@ private fun ProductDetailTopBar(
             text = title,
             style = MaterialTheme.typography.titleMedium,
             maxLines = 1,
-            modifier = Modifier.padding(start = AppDimensions.extraSmallPadding),
+            modifier =
+                Modifier
+                    .padding(start = AppDimensions.extraSmallPadding)
+                    .weight(1f),
         )
+        Box(
+            modifier = Modifier.size(48.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (showCartAction) {
+                IconButton(onClick = onNavigateToCart) {
+                    Icon(
+                        imageVector = Icons.Filled.ShoppingCart,
+                        contentDescription = stringResource(R.string.cart),
+                    )
+                }
+                if (cartCount > 0) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .align(Alignment.TopEnd)
+                                .background(MaterialTheme.colorScheme.surfaceContainerLowest, CircleShape)
+                                .padding(2.dp),
+                    ) {
+                        Badge {
+                            Text(text = cartCount.toString())
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 @Composable
 private fun ProductDetailContent(
     data: ProductDetailUiData,
-    onQuantityChange: (Int) -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
@@ -245,18 +287,12 @@ private fun ProductDetailContent(
 
             data.product.categoryName
                 ?.takeIf { it.isNotBlank() }
-                ?.let { category ->
-                    Surface(
-                        shape = RoundedCornerShape(AppDimensions.smallCornerRadius),
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    ) {
-                        Text(
-                            text = category,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = AppDimensions.smallPadding, vertical = AppDimensions.extraSmallPadding),
-                        )
-                    }
+                ?.let { rawCategory ->
+                    val (emoji, name) = splitCategoryLabel(rawCategory)
+                    CategoryBadge(
+                        emoji = emoji,
+                        name = name,
+                    )
                 }
 
             data.product.description
@@ -270,26 +306,7 @@ private fun ProductDetailContent(
                 }
 
             when (data.mode) {
-                ProductDetailMode.CLIENT -> {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.product_detail_quantity),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        QuantitySelector(
-                            quantity = data.quantity,
-                            onQuantityChange = onQuantityChange,
-                            minQuantity = 1,
-                            maxQuantity = 99,
-                        )
-                    }
-                }
-
+                ProductDetailMode.CLIENT -> Unit
                 ProductDetailMode.ADMIN -> {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -353,8 +370,6 @@ private fun ProductDetailImage(
             Modifier
                 .fillMaxWidth()
                 .aspectRatio(4f / 5f)
-                .padding(horizontal = AppDimensions.mediumPadding)
-                .clip(RoundedCornerShape(AppDimensions.mediumCornerRadius))
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh),
         contentAlignment = Alignment.Center,
     ) {
@@ -408,6 +423,7 @@ private fun ProductImagePlaceholder() {
 private fun ProductDetailClientBottomAction(
     quantity: Int,
     price: Double,
+    onQuantityChange: (Int) -> Unit,
     onAddToCart: () -> Unit,
 ) {
     val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR")) }
@@ -418,28 +434,58 @@ private fun ProductDetailClientBottomAction(
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
         shadowElevation = 8.dp,
     ) {
-        Button(
-            onClick = onAddToCart,
+        Row(
             modifier =
                 Modifier
                     .fillMaxWidth()
                     .padding(AppDimensions.mediumPadding)
-                    .height(56.dp),
-            shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
-            contentPadding = PaddingValues(horizontal = AppDimensions.mediumPadding),
+                    .navigationBarsPadding(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            QuantitySelector(
+                quantity = quantity,
+                onQuantityChange = onQuantityChange,
+                minQuantity = 1,
+                maxQuantity = 99,
+            )
+            Button(
+                onClick = onAddToCart,
+                modifier = Modifier.weight(1f).height(56.dp),
+                shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.AddShoppingCart,
+                    contentDescription = null,
+                )
+                Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
                 Text(
-                    text = stringResource(R.string.product_detail_add_to_cart),
+                    text =
+                        stringResource(
+                            R.string.product_detail_add_with_subtotal,
+                            currencyFormatter.format(subtotal),
+                        ),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                 )
-                Text(
-                    text = stringResource(R.string.product_detail_subtotal, currencyFormatter.format(subtotal)),
-                    style = MaterialTheme.typography.bodySmall,
-                )
             }
         }
+    }
+}
+
+private fun splitCategoryLabel(rawValue: String): Pair<String, String> {
+    val trimmed = rawValue.trim()
+    val separatorIndex = trimmed.indexOf(' ')
+    if (separatorIndex <= 0) {
+        return "" to trimmed
+    }
+    val prefix = trimmed.substring(0, separatorIndex)
+    val suffix = trimmed.substring(separatorIndex + 1).trim()
+    val looksLikeEmojiPrefix = prefix.length <= 4 && prefix.any { !it.isLetterOrDigit() }
+    return if (looksLikeEmojiPrefix && suffix.isNotBlank()) {
+        prefix to suffix
+    } else {
+        "" to trimmed
     }
 }
 
@@ -474,7 +520,6 @@ private fun ProductDetailAdminPreview() {
                     mode = ProductDetailMode.ADMIN,
                     quantity = 1,
                 ),
-            onQuantityChange = {},
             onEdit = {},
             onDelete = {},
         )
@@ -493,7 +538,6 @@ private fun ProductDetailClientPreview() {
                     mode = ProductDetailMode.CLIENT,
                     quantity = 2,
                 ),
-            onQuantityChange = {},
             onEdit = {},
             onDelete = {},
         )
@@ -513,7 +557,6 @@ private fun ProductDetailClientOfflinePreview() {
                     quantity = 1,
                     showOfflineWarning = true,
                 ),
-            onQuantityChange = {},
             onEdit = {},
             onDelete = {},
         )
@@ -532,7 +575,6 @@ private fun ProductDetailClientHighQuantityPreview() {
                     mode = ProductDetailMode.CLIENT,
                     quantity = 15,
                 ),
-            onQuantityChange = {},
             onEdit = {},
             onDelete = {},
         )

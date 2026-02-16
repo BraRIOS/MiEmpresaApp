@@ -42,4 +42,6 @@
     <string name="switch_company">Switch company</string>
     <string name="search">Search</string>
     <string name="config_title">Settings</string>
+    <string name="my_stores_conversion_subtitle">Create your catalog and share it.</string>
+    <string name="product_detail_add_with_subtotal">Add %1$s</string>
 </resources>

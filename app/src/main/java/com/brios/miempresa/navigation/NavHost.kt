@@ -285,11 +285,18 @@ fun NavHostComposable(
                     defaultValue = "admin"
                 },
             ),
-        ) {
+        ) { backStackEntry ->
+            val detailCompanyId = backStackEntry.arguments?.getString("companyId").orEmpty()
             ProductDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToEdit = { productId ->
                     navController.navigate("${MiEmpresaScreen.Product.name}/$productId")
+                },
+                onNavigateToCart = { companyId ->
+                    val targetCompanyId = companyId.ifBlank { detailCompanyId }
+                    if (targetCompanyId.isNotBlank()) {
+                        navController.navigate("${MiEmpresaScreen.Cart.name}/$targetCompanyId")
+                    }
                 },
             )
         }

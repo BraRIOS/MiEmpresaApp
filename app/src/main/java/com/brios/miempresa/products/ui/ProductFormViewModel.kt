@@ -10,6 +10,8 @@ import com.brios.miempresa.R
 import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.categories.domain.CategoriesRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
+import com.brios.miempresa.core.sync.SyncManager
+import com.brios.miempresa.core.sync.SyncType
 import com.brios.miempresa.products.data.ProductEntity
 import com.brios.miempresa.products.domain.ProductsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,13 +36,14 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 class ProductFormViewModel
 @Inject
-constructor(
-    private val productsRepository: ProductsRepository,
-    private val categoriesRepository: CategoriesRepository,
-    private val companyDao: CompanyDao,
-    @ApplicationContext private val appContext: Context,
-    savedStateHandle: SavedStateHandle,
-) : ViewModel() {
+    constructor(
+        private val productsRepository: ProductsRepository,
+        private val categoriesRepository: CategoriesRepository,
+        private val companyDao: CompanyDao,
+        private val syncManager: SyncManager,
+        @ApplicationContext private val appContext: Context,
+        savedStateHandle: SavedStateHandle,
+    ) : ViewModel() {
     private val productId: String? = savedStateHandle["productId"]
     val isEditMode: Boolean = productId != null
 
@@ -261,6 +264,7 @@ constructor(
                 } else {
                     productsRepository.create(product)
                 }
+                syncManager.syncNow(SyncType.PRODUCTS)
             }
 
             _isSaving.value = false
@@ -278,6 +282,7 @@ constructor(
         if (productId == null) return
         viewModelScope.launch {
             productsRepository.delete(productId, currentCompanyId)
+            syncManager.syncNow(SyncType.PRODUCTS)
             _saveComplete.emit(Unit)
         }
     }

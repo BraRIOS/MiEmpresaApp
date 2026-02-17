@@ -1,5 +1,8 @@
 package com.brios.miempresa.categories.ui
 
+import android.content.Context
+import androidx.work.WorkInfo
+import com.brios.miempresa.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.categories.domain.CategoriesRepository
@@ -8,17 +11,24 @@ import com.brios.miempresa.core.network.NetworkMonitor
 import com.brios.miempresa.core.sync.SyncManager
 import com.brios.miempresa.core.sync.SyncType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -30,6 +40,7 @@ class CategoriesViewModel
         private val companyDao: CompanyDao,
         private val syncManager: SyncManager,
         private val networkMonitor: NetworkMonitor,
+        @ApplicationContext private val appContext: Context,
     ) : ViewModel() {
         private val _searchQuery = MutableStateFlow("")
         val searchQuery: StateFlow<String> = _searchQuery
@@ -38,6 +49,9 @@ class CategoriesViewModel
 
         private val _isRefreshing = MutableStateFlow(false)
         val isRefreshing: StateFlow<Boolean> = _isRefreshing
+
+        private val _syncMessages = MutableSharedFlow<String>(extraBufferCapacity = 1)
+        val syncMessages: SharedFlow<String> = _syncMessages.asSharedFlow()
 
         val isOffline: StateFlow<Boolean> =
             networkMonitor.observeOnlineStatus()
@@ -114,16 +128,47 @@ class CategoriesViewModel
             val companyId = _companyId.value ?: return
             viewModelScope.launch {
                 categoriesRepository.delete(categoryId, companyId)
-                syncManager.syncNow(SyncType.CATEGORIES)
+                syncAndNotify(SyncType.CATEGORIES, showInProgress = false)
             }
         }
 
         fun refresh() {
             viewModelScope.launch {
+                if (_isRefreshing.value) return@launch
                 _isRefreshing.value = true
-                syncManager.syncNow(SyncType.CATEGORIES)
-                kotlinx.coroutines.delay(1500)
+                syncAndNotify(SyncType.CATEGORIES)
                 _isRefreshing.value = false
             }
+        }
+
+        private suspend fun syncAndNotify(
+            type: SyncType,
+            showInProgress: Boolean = true,
+        ) {
+            if (showInProgress) {
+                _syncMessages.emit(appContext.getString(R.string.sync_in_progress))
+            }
+            val syncWorkId = syncManager.syncNow(type)
+            val finalState =
+                withTimeoutOrNull(SYNC_RESULT_TIMEOUT_MS) {
+                    syncManager
+                        .observeWorkState(syncWorkId)
+                        .filterNotNull()
+                        .first { state -> state.isFinished }
+                }
+            val messageRes =
+                when (finalState) {
+                    WorkInfo.State.SUCCEEDED -> R.string.sync_completed
+                    WorkInfo.State.FAILED,
+                    WorkInfo.State.CANCELLED,
+                    -> R.string.sync_failed
+                    null -> R.string.sync_scheduled
+                    else -> R.string.sync_completed
+                }
+            _syncMessages.emit(appContext.getString(messageRes))
+        }
+
+        companion object {
+            private const val SYNC_RESULT_TIMEOUT_MS = 30_000L
         }
     }

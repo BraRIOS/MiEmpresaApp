@@ -8,6 +8,8 @@ import com.brios.miempresa.R
 import com.brios.miempresa.categories.data.Category
 import com.brios.miempresa.categories.domain.CategoriesRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
+import com.brios.miempresa.core.sync.SyncManager
+import com.brios.miempresa.core.sync.SyncType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -25,6 +27,7 @@ class CategoryFormViewModel
         @ApplicationContext private val appContext: Context,
         private val categoriesRepository: CategoriesRepository,
         private val companyDao: CompanyDao,
+        private val syncManager: SyncManager,
         savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
         private val categoryId: String? = savedStateHandle["categoryId"]
@@ -110,6 +113,7 @@ class CategoryFormViewModel
                         ),
                     )
                 }
+                syncManager.syncNow(SyncType.CATEGORIES)
                 _isSaving.value = false
                 _saveComplete.emit(Unit)
             }
@@ -120,6 +124,7 @@ class CategoryFormViewModel
             if (categoryId == null) return
             viewModelScope.launch {
                 categoriesRepository.delete(categoryId, currentCompanyId)
+                syncManager.syncNow(SyncType.CATEGORIES)
                 _saveComplete.emit(Unit)
             }
         }

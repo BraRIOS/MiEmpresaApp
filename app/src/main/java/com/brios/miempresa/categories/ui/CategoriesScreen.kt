@@ -16,10 +16,13 @@ import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +47,7 @@ import com.brios.miempresa.core.ui.components.TriangleArrowRefreshIndicator
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray400
+import kotlinx.coroutines.flow.collect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,19 +61,36 @@ fun CategoriesContent(
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val isOffline by viewModel.isOffline.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    CategoriesContentInternal(
-        modifier = modifier.fillMaxSize(),
-        uiState = uiState,
-        searchQuery = searchQuery,
-        isRefreshing = isRefreshing,
-        isOffline = isOffline,
-        onRefresh = viewModel::refresh,
-        onSearchQueryChanged = viewModel::onSearchQueryChanged,
-        onDeleteCategory = viewModel::deleteCategory,
-        onNavigateToCategoryDetail = onNavigateToCategoryDetail,
-        onNavigateToAddCategory = onNavigateToAddCategory,
-    )
+    LaunchedEffect(viewModel) {
+        viewModel.syncMessages.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        CategoriesContentInternal(
+            modifier = Modifier.fillMaxSize(),
+            uiState = uiState,
+            searchQuery = searchQuery,
+            isRefreshing = isRefreshing,
+            isOffline = isOffline,
+            onRefresh = viewModel::refresh,
+            onSearchQueryChanged = viewModel::onSearchQueryChanged,
+            onDeleteCategory = viewModel::deleteCategory,
+            onNavigateToCategoryDetail = onNavigateToCategoryDetail,
+            onNavigateToAddCategory = onNavigateToAddCategory,
+        )
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(AppDimensions.mediumPadding),
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

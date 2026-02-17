@@ -23,12 +23,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,11 +53,13 @@ import com.brios.miempresa.core.ui.components.EmptyStateView
 import com.brios.miempresa.core.ui.components.ItemCard
 import com.brios.miempresa.core.ui.components.NotFoundView
 import com.brios.miempresa.core.ui.components.OfflineBanner
+import com.brios.miempresa.core.ui.components.ProductItemShimmer
 import com.brios.miempresa.core.ui.components.SearchBar
 import com.brios.miempresa.core.ui.components.TriangleArrowRefreshIndicator
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.products.data.ProductEntity
+import kotlinx.coroutines.flow.collect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,24 +74,41 @@ fun ProductsContent(
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val isOffline by viewModel.isOffline.collectAsStateWithLifecycle()
     val productCountByCategory by viewModel.productCountByCategory.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    ProductsContentInternal(
-        modifier = modifier.fillMaxSize(),
-        uiState = uiState,
-        filters = filters,
-        isRefreshing = isRefreshing,
-        isOffline = isOffline,
-        productCountByCategory = productCountByCategory,
-        onRefresh = viewModel::refresh,
-        onSearchQueryChanged = viewModel::onSearchQueryChanged,
-        onPublicFilterChanged = viewModel::onPublicFilterChanged,
-        onCategoryFilterChanged = viewModel::onCategoryFilterChanged,
-        onClearFilters = viewModel::clearFilters,
-        onDeleteProduct = viewModel::deleteProduct,
-        onToggleVisibility = viewModel::togglePublic,
-        onNavigateToProductDetail = onNavigateToProductDetail,
-        onNavigateToAddProduct = onNavigateToAddProduct,
-    )
+    LaunchedEffect(viewModel) {
+        viewModel.syncMessages.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        ProductsContentInternal(
+            modifier = Modifier.fillMaxSize(),
+            uiState = uiState,
+            filters = filters,
+            isRefreshing = isRefreshing,
+            isOffline = isOffline,
+            productCountByCategory = productCountByCategory,
+            onRefresh = viewModel::refresh,
+            onSearchQueryChanged = viewModel::onSearchQueryChanged,
+            onPublicFilterChanged = viewModel::onPublicFilterChanged,
+            onCategoryFilterChanged = viewModel::onCategoryFilterChanged,
+            onClearFilters = viewModel::clearFilters,
+            onDeleteProduct = viewModel::deleteProduct,
+            onToggleVisibility = viewModel::togglePublic,
+            onNavigateToProductDetail = onNavigateToProductDetail,
+            onNavigateToAddProduct = onNavigateToAddProduct,
+        )
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(AppDimensions.mediumPadding),
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -168,11 +190,12 @@ private fun ProductsContentInternal(
             // Body content
             when (uiState) {
                 is ProductsUiState.Loading -> {
-                    Box(
+                    LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
                     ) {
-                        CircularProgressIndicator()
+                        items(5) {
+                            ProductItemShimmer()
+                        }
                     }
                 }
                 is ProductsUiState.Empty -> {

@@ -1,6 +1,6 @@
 [versions]
 accompanistFlowlayout = "0.36.0"
-agp = "9.0.0"
+agp = "9.0.1"
 coilCompose = "2.7.0"
 core = "3.5.4"
 credentials = "1.5.0"

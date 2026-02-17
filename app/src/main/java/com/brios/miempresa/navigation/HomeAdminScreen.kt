@@ -22,6 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.brios.miempresa.R
+import com.brios.miempresa.auth.ui.SignInViewModel
 import com.brios.miempresa.categories.ui.CategoriesContent
 import com.brios.miempresa.categories.ui.CategoriesUiState
 import com.brios.miempresa.categories.ui.CategoriesViewModel
@@ -44,6 +45,7 @@ fun HomeAdminScreen(
     onNavigateToOrders: () -> Unit = {},
     onNavigateToEditCompany: () -> Unit = {},
     onNavigateToWelcome: () -> Unit = {},
+    signInViewModel: SignInViewModel = hiltViewModel(),
     productsViewModel: ProductsViewModel = hiltViewModel(),
     categoriesViewModel: CategoriesViewModel = hiltViewModel(),
     configViewModel: ConfigViewModel = hiltViewModel(),
@@ -82,6 +84,7 @@ fun HomeAdminScreen(
         onNavigateToAddCategory = onNavigateToAddCategory,
         productsUiState = productsUiState,
         categoriesUiState = categoriesUiState,
+        signInViewModel = signInViewModel,
         productsContent = productsContent,
         categoriesContent = categoriesContent,
         configContent = configContent,
@@ -95,6 +98,7 @@ fun HomeAdminScreenContent(
     onNavigateToAddCategory: () -> Unit,
     productsUiState: ProductsUiState,
     categoriesUiState: CategoriesUiState,
+    signInViewModel: SignInViewModel? = null,
     productsContent: @Composable (Modifier) -> Unit,
     categoriesContent: @Composable (Modifier) -> Unit,
     configContent: @Composable (Modifier) -> Unit,
@@ -119,6 +123,7 @@ fun HomeAdminScreenContent(
     DrawerComposable(
         navController = navController,
         drawerState = drawerState,
+        signInViewModel = signInViewModel,
     ) {
         Scaffold(
             topBar = {

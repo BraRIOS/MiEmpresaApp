@@ -49,9 +49,7 @@ class OnboardingViewModel
 
         private val _uiState =
             MutableStateFlow<OnboardingUiState>(
-                OnboardingUiState.DiscoveringWorkspace(
-                    appContext.getString(R.string.onboarding_status_discovering),
-                ),
+                OnboardingUiState.Loading,
             )
         val uiState: StateFlow<OnboardingUiState> = _uiState.asStateFlow()
 

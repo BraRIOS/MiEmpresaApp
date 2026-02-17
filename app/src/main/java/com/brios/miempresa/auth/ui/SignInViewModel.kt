@@ -56,16 +56,16 @@ class SignInViewModel
 
         fun getSignedInUser() = authRepository.getSignedInUser()?.data
 
-        fun signOut(activity: Activity) =
+        fun signOut(activity: Activity) {
+            resetStates()
             viewModelScope.launch {
                 try {
                     logoutUseCase(activity)
                 } finally {
-                    _postAuthDestination.value = null
-                    _authState.value = null
-                    _signInState.value = SignInState()
+                    resetStates()
                 }
             }
+        }
 
         fun resetSignInState() {
             _signInState.update { SignInState() }

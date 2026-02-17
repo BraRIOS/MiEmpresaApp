@@ -1,5 +1,8 @@
 package com.brios.miempresa.onboarding.ui
 
+import com.brios.miempresa.core.data.local.entities.Company
+import com.brios.miempresa.onboarding.domain.WorkspaceIssueType
+
 data class OnboardingFormState(
     val companyName: String = "",
     val whatsappCountryCode: String = "+54",
@@ -26,13 +29,13 @@ sealed class OnboardingUiState {
     data object ValidatingWorkspace : OnboardingUiState()
 
     data class CompanySelector(
-        val companies: List<com.brios.miempresa.core.data.local.entities.Company>,
+        val companies: List<Company>,
         val username: String,
     ) : OnboardingUiState()
 
     data class WorkspaceIssue(
-        val company: com.brios.miempresa.core.data.local.entities.Company,
-        val issueType: com.brios.miempresa.onboarding.domain.WorkspaceIssueType,
+        val company: Company,
+        val issueType: WorkspaceIssueType,
     ) : OnboardingUiState()
 
     data class WizardStep1(

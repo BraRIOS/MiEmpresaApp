@@ -9,7 +9,6 @@ import com.brios.miempresa.catalog.domain.CatalogSyncException
 import com.brios.miempresa.catalog.domain.ClientCatalogRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.core.di.IoDispatcher
-import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.core.util.normalizeSheetId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -85,17 +84,12 @@ class DeeplinkRoutingViewModel
         private suspend fun resolveDeeplink(sheetId: String): DeeplinkNavigationEvent =
             withContext(ioDispatcher) {
                 val now = System.currentTimeMillis()
-                val existingCompany = companyDao.getByPublicSheetId(sheetId)
+                val existingVisitedCompany = companyDao.getVisitedByPublicSheetId(sheetId)
 
-                if (existingCompany != null) {
-                    if (existingCompany.isOwned) {
-                        selectOwnedCompany(existingCompany, now)
-                        return@withContext DeeplinkNavigationEvent.NavigateHome(sheetId)
-                    }
-
-                    companyDao.updateLastVisited(existingCompany.id, now)
+                if (existingVisitedCompany != null) {
+                    companyDao.updateLastVisited(existingVisitedCompany.id, now)
                     return@withContext DeeplinkNavigationEvent.NavigateClientCatalog(
-                        companyId = existingCompany.id,
+                        companyId = existingVisitedCompany.id,
                         consumedSheetId = sheetId,
                     )
                 }
@@ -124,14 +118,6 @@ class DeeplinkRoutingViewModel
                     },
                 )
             }
-
-        private suspend fun selectOwnedCompany(
-            company: Company,
-            timestamp: Long,
-        ) {
-            companyDao.unselectAllCompanies()
-            companyDao.update(company.copy(selected = true, lastVisited = timestamp))
-        }
 
         private fun mapSyncFailure(throwable: Throwable): CatalogAccessError {
             return if (throwable is CatalogSyncException) {

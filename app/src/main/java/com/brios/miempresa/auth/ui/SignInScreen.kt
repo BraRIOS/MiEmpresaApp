@@ -147,7 +147,7 @@ fun SignInScreen(
                         imageVector = Icons.Outlined.VerifiedUser,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(AppDimensions.smallIconSize),
+                        modifier = Modifier.size(AppDimensions.defaultSmallIconSize),
                     )
                 }
                 Spacer(modifier = Modifier.width(AppDimensions.mediumSmallPadding))

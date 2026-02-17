@@ -120,7 +120,8 @@ fun NavHostComposable(
         LaunchedEffect(Unit) {
             when (val authState = signInViewModel.checkDriveAuthorization()) {
                 is AuthState.Authorized -> {
-                    signInViewModel.determinePostAuthDestination()
+                    // Startup flow for signed-in users starts at Onboarding and is resolved there.
+                    // Avoid duplicate navigation decisions that can recreate Onboarding route.
                 }
                 is AuthState.PendingAuth -> {
                     signInViewModel.updateAuthState(authState)
@@ -140,22 +141,22 @@ fun NavHostComposable(
     val postAuthDest by signInViewModel.postAuthDestination.collectAsStateWithLifecycle()
 
     LaunchedEffect(postAuthDest) {
-            when (postAuthDest) {
-                is PostAuthDestination.Onboarding -> {
-                    navController.navigate(MiEmpresaScreen.Onboarding.name) {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                    }
-                    signInViewModel.consumePostAuthDestination()
+        when (postAuthDest) {
+            is PostAuthDestination.Onboarding -> {
+                navController.navigate(MiEmpresaScreen.Onboarding.name) {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 }
-                is PostAuthDestination.CompanySelector -> {
-                    navController.navigate("${MiEmpresaScreen.Onboarding.name}?mode=selector") {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                    }
-                    signInViewModel.consumePostAuthDestination()
+                signInViewModel.consumePostAuthDestination()
+            }
+            is PostAuthDestination.CompanySelector -> {
+                navController.navigate("${MiEmpresaScreen.Onboarding.name}?mode=selector") {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 }
-                is PostAuthDestination.Home -> {
-                    navController.navigate(MiEmpresaScreen.Home.name) {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                signInViewModel.consumePostAuthDestination()
+            }
+            is PostAuthDestination.Home -> {
+                navController.navigate(MiEmpresaScreen.Home.name) {
+                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 }
                 signInViewModel.consumePostAuthDestination()
             }
@@ -430,6 +431,7 @@ fun NavHostComposable(
         composable(route = MiEmpresaScreen.Home.name) {
             HomeAdminScreen(
                 navController = navController,
+                signInViewModel = signInViewModel,
                 onNavigateToAddProduct = {
                     navController.navigate("${MiEmpresaScreen.Product.name}/add")
                 },

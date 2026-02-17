@@ -14,7 +14,8 @@ object AppDimensions {
     val extraLargePadding = 32.dp
 
     // Icon sizes
-    val smallIconSize = 20.dp
+    val smallIconSize = 16.dp
+    val defaultSmallIconSize = 20.dp
     val defaultIconSize = 24.dp
     val mediumIconSize = 32.dp
 

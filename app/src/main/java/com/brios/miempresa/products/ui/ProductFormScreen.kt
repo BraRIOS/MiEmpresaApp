@@ -289,7 +289,7 @@ fun ProductFormContent(
                     ) {
                         if (isSaving) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(AppDimensions.smallIconSize),
+                                modifier = Modifier.size(AppDimensions.defaultSmallIconSize),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                 strokeWidth = 3.dp
                             )

@@ -39,13 +39,14 @@ fun EmptyStateView(
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
     actionIcon: ImageVector? = null,
+    verticalArrangement: Arrangement.Vertical = Arrangement.Center,
 ) {
     Column(
         modifier =
             modifier
                 .fillMaxSize()
                 .semantics(mergeDescendants = true) {},
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = verticalArrangement,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         StateViewSpotIllustration(icon)

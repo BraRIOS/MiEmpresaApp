@@ -337,7 +337,7 @@ fun CompanyFormStep(
                                 Icon(
                                     imageVector = Icons.Outlined.CameraAlt,
                                     contentDescription = null,
-                                    modifier = Modifier.size(AppDimensions.smallIconSize),
+                                    modifier = Modifier.size(AppDimensions.defaultSmallIconSize),
                                     tint = if (isLogoPressed) MaterialTheme.colorScheme.primary else SlateGray500,
                                 )
                                 Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
@@ -461,7 +461,7 @@ fun CompanyFormStep(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = null,
-                modifier = Modifier.size(AppDimensions.smallIconSize),
+                modifier = Modifier.size(AppDimensions.defaultSmallIconSize),
             )
         }
 

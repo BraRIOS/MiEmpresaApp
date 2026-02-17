@@ -187,7 +187,7 @@ fun EditCompanyDataContent(
                             imageVector = Icons.Outlined.CameraAlt,
                             contentDescription = stringResource(R.string.config_change_logo),
                             tint = Color.White,
-                            modifier = Modifier.size(AppDimensions.smallIconSize),
+                            modifier = Modifier.size(AppDimensions.defaultSmallIconSize),
                         )
                     }
                 }

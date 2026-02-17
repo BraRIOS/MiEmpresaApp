@@ -50,7 +50,7 @@ fun InfoCard(
             imageVector = Icons.Outlined.Info,
             contentDescription = null,
             tint = infoIcon,
-            modifier = Modifier.size(AppDimensions.smallIconSize),
+            modifier = Modifier.size(AppDimensions.defaultSmallIconSize),
         )
         Text(
             text = text,

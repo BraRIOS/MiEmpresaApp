@@ -174,7 +174,7 @@ private fun OrderProductContent(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                text = stringResource(R.string.cart_item_previous_price, currencyFormat.format(priceChange.oldPrice)),
+                                text = stringResource(R.string.cart_item_previous_price, currencyFormat.format(priceChange.oldPrice*quantity)),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textDecoration = TextDecoration.LineThrough,

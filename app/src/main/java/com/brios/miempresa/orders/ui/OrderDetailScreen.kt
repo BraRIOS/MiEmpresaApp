@@ -174,7 +174,7 @@ private fun OrderDetailContent(
                         Icon(
                             painter = painterResource(id = R.drawable.whatsapp_glyph_green),
                             contentDescription = null,
-                            modifier = Modifier.size(AppDimensions.smallIconSize),
+                            modifier = Modifier.size(AppDimensions.defaultSmallIconSize),
                             tint = Color.Unspecified
                         )
                         Spacer(modifier = Modifier.width(AppDimensions.smallPadding))

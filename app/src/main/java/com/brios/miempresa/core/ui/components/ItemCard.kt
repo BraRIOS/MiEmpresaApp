@@ -214,7 +214,7 @@ fun ProductItem(
                                 Icon(
                                     imageVector = icon,
                                     contentDescription = description,
-                                    modifier = Modifier.size(AppDimensions.smallIconSize),
+                                    modifier = Modifier.size(AppDimensions.defaultSmallIconSize),
                                     tint = tint,
                                 )
                             }
@@ -347,7 +347,7 @@ fun CategoryItem(
                                 if (isPublic) Icons.Outlined.Visibility
                                 else Icons.Outlined.VisibilityOff,
                             contentDescription = stringResource(R.string.toggle_visibility),
-                            modifier = Modifier.size(AppDimensions.smallIconSize),
+                            modifier = Modifier.size(AppDimensions.defaultSmallIconSize),
                             tint = if (isPublic) VisibilityActiveBlue else SlateGray400,
                         )
                     }
@@ -362,7 +362,7 @@ fun CategoryItem(
                             else stringResource(R.string.filter_private),
                         modifier = Modifier
                             .padding(start = AppDimensions.extraSmallPadding)
-                            .size(AppDimensions.smallIconSize),
+                            .size(AppDimensions.defaultSmallIconSize),
                         tint = if (isPublic) VisibilityActiveBlue else SlateGray400,
                     )
                 }
@@ -373,7 +373,7 @@ fun CategoryItem(
                         Icon(
                             imageVector = Icons.Outlined.Delete,
                             contentDescription = stringResource(R.string.delete),
-                            modifier = Modifier.size(AppDimensions.smallIconSize),
+                            modifier = Modifier.size(AppDimensions.defaultSmallIconSize),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }

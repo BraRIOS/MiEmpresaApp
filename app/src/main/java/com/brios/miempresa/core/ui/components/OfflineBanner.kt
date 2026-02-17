@@ -48,7 +48,7 @@ fun OfflineBanner(
         Icon(
             imageVector = Icons.Outlined.WifiOff,
             contentDescription = stringResource(R.string.offline_banner_message),
-            modifier = Modifier.size(AppDimensions.smallIconSize),
+            modifier = Modifier.size(AppDimensions.defaultSmallIconSize),
             tint = OnOfflineBannerYellow,
         )
         Spacer(modifier = Modifier.width(AppDimensions.smallPadding))

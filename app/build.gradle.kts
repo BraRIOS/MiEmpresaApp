@@ -1,5 +1,12 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
+val localProperties = gradleLocalProperties(rootDir, providers)
+
+fun resolveBuildSecret(name: String): String? =
+    providers.gradleProperty(name).orNull
+        ?: System.getenv(name)
+        ?: localProperties.getProperty(name)
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.compose)
@@ -13,12 +20,44 @@ android {
     namespace = "com.brios.miempresa"
     compileSdk = 36
 
+    val releaseStoreFilePath = resolveBuildSecret("RELEASE_STORE_FILE")?.trim().orEmpty()
+    val releaseStorePassword = resolveBuildSecret("RELEASE_STORE_PASSWORD")?.trim().orEmpty()
+    val releaseKeyAlias = resolveBuildSecret("RELEASE_KEY_ALIAS")?.trim().orEmpty()
+    val releaseKeyPassword = resolveBuildSecret("RELEASE_KEY_PASSWORD")?.trim().orEmpty()
+    val hasReleaseSigningConfig =
+        releaseStoreFilePath.isNotBlank() &&
+            releaseStorePassword.isNotBlank() &&
+            releaseKeyAlias.isNotBlank() &&
+            releaseKeyPassword.isNotBlank()
+    val isReleaseTaskRequested =
+        gradle.startParameter.taskNames.any { taskName ->
+            taskName.contains("release", ignoreCase = true)
+        }
+
     signingConfigs {
         create("UnifiedDebugKeystore") {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
             storeFile = file("debug.keystore")
             storePassword = "android"
+        }
+
+        create("release") {
+            if (!hasReleaseSigningConfig && isReleaseTaskRequested) {
+                throw GradleException(
+                    "Missing release signing config. Define RELEASE_STORE_FILE, RELEASE_STORE_PASSWORD, RELEASE_KEY_ALIAS and RELEASE_KEY_PASSWORD " +
+                        "via local.properties, environment variables, or -P Gradle properties.",
+                )
+            }
+
+            if (hasReleaseSigningConfig) {
+                storeFile = rootProject.file(releaseStoreFilePath)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+                enableV1Signing = true
+                enableV2Signing = true
+            }
         }
     }
 
@@ -33,15 +72,14 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-        signingConfig = signingConfigs.getByName("debug")
-        val webClientId: String = gradleLocalProperties(rootDir, providers).getProperty("WEB_CLIENT_ID") ?: ""
+        val webClientId: String = localProperties.getProperty("WEB_CLIENT_ID") ?: ""
         val sheetsApiKey: String =
-            gradleLocalProperties(rootDir, providers)
+            localProperties
                 .getProperty("SHEETS_API_KEY")
                 ?.trim()
                 ?.removeSurrounding("\"")
                 ?: ""
-        val syncPeriodMinutes: Long = gradleLocalProperties(rootDir, providers).getProperty("SYNC_PERIOD_MINUTES")?.toLong() ?: 15
+        val syncPeriodMinutes: Long = localProperties.getProperty("SYNC_PERIOD_MINUTES")?.toLong() ?: 15
         buildConfigField("String", "WEB_CLIENT_ID", "\"$webClientId\"")
         buildConfigField("String", "SHEETS_API_KEY", "\"$sheetsApiKey\"")
         buildConfigField("long", "SYNC_PERIOD_MINUTES", "$syncPeriodMinutes")
@@ -49,7 +87,10 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            isDebuggable = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }

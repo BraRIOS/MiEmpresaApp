@@ -2,25 +2,30 @@ package com.brios.miempresa.catalog.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Whatsapp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import com.brios.miempresa.R
 import com.brios.miempresa.core.data.local.entities.Company
+import com.brios.miempresa.core.domain.model.defaultCountryCodes
 import com.brios.miempresa.core.ui.components.CompanyAvatar
 import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 
 @Composable
 fun CompanyHeader(
@@ -57,6 +62,28 @@ fun CompanyHeader(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
+
+        company.whatsappNumber
+            ?.takeIf { it.isNotBlank() }
+            ?.let { whatsappNumber ->
+                val countryCode = company.whatsappCountryCode ?: ""
+                val fullNumber = if (countryCode.isNotBlank()) "$countryCode $whatsappNumber" else whatsappNumber
+                val emojiFlag = defaultCountryCodes.find { it.dialCode == countryCode }?.emoji
+                val displayText = if (emojiFlag != null) "$emojiFlag $fullNumber" else fullNumber
+
+                CompanyMetadataRow(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Outlined.Whatsapp,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(AppDimensions.smallIconSize),
+                        )
+                    },
+                    text = displayText,
+                )
+            }
+
         company.address
             ?.takeIf { it.isNotBlank() }
             ?.let { address ->
@@ -107,5 +134,22 @@ private fun CompanyMetadataRow(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun CompanyHeaderPreview() {
+    val sampleCompany = Company(
+        id = "1",
+        name = "Vinoteca \"El Roble\"",
+        specialization = "Vinos y Licores Artesanales",
+        whatsappNumber = "1122334455",
+        whatsappCountryCode = "+54",
+        address = "Av. Libertador 1234, Buenos Aires",
+        businessHours = "Mon-Fri 9:00 - 18:00"
+    )
+    MiEmpresaTheme {
+        CompanyHeader(company = sampleCompany)
     }
 }

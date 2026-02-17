@@ -1,5 +1,6 @@
 package com.brios.miempresa.catalog.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,8 +15,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -48,10 +49,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
@@ -162,6 +170,8 @@ fun ClientCatalogScreenContent(
             -> {
                 val data = uiState.data
                 val listState = rememberLazyListState()
+
+                // Logic to toggle between states
                 val showCollapsedTitle by
                     remember(listState, uiState) {
                         derivedStateOf {
@@ -169,6 +179,12 @@ fun ClientCatalogScreenContent(
                                 (listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 72)
                         }
                     }
+
+                // Show button in top bar if we are at the top (title not collapsed yet)
+                val showReturnButtonInTopBar = data.isAdminHybrid && !showCollapsedTitle
+                // Show button at bottom if we scrolled down (title is collapsed)
+                val showReturnButtonAtBottom = data.isAdminHybrid && showCollapsedTitle
+
                 var showCategorySelector by rememberSaveable(data.company.id) { mutableStateOf(false) }
                 val categoryOptions =
                     remember(data.categories, data.company.id) {
@@ -191,6 +207,8 @@ fun ClientCatalogScreenContent(
                         cartCount = data.cartCount,
                         onNavigateBack = onNavigateBack,
                         onNavigateToCart = { onNavigateToCart(data.company.id) },
+                        showReturnButton = showReturnButtonInTopBar,
+                        onReturnToAdmin = onNavigateToHome
                     )
 
                     when (uiState) {
@@ -202,6 +220,7 @@ fun ClientCatalogScreenContent(
                                 onCategoryClick = { showCategorySelector = true },
                                 onNavigateToProductDetail = onNavigateToProductDetail,
                                 onAddProductToCart = onAddProductToCart,
+                                bottomPadding = if (showReturnButtonAtBottom) AppDimensions.extraLargePadding * 3 else AppDimensions.largePadding
                             )
                         }
 
@@ -218,7 +237,7 @@ fun ClientCatalogScreenContent(
                         }
                     }
 
-                    if (data.isAdminHybrid) {
+                    if (showReturnButtonAtBottom) {
                         AdminHybridReturnBanner(
                             onClick = {
                                 onNavigateToHome()
@@ -259,21 +278,14 @@ private fun ColumnScope.CatalogSuccessContent(
     onCategoryClick: () -> Unit,
     onNavigateToProductDetail: (String) -> Unit,
     onAddProductToCart: (String) -> Unit,
+    bottomPadding: androidx.compose.ui.unit.Dp
 ) {
     val productRows = remember(data.products) { data.products.chunked(2) }
 
     LazyColumn(
         state = listState,
         modifier = Modifier.weight(1f),
-        contentPadding =
-            PaddingValues(
-                bottom =
-                    if (data.isAdminHybrid) {
-                        AppDimensions.extraLargePadding * 3
-                    } else {
-                        AppDimensions.largePadding
-                    },
-            ),
+        contentPadding = PaddingValues(bottom = bottomPadding),
     ) {
         item("company-header") {
             CompanyHeader(
@@ -436,6 +448,8 @@ private fun CatalogTopBar(
     cartCount: Int,
     onNavigateBack: () -> Unit,
     onNavigateToCart: () -> Unit,
+    showReturnButton: Boolean = false,
+    onReturnToAdmin: () -> Unit = {}
 ) {
     Surface(
         modifier =
@@ -460,13 +474,23 @@ private fun CatalogTopBar(
                     contentDescription = stringResource(R.string.go_back),
                 )
             }
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                textAlign = TextAlign.Center,
+
+            Box(
                 modifier = Modifier.weight(1f),
-            )
+                contentAlignment = Alignment.Center
+            ) {
+                if (showReturnButton) {
+                    AdminHybridTopBarButton(onClick = onReturnToAdmin)
+                } else {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+
             Box(contentAlignment = Alignment.Center) {
                 IconButton(onClick = onNavigateToCart) {
                     Icon(
@@ -493,6 +517,38 @@ private fun CatalogTopBar(
 }
 
 @Composable
+private fun AdminHybridTopBarButton(
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        shape = CircleShape,
+        color = Color(0xFFFFF5EB),
+        border = BorderStroke(1.dp, Color(0xFFFED7AA)),
+        modifier = Modifier.height(36.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Home,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = Color(0xFFF18622),
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = stringResource(R.string.client_catalog_go_my_business),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFFF18622),
+            )
+        }
+    }
+}
+
+@Composable
 private fun AdminHybridReturnBanner(
     onClick: () -> Unit,
 ) {
@@ -500,33 +556,57 @@ private fun AdminHybridReturnBanner(
         modifier =
             Modifier
                 .fillMaxWidth()
+                .shadow(
+                    elevation = 16.dp,
+                    spotColor = Color(0x1F000000),
+                    ambientColor = Color(0x1F000000),
+                )
+                .zIndex(60f)
                 .clickable(onClick = onClick),
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-        shadowElevation = 8.dp,
+        color = Color(0xFFFFF5EB),
     ) {
-        Row(
+        Box(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(
-                        horizontal = AppDimensions.mediumPadding,
-                        vertical = AppDimensions.mediumPadding,
-                    ),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
+                    .drawBehind {
+                        val strokeWidth = 1.dp.toPx()
+                        val color = Color(0xFFFED7AA).copy(alpha = 0.5f)
+                        drawLine(
+                            color = color,
+                            start = Offset(0f, 0f),
+                            end = Offset(size.width, 0f),
+                            strokeWidth = strokeWidth,
+                        )
+                    },
         ) {
-            Icon(
-                imageVector = Icons.Filled.Home,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
-            Text(
-                text = stringResource(R.string.client_catalog_go_my_business),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-            )
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(
+                            horizontal = 16.dp,
+                            vertical = 14.dp,
+                        ),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Home,
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp),
+                    tint = Color(0xFFF18622),
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = stringResource(R.string.client_catalog_go_my_business),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFF18622),
+                    letterSpacing = 0.4.sp,
+                )
+            }
         }
     }
 }
@@ -557,63 +637,186 @@ private val ClientCatalogState.data: ClientCatalogUiData
             is ClientCatalogState.Error -> error("Error state has no data")
         }
 
-@Preview
-@Composable
-private fun ClientCatalogScreenPreview() {
-    val company =
-        Company(
-            id = "1",
-            name = "Mi Empresa",
-            specialization = "Gestión de catálogos y pedidos",
-            address = "Calle Falsa 123",
-            businessHours = "09:00 - 18:00",
-            whatsappNumber = "123456789",
-            whatsappCountryCode = "+54",
-            isOwned = true,
-        )
-    val products =
-        listOf(
-            ProductEntity(
-                id = "1",
-                name = "Producto with a very large name that must fit in 3 lines",
-                price = 100.0,
-                companyId = "1",
-                categoryName = "🥤 Categoria 1",
-            ),
-            ProductEntity(
-                id = "2",
-                name = "Producto 2",
-                price = 200.0,
-                companyId = "1",
-                categoryName = "🍔 Categoria 2",
-            ),
-            ProductEntity(
-                id = "3",
-                name = "Producto 3",
-                price = 200.0,
-                companyId = "1",
-                categoryName = "🍔 Categoria 1",
-            ),
-        )
-    val uiState =
-        ClientCatalogState.Success(
-            data =
-                ClientCatalogUiData(
-                    company = company,
-                    products = products,
-                    categories = listOf("🥤 Categoria 1", "🍔 Categoria 2"),
-                    categoryProductCount = mapOf("🥤 Categoria 1" to 1, "🍔 Categoria 2" to 1),
-                    selectedCategory = null,
-                    searchQuery = "",
-                    cartCount = 2,
-                    isOffline = false,
-                    isAdminHybrid = false,
-                ),
-        )
+// Previews
 
+private val PreviewCompany =
+    Company(
+        id = "1",
+        name = "Vinoteca Laura",
+        specialization = "Vinos y Licores Artesanales",
+        address = "Av. Corrientes 1234",
+        businessHours = "Lun-Sab 10-20hs",
+        whatsappNumber = "123456789",
+        whatsappCountryCode = "+54",
+        isOwned = true,
+    )
+
+private val PreviewProducts =
+    listOf(
+        ProductEntity(
+            id = "1",
+            name = "Malbec Reserva 2019",
+            price = 4500.0,
+            companyId = "1",
+            categoryName = "🍷 Vinos",
+        ),
+        ProductEntity(
+            id = "2",
+            name = "Cabernet Sauvignon",
+            price = 5200.0,
+            companyId = "1",
+            categoryName = "🍷 Vinos",
+        ),
+        ProductEntity(
+            id = "3",
+            name = "Merlot Clásico",
+            price = 3800.0,
+            companyId = "1",
+            categoryName = "🍷 Vinos",
+        ),
+        ProductEntity(
+            id = "4",
+            name = "Chardonnay Roble",
+            price = 4100.0,
+            companyId = "1",
+            categoryName = "🍷 Vinos",
+        ),
+    )
+
+private val PreviewData =
+    ClientCatalogUiData(
+        company = PreviewCompany,
+        products = PreviewProducts,
+        categories = listOf("🍷 Vinos"),
+        categoryProductCount = mapOf("🍷 Vinos" to 4),
+        selectedCategory = null,
+        searchQuery = "",
+        cartCount = 2,
+        isOffline = false,
+        isAdminHybrid = false,
+    )
+
+@Preview(name = "Success Content", showBackground = true)
+@Composable
+private fun ClientCatalogScreenSuccessPreview() {
     MiEmpresaTheme {
         ClientCatalogScreenContent(
-            uiState = uiState,
+            uiState = ClientCatalogState.Success(data = PreviewData),
+            isRefreshing = false,
+            onRefresh = {},
+            onNavigateBack = {},
+            onNavigateToCart = {},
+            onNavigateToHome = {},
+            onNavigateToProductDetail = {},
+            onSearchQueryChange = {},
+            onCategoryToggle = {},
+            onClearCategoryFilter = {},
+            onClearFilters = {},
+            onAddProductToCart = {},
+        )
+    }
+}
+
+@Preview(name = "Admin Hybrid", showBackground = true)
+@Composable
+private fun ClientCatalogScreenAdminHybridPreview() {
+    MiEmpresaTheme {
+        ClientCatalogScreenContent(
+            uiState =
+                ClientCatalogState.Success(
+                    data = PreviewData.copy(isAdminHybrid = true),
+                ),
+            isRefreshing = false,
+            onRefresh = {},
+            onNavigateBack = {},
+            onNavigateToCart = {},
+            onNavigateToHome = {},
+            onNavigateToProductDetail = {},
+            onSearchQueryChange = {},
+            onCategoryToggle = {},
+            onClearCategoryFilter = {},
+            onClearFilters = {},
+            onAddProductToCart = {},
+        )
+    }
+}
+
+@Preview(name = "Loading", showBackground = true)
+@Composable
+private fun ClientCatalogScreenLoadingPreview() {
+    MiEmpresaTheme {
+        ClientCatalogScreenContent(
+            uiState = ClientCatalogState.Loading,
+            isRefreshing = false,
+            onRefresh = {},
+            onNavigateBack = {},
+            onNavigateToCart = {},
+            onNavigateToHome = {},
+            onNavigateToProductDetail = {},
+            onSearchQueryChange = {},
+            onCategoryToggle = {},
+            onClearCategoryFilter = {},
+            onClearFilters = {},
+            onAddProductToCart = {},
+        )
+    }
+}
+
+@Preview(name = "Error", showBackground = true)
+@Composable
+private fun ClientCatalogScreenErrorPreview() {
+    MiEmpresaTheme {
+        ClientCatalogScreenContent(
+            uiState = ClientCatalogState.Error(message = "No pudimos cargar el catálogo"),
+            isRefreshing = false,
+            onRefresh = {},
+            onNavigateBack = {},
+            onNavigateToCart = {},
+            onNavigateToHome = {},
+            onNavigateToProductDetail = {},
+            onSearchQueryChange = {},
+            onCategoryToggle = {},
+            onClearCategoryFilter = {},
+            onClearFilters = {},
+            onAddProductToCart = {},
+        )
+    }
+}
+
+@Preview(name = "Empty", showBackground = true)
+@Composable
+private fun ClientCatalogScreenEmptyPreview() {
+    MiEmpresaTheme {
+        ClientCatalogScreenContent(
+            uiState =
+                ClientCatalogState.Empty(
+                    data = PreviewData.copy(products = emptyList()),
+                    hasActiveFilters = false,
+                ),
+            isRefreshing = false,
+            onRefresh = {},
+            onNavigateBack = {},
+            onNavigateToCart = {},
+            onNavigateToHome = {},
+            onNavigateToProductDetail = {},
+            onSearchQueryChange = {},
+            onCategoryToggle = {},
+            onClearCategoryFilter = {},
+            onClearFilters = {},
+            onAddProductToCart = {},
+        )
+    }
+}
+
+@Preview(name = "Offline", showBackground = true)
+@Composable
+private fun ClientCatalogScreenOfflinePreview() {
+    MiEmpresaTheme {
+        ClientCatalogScreenContent(
+            uiState =
+                ClientCatalogState.Offline(
+                    data = PreviewData.copy(isOffline = true, products = emptyList()),
+                ),
             isRefreshing = false,
             onRefresh = {},
             onNavigateBack = {},

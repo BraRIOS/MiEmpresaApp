@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -155,7 +155,7 @@ fun MyStoresScreen(
                     actionIconContentColor = MaterialTheme.colorScheme.onBackground,
                     subtitleContentColor = Color.Unspecified
                 ),
-                windowInsets = WindowInsets.safeDrawing,
+                windowInsets = WindowInsets.statusBars,
             )
         },
         floatingActionButton = {
@@ -268,10 +268,16 @@ private fun MyStoresContent(
                 )
                 Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
 
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                ) {
                 when {
                     uiState.filteredStores.isNotEmpty() -> {
                         LazyColumn(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(bottom = AppDimensions.largePadding),
                             verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
                         ) {
@@ -294,23 +300,23 @@ private fun MyStoresContent(
 
                     uiState.stores.isEmpty() -> {
                         EmptyStateView(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.fillMaxSize(),
                             icon = Icons.Outlined.QrCode,
                             title = stringResource(R.string.my_stores),
                             subtitle = stringResource(R.string.my_stores_placeholder_subtitle),
                             actionLabel = stringResource(R.string.my_stores_add_by_code),
                             onAction = onAddByCode,
                         )
-                        Spacer(Modifier.weight(if (!uiState.isAdminHybridContext) 0.3f else 0.2f))
                     }
 
                     else -> {
                         NotFoundView(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.fillMaxSize(),
                             message = stringResource(R.string.my_stores_no_results),
                             onAction = onClearSearch,
                         )
                     }
+                }
                 }
             }
         }

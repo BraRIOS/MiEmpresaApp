@@ -74,7 +74,7 @@ fun AddStoreSheet(
             ) {
                 if (isSubmitting) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(AppDimensions.smallIconSize),
+                        modifier = Modifier.size(AppDimensions.defaultSmallIconSize),
                         strokeWidth = AppDimensions.smallBorderWidth,
                     )
                 } else {

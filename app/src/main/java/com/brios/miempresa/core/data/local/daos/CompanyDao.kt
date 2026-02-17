@@ -67,8 +67,14 @@ interface CompanyDao {
     @Query("SELECT * FROM companies WHERE publicSheetId = :sheetId LIMIT 1")
     suspend fun getByPublicSheetId(sheetId: String): Company?
 
+    @Query("SELECT * FROM companies WHERE publicSheetId = :sheetId AND isOwned = 0 LIMIT 1")
+    suspend fun getVisitedByPublicSheetId(sheetId: String): Company?
+
     @Query("SELECT * FROM companies WHERE isOwned = 0 ORDER BY lastVisited DESC")
     fun getVisitedCompanies(): Flow<List<Company>>
+
+    @Query("SELECT * FROM companies WHERE isOwned = 0 ORDER BY lastVisited DESC")
+    suspend fun getVisitedCompaniesList(): List<Company>
 
     @Query("SELECT COUNT(*) FROM companies WHERE isOwned = 0")
     suspend fun countVisited(): Int
@@ -78,4 +84,7 @@ interface CompanyDao {
         id: String,
         timestamp: Long,
     )
+
+    @Upsert
+    suspend fun upsertCompanies(companies: List<Company>)
 }

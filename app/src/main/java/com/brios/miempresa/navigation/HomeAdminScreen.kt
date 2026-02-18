@@ -10,7 +10,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -79,7 +79,7 @@ fun HomeAdminScreen(
 ) {
     val productsUiState by productsViewModel.uiState.collectAsStateWithLifecycle()
     val categoriesUiState by categoriesViewModel.uiState.collectAsStateWithLifecycle()
-    val homeSavedStateHandle = navController.getBackStackEntry(MiEmpresaScreen.Home.name).savedStateHandle
+    val homeSavedStateHandle = navController.getBackStackEntry(MiEmpresaRoutes.home).savedStateHandle
 
     LaunchedEffect(homeSavedStateHandle) {
         homeSavedStateHandle.getStateFlow("products_sync_feedback", false).collect { pending ->
@@ -126,20 +126,13 @@ fun HomeAdminScreenContent(
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    var selectedTab by rememberSaveable { mutableStateOf(AdminTopLevelTab.Products) }
 
     val showFab = when (selectedTab) {
-        0 -> productsUiState !is ProductsUiState.Empty
-        1 -> categoriesUiState !is CategoriesUiState.Empty
+        AdminTopLevelTab.Products -> productsUiState !is ProductsUiState.Empty
+        AdminTopLevelTab.Categories -> categoriesUiState !is CategoriesUiState.Empty
         else -> false
     }
-
-    val tabTitles =
-        listOf(
-            stringResource(R.string.home_title),
-            stringResource(R.string.categories_title),
-            stringResource(R.string.company_tab_title),
-        )
 
     DrawerComposable(
         navController = navController,
@@ -149,40 +142,42 @@ fun HomeAdminScreenContent(
         Scaffold(
             topBar = {
                 TopBar(
-                    title = tabTitles[selectedTab],
+                    title = stringResource(selectedTab.titleRes),
                     openDrawer = { scope.launch { drawerState.open() } },
                 )
             },
             bottomBar = {
                 BottomBar(
-                    selectedTabIndex = selectedTab,
+                    selectedTab = selectedTab,
                     onTabSelected = { selectedTab = it },
                 )
             },
             floatingActionButton = {
                 if (showFab) {
                     when (selectedTab) {
-                        0 -> {
+                        AdminTopLevelTab.Products -> {
                             MiEmpresaFAB(
                                 onClick = onNavigateToAddProduct,
                                 contentDescription = stringResource(R.string.add_product),
                             )
                         }
 
-                        1 -> {
+                        AdminTopLevelTab.Categories -> {
                             MiEmpresaFAB(
                                 onClick = onNavigateToAddCategory,
                                 contentDescription = stringResource(R.string.add_category),
                             )
                         }
+
+                        AdminTopLevelTab.Company -> Unit
                     }
                 }
             },
         ) { paddingValues ->
             when (selectedTab) {
-                0 -> productsContent(Modifier.padding(paddingValues))
-                1 -> categoriesContent(Modifier.padding(paddingValues))
-                2 -> configContent(Modifier.padding(paddingValues))
+                AdminTopLevelTab.Products -> productsContent(Modifier.padding(paddingValues))
+                AdminTopLevelTab.Categories -> categoriesContent(Modifier.padding(paddingValues))
+                AdminTopLevelTab.Company -> configContent(Modifier.padding(paddingValues))
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.brios.miempresa.categories.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -73,8 +74,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.emoji2.emojipicker.EmojiPickerView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.components.InfoCard
@@ -84,6 +83,7 @@ import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray200
 import com.brios.miempresa.core.ui.theme.SlateGray400
+import com.brios.miempresa.navigation.rememberScreenActionGuard
 import java.util.Locale.getDefault
 
 private val QuickPickEmojis = listOf("🍔", "🥤", "👕", "🏠", "📦", "📱")
@@ -94,9 +94,8 @@ fun CategoryFormScreen(
     onSaved: () -> Unit = {},
     viewModel: CategoryFormViewModel = hiltViewModel(),
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsStateWithLifecycle()
-    val isScreenInteractive = lifecycleState == Lifecycle.State.RESUMED
+    val screenActionGuard = rememberScreenActionGuard()
+    val isScreenInteractive = screenActionGuard.isScreenInteractive
 
     val name by viewModel.name.collectAsStateWithLifecycle()
     val selectedEmoji by viewModel.selectedEmoji.collectAsStateWithLifecycle()
@@ -104,8 +103,13 @@ fun CategoryFormScreen(
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
     val productCount by viewModel.productCount.collectAsStateWithLifecycle()
 
+    BackHandler(enabled = !isSaving) {
+        screenActionGuard.runAndNavigate(onNavigateBack)
+    }
+
     LaunchedEffect(Unit) {
         viewModel.saveComplete.collect {
+            screenActionGuard.beginNavigation()
             onSaved()
             onNavigateBack()
         }
@@ -121,9 +125,9 @@ fun CategoryFormScreen(
         onNameChanged = viewModel::onNameChanged,
         onEmojiSelected = viewModel::onEmojiSelected,
         isScreenInteractive = isScreenInteractive,
-        onSave = { if (isScreenInteractive) viewModel.save() },
-        onDelete = { if (isScreenInteractive) viewModel.delete() },
-        onNavigateBack = { if (isScreenInteractive) onNavigateBack() },
+        onSave = { screenActionGuard.runIfActive { viewModel.save() } },
+        onDelete = { screenActionGuard.runIfActive { viewModel.delete() } },
+        onNavigateBack = { screenActionGuard.runAndNavigate(onNavigateBack) },
     )
 }
 

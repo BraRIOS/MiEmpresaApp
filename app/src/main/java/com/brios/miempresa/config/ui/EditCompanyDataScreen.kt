@@ -1,5 +1,6 @@
 package com.brios.miempresa.config.ui
 
+import androidx.activity.compose.BackHandler
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -44,8 +45,6 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.components.CompanyAvatar
@@ -55,6 +54,7 @@ import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray500
 import com.brios.miempresa.core.ui.components.CountryCodeDropdown
+import com.brios.miempresa.navigation.rememberScreenActionGuard
 
 
 @Composable
@@ -62,13 +62,16 @@ fun EditCompanyDataScreen(
     onNavigateBack: () -> Unit,
     viewModel: ConfigViewModel = hiltViewModel(),
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsStateWithLifecycle()
-    val isScreenInteractive = lifecycleState == Lifecycle.State.RESUMED
+    val screenActionGuard = rememberScreenActionGuard()
+    val isScreenInteractive = screenActionGuard.isScreenInteractive
 
     val form by viewModel.form.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isSaving = uiState is ConfigUiState.Saving
+
+    BackHandler(enabled = !isSaving) {
+        screenActionGuard.runAndNavigate(onNavigateBack)
+    }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -86,14 +89,14 @@ fun EditCompanyDataScreen(
         onUpdateSpecialization = viewModel::updateSpecialization,
         onUpdateAddress = viewModel::updateAddress,
         onUpdateBusinessHours = viewModel::updateBusinessHours,
-        onPickLogo = { if (isScreenInteractive) imagePickerLauncher.launch("image/*") },
+        onPickLogo = { screenActionGuard.runIfActive { imagePickerLauncher.launch("image/*") } },
         onSave = {
-            if (isScreenInteractive) {
+            screenActionGuard.runAndNavigate {
                 viewModel.save()
                 onNavigateBack()
             }
         },
-        onCancel = { if (isScreenInteractive) onNavigateBack() },
+        onCancel = { screenActionGuard.runAndNavigate(onNavigateBack) },
     )
 }
 

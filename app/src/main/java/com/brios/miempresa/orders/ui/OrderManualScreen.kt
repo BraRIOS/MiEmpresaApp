@@ -1,5 +1,6 @@
 package com.brios.miempresa.orders.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -58,8 +59,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.components.CountryCodeDropdown
@@ -72,6 +71,7 @@ import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray200
 import com.brios.miempresa.core.ui.theme.SlateGray400
 import com.brios.miempresa.core.ui.theme.SlateGray500
+import com.brios.miempresa.navigation.rememberScreenActionGuard
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -85,9 +85,8 @@ fun OrderManualScreen(
     onOrderCreated: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsStateWithLifecycle()
-    val isScreenInteractive = lifecycleState == Lifecycle.State.RESUMED
+    val screenActionGuard = rememberScreenActionGuard()
+    val isScreenInteractive = screenActionGuard.isScreenInteractive
 
     val form by viewModel.form.collectAsStateWithLifecycle()
     val products by viewModel.products.collectAsStateWithLifecycle()
@@ -95,10 +94,17 @@ fun OrderManualScreen(
 
     var showProductSheet by rememberSaveable { mutableStateOf(false) }
 
+    BackHandler(enabled = !isSaving) {
+        screenActionGuard.runAndNavigate(onNavigateBack)
+    }
+
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is OrderManualEvent.OrderCreated -> onOrderCreated()
+                is OrderManualEvent.OrderCreated -> {
+                    screenActionGuard.beginNavigation()
+                    onOrderCreated()
+                }
                 is OrderManualEvent.ShowError -> {}
             }
         }
@@ -109,16 +115,16 @@ fun OrderManualScreen(
         form = form,
         isSaving = isSaving,
         isScreenInteractive = isScreenInteractive,
-        onNavigateBack = { if (isScreenInteractive) onNavigateBack() },
+        onNavigateBack = { screenActionGuard.runAndNavigate(onNavigateBack) },
         onUpdateCustomerName = viewModel::updateCustomerName,
         onUpdateCustomerPhone = viewModel::updateCustomerPhone,
         onUpdateCustomerPhoneCountryCode = viewModel::updateCustomerPhoneCountryCode,
         onUpdateDate = viewModel::updateDate,
         onUpdateNotes = viewModel::updateNotes,
-        onAddProductClick = { if (isScreenInteractive) showProductSheet = true },
+        onAddProductClick = { screenActionGuard.runIfActive { showProductSheet = true } },
         onRemoveItem = viewModel::removeItem,
         onUpdateItemQuantity = viewModel::updateItemQuantity,
-        onCreateOrder = { if (isScreenInteractive) viewModel.createOrder() },
+        onCreateOrder = { screenActionGuard.runIfActive { viewModel.createOrder() } },
     )
 
     if (showProductSheet) {

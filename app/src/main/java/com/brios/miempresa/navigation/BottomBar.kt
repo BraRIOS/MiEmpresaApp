@@ -4,10 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.Domain
-import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -18,7 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -27,42 +22,13 @@ import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray400
 
-data class TabBarItem(
-    val title: String,
-    val icon: ImageVector,
-    val selectedColor: Color,
-    val unselectedColor: Color,
-)
-
 @Composable
 fun BottomBar(
-    selectedTabIndex: Int,
-    onTabSelected: (Int) -> Unit,
+    selectedTab: AdminTopLevelTab,
+    onTabSelected: (AdminTopLevelTab) -> Unit,
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val unselectedColor = SlateGray400
-
-    val tabBarItems =
-        listOf(
-            TabBarItem(
-                title = stringResource(id = R.string.home_title),
-                icon = Icons.Filled.Inventory2,
-                selectedColor = primaryColor,
-                unselectedColor = unselectedColor,
-            ),
-            TabBarItem(
-                title = stringResource(id = R.string.categories_title),
-                icon = Icons.Filled.Category,
-                selectedColor = primaryColor,
-                unselectedColor = unselectedColor,
-            ),
-            TabBarItem(
-                title = stringResource(id = R.string.company_tab_title),
-                icon = Icons.Filled.Domain,
-                selectedColor = primaryColor,
-                unselectedColor = unselectedColor,
-            ),
-        )
 
     Column {
         HorizontalDivider(
@@ -72,30 +38,31 @@ fun BottomBar(
         NavigationBar(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         ) {
-            tabBarItems.forEachIndexed { index, tabBarItem ->
+            AdminTopLevelTab.entries.forEach { tab ->
+                val title = stringResource(id = tab.titleRes)
                 NavigationBarItem(
-                    selected = selectedTabIndex == index,
-                    onClick = { onTabSelected(index) },
+                    selected = selectedTab == tab,
+                    onClick = { onTabSelected(tab) },
                     icon = {
                         Icon(
                             modifier = Modifier.size(AppDimensions.defaultIconSize),
-                            imageVector = tabBarItem.icon,
-                            contentDescription = tabBarItem.title,
+                            imageVector = tab.icon,
+                            contentDescription = title,
                         )
                     },
                     label = {
                         Text(
-                            tabBarItem.title.uppercase(),
+                            title.uppercase(),
                             style = MaterialTheme.typography.labelMedium,
                         )
                     },
                     colors =
                     NavigationBarItemDefaults.colors(
-                        selectedIconColor = tabBarItem.selectedColor,
-                        selectedTextColor = tabBarItem.selectedColor,
+                        selectedIconColor = primaryColor,
+                        selectedTextColor = primaryColor,
                         indicatorColor = Color.Transparent,
-                        unselectedIconColor = tabBarItem.unselectedColor,
-                        unselectedTextColor = tabBarItem.unselectedColor,
+                        unselectedIconColor = unselectedColor,
+                        unselectedTextColor = unselectedColor,
                     ),
                 )
             }
@@ -108,7 +75,7 @@ fun BottomBar(
 private fun PreviewBottomBar(){
     MiEmpresaTheme {
         Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
-            BottomBar(selectedTabIndex = 0, onTabSelected = {})
+            BottomBar(selectedTab = AdminTopLevelTab.Products, onTabSelected = {})
         }
     }
 }

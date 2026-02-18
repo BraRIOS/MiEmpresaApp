@@ -174,7 +174,7 @@ private fun DrawerContent(
                             onClick = {
                                 scope.launch {
                                     drawerState.close()
-                                    navController.navigate("${MiEmpresaScreen.Onboarding.name}?mode=selector")
+                                    navController.navigate(MiEmpresaRoutes.onboarding("selector"))
                                 }
                             },
                         )
@@ -186,7 +186,7 @@ private fun DrawerContent(
                             onClick = {
                                 scope.launch {
                                     drawerState.close()
-                                    navController.navigate("${MiEmpresaScreen.Onboarding.name}?mode=create")
+                                    navController.navigate(MiEmpresaRoutes.onboarding("create"))
                                 }
                             },
                         )
@@ -206,7 +206,7 @@ private fun DrawerContent(
                             onClick = {
                                 scope.launch {
                                     drawerState.close()
-                                    navController.navigate(MiEmpresaScreen.MyStores.name)
+                                    navController.navigate(MiEmpresaRoutes.myStores)
                                 }
                             },
                         )
@@ -291,9 +291,7 @@ private fun DrawerContent(
                     showLogoutDialog = false
                     if (signInViewModel != null && context != null) {
                         signInViewModel.signOut(context)
-                        navController.navigate(MiEmpresaScreen.Welcome.name) {
-                            popUpTo(0) { inclusive = true }
-                        }
+                        navController.navigateClearingBackStack(MiEmpresaRoutes.welcome)
                     }
                 }) {
                     Text(stringResource(R.string.config_logout_confirm))

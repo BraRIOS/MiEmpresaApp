@@ -52,6 +52,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -79,8 +80,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -92,6 +91,7 @@ import com.brios.miempresa.core.ui.components.SimpleFormField
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray200
+import com.brios.miempresa.navigation.rememberScreenActionGuard
 
 @Composable
 fun ProductFormScreen(
@@ -100,9 +100,8 @@ fun ProductFormScreen(
     onSaved: () -> Unit = {},
     viewModel: ProductFormViewModel = hiltViewModel(),
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsStateWithLifecycle()
-    val isScreenInteractive = lifecycleState == Lifecycle.State.RESUMED
+    val screenActionGuard = rememberScreenActionGuard()
+    val isScreenInteractive = screenActionGuard.isScreenInteractive
 
     val name by viewModel.name.collectAsStateWithLifecycle()
     val price by viewModel.price.collectAsStateWithLifecycle()
@@ -129,8 +128,13 @@ fun ProductFormScreen(
         uri?.let { viewModel.onImageSelected(it.toString()) }
     }
 
+    BackHandler(enabled = !isSaving) {
+        screenActionGuard.runAndNavigate(onNavigateBack)
+    }
+
     LaunchedEffect(Unit) {
         viewModel.saveComplete.collect {
+            screenActionGuard.beginNavigation()
             onSaved()
             onNavigateBack()
         }
@@ -151,16 +155,16 @@ fun ProductFormScreen(
         onPublicChanged = viewModel::onPublicChanged,
         categories = categories,
         imageUrl = imageUrl,
-        onImageClick = { imagePickerLauncher.launch("image/*") },
-        onImageRemoved = viewModel::onImageRemoved,
+        onImageClick = { screenActionGuard.runIfActive { imagePickerLauncher.launch("image/*") } },
+        onImageRemoved = { screenActionGuard.runIfActive { viewModel.onImageRemoved() } },
         isEditMode = viewModel.isEditMode,
         isSaving = isSaving,
         isScreenInteractive = isScreenInteractive,
-        onSave = { if (isScreenInteractive) viewModel.save() },
-        onCancel = viewModel::cancelSave,
-        onNavigateBack = { if (isScreenInteractive) onNavigateBack() },
-        onNavigateToAddCategory = { if (isScreenInteractive) onNavigateToAddCategory() },
-        onDelete = { if (isScreenInteractive) viewModel.delete() },
+        onSave = { screenActionGuard.runIfActive { viewModel.save() } },
+        onCancel = { screenActionGuard.runIfActive { viewModel.cancelSave() } },
+        onNavigateBack = { screenActionGuard.runAndNavigate(onNavigateBack) },
+        onNavigateToAddCategory = { screenActionGuard.runAndNavigate(onNavigateToAddCategory) },
+        onDelete = { screenActionGuard.runIfActive { viewModel.delete() } },
         nameError = nameError,
         priceError = priceError,
         categoryError = categoryError,
@@ -517,6 +521,10 @@ fun ProductFormContent(
                         Switch(
                             checked = hidePrice,
                             onCheckedChange = onHidePriceChanged,
+                            enabled = isScreenInteractive,
+                            colors = SwitchDefaults.colors().copy(
+                                uncheckedTrackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                            )
                         )
                     }
 
@@ -594,7 +602,11 @@ fun ProductFormContent(
                             }
                         } else {
                             Surface(
-                                onClick = { showCategorySheet = true },
+                                onClick = {
+                                    if (isScreenInteractive) {
+                                        showCategorySheet = true
+                                    }
+                                },
                                 color = Color.Transparent,
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
@@ -669,6 +681,10 @@ fun ProductFormContent(
                     Switch(
                         checked = isPublic,
                         onCheckedChange = onPublicChanged,
+                        enabled = isScreenInteractive,
+                        colors = SwitchDefaults.colors().copy(
+                            uncheckedTrackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        )
                     )
                 }
             }

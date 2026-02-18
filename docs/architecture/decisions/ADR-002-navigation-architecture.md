@@ -63,7 +63,10 @@ Adoptar **Opción C (phased refactor)**:
     - salida de sesión unificada hacia `authGraph`,
     - fallback de salida cliente centralizado por helper de sesión,
     - eliminación de ramas duplicadas `home/welcome` en callbacks críticos.
-  - 🔄 Pendiente: evaluar migración a type-safe routes con Kotlin Serialization.
+  - ✅ Pilot técnico de type-safe routes:
+    - plugin Kotlin Serialization habilitado en el proyecto,
+    - rutas migradas a API tipada (`SignInRoute`, `OrderDetailRoute`) para validar integración incremental en casos sin/ con argumentos.
+  - 🔄 Pendiente: expandir migración tipada al resto de auth/client/admin.
 
 ## Consequences
 ### Positivas

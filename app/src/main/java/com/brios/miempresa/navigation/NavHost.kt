@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
+import androidx.navigation.toRoute
 import androidx.navigation.navigation
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -143,12 +144,12 @@ fun NavHostComposable(
                 }
                 is AuthState.PendingAuth -> {
                     signInViewModel.updateAuthState(authState)
-                    navController.navigate(MiEmpresaRoutes.signIn) {
+                    navController.navigate(SignInRoute) {
                         popUpTo(MiEmpresaRoutes.adminGraph) { inclusive = true }
                     }
                 }
                 else -> {
-                    navController.navigate(MiEmpresaRoutes.signIn) {
+                    navController.navigate(SignInRoute) {
                         popUpTo(MiEmpresaRoutes.adminGraph) { inclusive = true }
                     }
                 }
@@ -204,7 +205,7 @@ fun NavHostComposable(
                 WelcomeScreen(
                     onNavigateToSignIn = {
                         guardedResumedNavigation(backStackEntry) {
-                            navController.navigate(MiEmpresaRoutes.signIn)
+                            navController.navigate(SignInRoute)
                         }
                     },
                     onNavigateToMyStores = {
@@ -306,7 +307,7 @@ fun NavHostComposable(
                         },
                         onNavigateToSignIn = {
                             guardedResumedNavigation(backStackEntry) {
-                                navController.navigate(MiEmpresaRoutes.signIn)
+                                navController.navigate(SignInRoute)
                             }
                         },
                     )
@@ -373,7 +374,7 @@ fun NavHostComposable(
                     )
                 }
             }
-            composable(route = MiEmpresaRoutes.signIn) { backStackEntry ->
+            composable<SignInRoute> { backStackEntry ->
                 val signInState by signInViewModel.signInStateFlow.collectAsStateWithLifecycle()
                 val authState by signInViewModel.authStateFlow.collectAsStateWithLifecycle()
                 val activity = LocalActivity.current as Activity
@@ -574,7 +575,7 @@ fun NavHostComposable(
                 },
                 onNavigateToOrderDetail = { orderId ->
                     guardedResumedNavigation(backStackEntry) {
-                        navController.navigate(MiEmpresaRoutes.OrderDetail.create(orderId))
+                        navController.navigate(OrderDetailRoute(orderId))
                     }
                 },
             )
@@ -585,10 +586,8 @@ fun NavHostComposable(
                 onNavigateBack = { guardedBackNavigation(backStackEntry) { navController.popBackStack() } },
             )
         }
-        composable(
-            route = MiEmpresaRoutes.OrderDetail.pattern,
-            arguments = listOf(navArgument(MiEmpresaRoutes.OrderDetail.orderIdArg) { type = NavType.StringType }),
-        ) { backStackEntry ->
+        composable<OrderDetailRoute> { backStackEntry ->
+            backStackEntry.toRoute<OrderDetailRoute>()
             OrderDetailScreen(
                 onNavigateBack = { guardedBackNavigation(backStackEntry) { navController.popBackStack() } },
             )

@@ -12,7 +12,6 @@ object MiEmpresaRoutes {
     const val adminGraph = "AdminGraph"
 
     const val welcome = "Welcome"
-    const val signIn = "SignIn"
     const val onboarding = "Onboarding"
     const val onboardingModeArg = "mode"
     const val onboardingWithModePattern = "Onboarding?$onboardingModeArg={$onboardingModeArg}"

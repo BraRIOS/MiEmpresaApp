@@ -151,14 +151,33 @@ class ProductDetailViewModel
             val companyId = resolvedCompanyId ?: return
 
             viewModelScope.launch {
+                val currentQuantity =
+                    cartRepository.getCurrentQuantityForProduct(
+                        companyId = companyId,
+                        productId = current.data.product.id,
+                    )
+                if (currentQuantity >= MAX_CART_QUANTITY_PER_PRODUCT) {
+                    _events.emit(ProductDetailEvent.ShowSnackbar("No podés agregar más de 99 unidades por producto"))
+                    return@launch
+                }
+                val requestedQuantity = current.data.quantity
+                val remaining = MAX_CART_QUANTITY_PER_PRODUCT - currentQuantity
+                val quantityToAdd = requestedQuantity.coerceAtMost(remaining)
+
                 runCatching {
                     cartRepository.addItem(
                         companyId = companyId,
                         productId = current.data.product.id,
-                        quantity = current.data.quantity,
+                        quantity = quantityToAdd,
                     )
                 }.onSuccess {
-                    _events.emit(ProductDetailEvent.ShowSnackbar("Agregado al carrito ✓"))
+                    val message =
+                        if (quantityToAdd < requestedQuantity) {
+                            "No podés agregar más de 99 unidades por producto"
+                        } else {
+                            "Agregado al carrito ✓"
+                        }
+                    _events.emit(ProductDetailEvent.ShowSnackbar(message))
                 }.onFailure {
                     _events.emit(ProductDetailEvent.ShowSnackbar("No pudimos agregar el producto"))
                 }
@@ -205,5 +224,6 @@ class ProductDetailViewModel
 
         companion object {
             private const val HOURS_24_IN_MILLIS = 24L * 60L * 60L * 1000L
+            private const val MAX_CART_QUANTITY_PER_PRODUCT = 99
         }
     }

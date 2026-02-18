@@ -177,6 +177,12 @@ class ProductsViewModel
             }
         }
 
+        fun syncAndNotifyAfterFormEdit() {
+            viewModelScope.launch {
+                syncAndNotify(SyncType.PRODUCTS)
+            }
+        }
+
         private suspend fun syncAndNotify(
             type: SyncType,
             showInProgress: Boolean = true,

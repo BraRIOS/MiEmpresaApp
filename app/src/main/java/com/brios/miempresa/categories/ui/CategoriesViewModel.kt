@@ -141,6 +141,12 @@ class CategoriesViewModel
             }
         }
 
+        fun syncAndNotifyAfterFormEdit() {
+            viewModelScope.launch {
+                syncAndNotify(SyncType.CATEGORIES)
+            }
+        }
+
         private suspend fun syncAndNotify(
             type: SyncType,
             showInProgress: Boolean = true,

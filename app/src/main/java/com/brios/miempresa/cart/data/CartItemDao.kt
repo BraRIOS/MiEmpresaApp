@@ -79,6 +79,12 @@ interface CartItemDao {
         productId: String,
     ): CartItemEntity?
 
+    @Query("SELECT quantity FROM cart_items WHERE companyId = :companyId AND productId = :productId LIMIT 1")
+    suspend fun getQuantityByProductId(
+        companyId: String,
+        productId: String,
+    ): Int?
+
     @Query("DELETE FROM cart_items WHERE companyId = :companyId")
     suspend fun deleteAll(companyId: String)
 

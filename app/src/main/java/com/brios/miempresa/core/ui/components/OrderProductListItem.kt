@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -60,26 +61,50 @@ fun OrderProductListItem(
     isCard: Boolean = true,
     priceChange: OrderProductPriceChange? = null,
     unavailableLabel: String? = null,
+    onClick: (() -> Unit)? = null,
 ) {
     if (isCard) {
-        Card(
-            modifier = modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-            ),
-            shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
-            border = BorderStroke(1.dp, SlateGray200),
-        ) {
-            OrderProductContent(
-                name = name,
-                price = price,
-                quantity = quantity,
-                imageUrl = imageUrl,
-                onQuantityChange = onQuantityChange,
-                onRemove = onRemove,
-                priceChange = priceChange,
-                unavailableLabel = unavailableLabel,
-            )
+        if (onClick != null) {
+            Card(
+                onClick = onClick,
+                modifier = modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                ),
+                shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                border = BorderStroke(1.dp, SlateGray200),
+            ) {
+                OrderProductContent(
+                    name = name,
+                    price = price,
+                    quantity = quantity,
+                    imageUrl = imageUrl,
+                    onQuantityChange = onQuantityChange,
+                    onRemove = onRemove,
+                    priceChange = priceChange,
+                    unavailableLabel = unavailableLabel,
+                )
+            }
+        } else {
+            Card(
+                modifier = modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                ),
+                shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                border = BorderStroke(1.dp, SlateGray200),
+            ) {
+                OrderProductContent(
+                    name = name,
+                    price = price,
+                    quantity = quantity,
+                    imageUrl = imageUrl,
+                    onQuantityChange = onQuantityChange,
+                    onRemove = onRemove,
+                    priceChange = priceChange,
+                    unavailableLabel = unavailableLabel,
+                )
+            }
         }
     } else {
         OrderProductContent(
@@ -149,7 +174,7 @@ private fun OrderProductContent(
                 IconButton(
                     onClick = onRemove,
                     modifier = Modifier
-                        .size(24.dp)
+                        .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                         .padding(0.dp)
                 ) {
                     Icon(

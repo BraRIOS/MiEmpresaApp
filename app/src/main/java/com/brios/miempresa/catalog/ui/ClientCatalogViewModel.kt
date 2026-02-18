@@ -17,9 +17,12 @@ import com.brios.miempresa.products.data.PublicCategoryCount
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -52,6 +55,8 @@ class ClientCatalogViewModel
         private val clientCatalogRepository: ClientCatalogRepository,
         private val networkMonitor: NetworkMonitor,
     ) : ViewModel() {
+        private val _events = MutableSharedFlow<ClientCatalogEvent>(replay = 0)
+        val events: SharedFlow<ClientCatalogEvent> = _events.asSharedFlow()
         private val companyId: String = savedStateHandle.get<String>("companyId").orEmpty()
         private val searchQuery = MutableStateFlow("")
         private val selectedCategory = MutableStateFlow<String?>(null)
@@ -267,6 +272,11 @@ class ClientCatalogViewModel
 
         fun addProductToCart(productId: String) {
             viewModelScope.launch {
+                val currentQuantity = cartRepository.getCurrentQuantityForProduct(companyId, productId)
+                if (currentQuantity >= MAX_CART_QUANTITY_PER_PRODUCT) {
+                    _events.emit(ClientCatalogEvent.ShowSnackbar("No podés agregar más de 99 unidades por producto"))
+                    return@launch
+                }
                 cartRepository.addItem(
                     companyId = companyId,
                     productId = productId,
@@ -287,4 +297,12 @@ class ClientCatalogViewModel
             return error.message ?: "No pudimos sincronizar el catálogo"
         }
 
+        companion object {
+            private const val MAX_CART_QUANTITY_PER_PRODUCT = 99
+        }
+
     }
+
+sealed interface ClientCatalogEvent {
+    data class ShowSnackbar(val message: String) : ClientCatalogEvent
+}

@@ -264,6 +264,11 @@ fun NavHostComposable(
                         }
                     }
                 },
+                onNavigateToProductDetail = { productId ->
+                    if (companyId.isNotBlank()) {
+                        navController.navigate("${MiEmpresaScreen.ProductDetail.name}/$productId/$companyId?mode=client")
+                    }
+                },
             )
         }
         composable(route = MiEmpresaScreen.MyStores.name) {
@@ -461,6 +466,11 @@ fun NavHostComposable(
         composable(route = "${MiEmpresaScreen.Product.name}/add") {
             ProductFormScreen(
                 onNavigateBack = { guardedNavigation { navController.popBackStack() } },
+                onSaved = {
+                    navController
+                        .getBackStackEntry(MiEmpresaScreen.Home.name)
+                        .savedStateHandle["products_sync_feedback"] = true
+                },
                 onNavigateToAddCategory = {
                     navController.navigate("${MiEmpresaScreen.Categories.name}/add")
                 },
@@ -472,6 +482,11 @@ fun NavHostComposable(
         ) {
             ProductFormScreen(
                 onNavigateBack = { guardedNavigation { navController.popBackStack() } },
+                onSaved = {
+                    navController
+                        .getBackStackEntry(MiEmpresaScreen.Home.name)
+                        .savedStateHandle["products_sync_feedback"] = true
+                },
                 onNavigateToAddCategory = {
                     navController.navigate("${MiEmpresaScreen.Categories.name}/add")
                 },
@@ -480,6 +495,11 @@ fun NavHostComposable(
         composable(route = "${MiEmpresaScreen.Categories.name}/add") {
             CategoryFormScreen(
                 onNavigateBack = { guardedNavigation { navController.popBackStack() } },
+                onSaved = {
+                    navController
+                        .getBackStackEntry(MiEmpresaScreen.Home.name)
+                        .savedStateHandle["categories_sync_feedback"] = true
+                },
             )
         }
         composable(
@@ -488,6 +508,11 @@ fun NavHostComposable(
         ) {
             CategoryFormScreen(
                 onNavigateBack = { guardedNavigation { navController.popBackStack() } },
+                onSaved = {
+                    navController
+                        .getBackStackEntry(MiEmpresaScreen.Home.name)
+                        .savedStateHandle["categories_sync_feedback"] = true
+                },
             )
         }
         composable(route = MiEmpresaScreen.EditCompanyData.name) {

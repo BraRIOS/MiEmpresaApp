@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -88,6 +89,7 @@ private val QuickPickEmojis = listOf("🍔", "🥤", "👕", "🏠", "📦", "�
 @Composable
 fun CategoryFormScreen(
     onNavigateBack: () -> Unit,
+    onSaved: () -> Unit = {},
     viewModel: CategoryFormViewModel = hiltViewModel(),
 ) {
     val name by viewModel.name.collectAsStateWithLifecycle()
@@ -97,7 +99,10 @@ fun CategoryFormScreen(
     val productCount by viewModel.productCount.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        viewModel.saveComplete.collect { onNavigateBack() }
+        viewModel.saveComplete.collect {
+            onSaved()
+            onNavigateBack()
+        }
     }
 
     CategoryFormContent(
@@ -182,7 +187,7 @@ private fun CategoryFormContent(
         },
         bottomBar = {
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
                 color = MaterialTheme.colorScheme.background,
                 shadowElevation = 8.dp,
             ) {

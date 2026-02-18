@@ -140,7 +140,7 @@
     <string name="welcome_client_button">Explorar catálogos</string>
     <string name="welcome_admin_subtitle">Acceso para dueños</string>
     <string name="welcome_client_subtitle">Ver tiendas disponibles</string>
-    <string name="welcome_footer">Version 2.0.0</string>
+    <string name="welcome_footer">Version 2.1.0</string>
     <string name="welcome_terms">Términos y Condiciones</string>
 
     <!-- Company avatar -->
@@ -215,6 +215,7 @@
     <string name="onboarding_success_cta">Empezar a gestionar</string>
     <string name="search">Buscar</string>
     <string name="config_title">Configuración</string>
+    <string name="company_tab_title">Empresa</string>
     <string name="config_section_actions">ACCIONES</string>
     <string name="config_label_specialization">Especialización</string>
     <string name="config_label_address">Dirección</string>
@@ -223,7 +224,7 @@
     <string name="config_action_share">Compartir Catálogo</string>
     <string name="config_sync_now">Sincronizar ahora</string>
     <string name="config_change_logo">Cambiar logo</string>
-    <string name="config_version">Versión 2.0.0</string>
+    <string name="config_version">Versión 2.1.0</string>
     <string name="config_edit_title">Editar Empresa</string>
     <string name="config_edit_cancel">Cancelar</string>
     <string name="config_edit_info_button">Editar información</string>

@@ -36,6 +36,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -47,6 +49,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -90,10 +93,20 @@ fun ClientCatalogScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is ClientCatalogEvent.ShowSnackbar -> snackbarHostState.showSnackbar(event.message)
+            }
+        }
+    }
 
     ClientCatalogScreenContent(
         uiState = uiState,
         isRefreshing = isRefreshing,
+        snackbarHostState = snackbarHostState,
         onRefresh = viewModel::refreshCatalog,
         onNavigateBack = onNavigateBack,
         onNavigateToCart = onNavigateToCart,
@@ -113,6 +126,7 @@ fun ClientCatalogScreen(
 fun ClientCatalogScreenContent(
     uiState: ClientCatalogState,
     isRefreshing: Boolean,
+    snackbarHostState: SnackbarHostState = SnackbarHostState(),
     onRefresh: () -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToCart: (String) -> Unit,
@@ -127,24 +141,25 @@ fun ClientCatalogScreenContent(
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
 
-    PullToRefreshBox(
-        isRefreshing = isRefreshing,
-        onRefresh = onRefresh,
-        modifier = modifier.background(MaterialTheme.colorScheme.background),
-        state = pullToRefreshState,
-        indicator = {
-            TriangleArrowRefreshIndicator(
-                state = pullToRefreshState,
-                isRefreshing = isRefreshing,
-                modifier =
-                    Modifier
-                        .align(Alignment.TopCenter)
-                        .statusBarsPadding()
-                        .padding(top = AppDimensions.extraLargePadding * 2),
-            )
-        },
-    ) {
-        when (uiState) {
+    Box(modifier = modifier.fillMaxSize()) {
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+            state = pullToRefreshState,
+            indicator = {
+                TriangleArrowRefreshIndicator(
+                    state = pullToRefreshState,
+                    isRefreshing = isRefreshing,
+                    modifier =
+                        Modifier
+                            .align(Alignment.TopCenter)
+                            .statusBarsPadding()
+                            .padding(top = AppDimensions.extraLargePadding * 2),
+                )
+            },
+        ) {
+            when (uiState) {
             ClientCatalogState.Loading -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -265,7 +280,13 @@ fun ClientCatalogScreenContent(
                 }
 
             }
+            }
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(AppDimensions.mediumPadding),
+        )
     }
 }
 
@@ -507,7 +528,7 @@ private fun CatalogTopBar(
                                 .padding(2.dp),
                     ) {
                         Badge {
-                            Text(text = cartCount.toString())
+                            Text(text = formatCartBadgeCount(cartCount))
                         }
                     }
                 }
@@ -515,6 +536,8 @@ private fun CatalogTopBar(
         }
     }
 }
+
+private fun formatCartBadgeCount(count: Int): String = if (count > 99) "99+" else count.toString()
 
 @Composable
 private fun AdminHybridTopBarButton(

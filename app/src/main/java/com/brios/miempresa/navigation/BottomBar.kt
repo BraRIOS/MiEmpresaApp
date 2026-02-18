@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Domain
 import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -57,8 +57,8 @@ fun BottomBar(
                 unselectedColor = unselectedColor,
             ),
             TabBarItem(
-                title = stringResource(id = R.string.config_title),
-                icon = Icons.Filled.Settings,
+                title = stringResource(id = R.string.company_tab_title),
+                icon = Icons.Filled.Domain,
                 selectedColor = primaryColor,
                 unselectedColor = unselectedColor,
             ),

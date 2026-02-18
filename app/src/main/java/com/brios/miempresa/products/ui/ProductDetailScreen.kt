@@ -260,7 +260,7 @@ private fun ProductDetailTopBar(
                                 .padding(2.dp),
                     ) {
                         Badge {
-                            Text(text = cartCount.toString())
+                            Text(text = formatCartBadgeCount(cartCount))
                         }
                     }
                 }
@@ -268,6 +268,8 @@ private fun ProductDetailTopBar(
         }
     }
 }
+
+private fun formatCartBadgeCount(count: Int): String = if (count > 99) "99+" else count.toString()
 
 @Composable
 private fun ProductDetailContent(

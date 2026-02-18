@@ -24,21 +24,30 @@ class CartRepository
         private val sheetsApi: SpreadsheetsApi,
         private val networkMonitor: NetworkMonitor,
     ) {
+        private val maxQuantityPerProduct = 99
+
+        suspend fun getCurrentQuantityForProduct(
+            companyId: String,
+            productId: String,
+        ): Int = cartItemDao.getQuantityByProductId(companyId, productId) ?: 0
+
         suspend fun addItem(
             companyId: String,
             productId: String,
             quantity: Int,
         ): Long {
+            val quantityToAdd = quantity.coerceAtLeast(1)
             val existing = cartItemDao.getByProductId(companyId, productId)
             return if (existing != null) {
-                cartItemDao.update(existing.copy(quantity = existing.quantity + quantity))
+                val updatedQuantity = (existing.quantity + quantityToAdd).coerceAtMost(maxQuantityPerProduct)
+                cartItemDao.update(existing.copy(quantity = updatedQuantity))
                 existing.id
             } else {
                 val item =
                     CartItemEntity(
                         companyId = companyId,
                         productId = productId,
-                        quantity = quantity,
+                        quantity = quantityToAdd.coerceAtMost(maxQuantityPerProduct),
                     )
                 cartItemDao.insert(item)
             }
@@ -50,7 +59,8 @@ class CartRepository
             newQuantity: Int,
         ) {
             val item = cartItemDao.getById(id, companyId) ?: return
-            cartItemDao.update(item.copy(quantity = newQuantity))
+            val clampedQuantity = newQuantity.coerceIn(1, maxQuantityPerProduct)
+            cartItemDao.update(item.copy(quantity = clampedQuantity))
         }
 
         suspend fun removeItem(

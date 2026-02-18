@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -94,6 +95,7 @@ import com.brios.miempresa.core.ui.theme.SlateGray200
 fun ProductFormScreen(
     onNavigateBack: () -> Unit,
     onNavigateToAddCategory: () -> Unit,
+    onSaved: () -> Unit = {},
     viewModel: ProductFormViewModel = hiltViewModel(),
 ) {
     val name by viewModel.name.collectAsStateWithLifecycle()
@@ -121,7 +123,10 @@ fun ProductFormScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.saveComplete.collect { onNavigateBack() }
+        viewModel.saveComplete.collect {
+            onSaved()
+            onNavigateBack()
+        }
     }
 
     ProductFormContent(
@@ -222,7 +227,7 @@ fun ProductFormContent(
         },
         bottomBar = {
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
                 color = MaterialTheme.colorScheme.background,
                 shadowElevation = 8.dp,
             ) {

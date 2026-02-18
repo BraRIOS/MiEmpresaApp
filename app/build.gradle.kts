@@ -30,9 +30,9 @@ android {
             releaseKeyAlias.isNotBlank() &&
             releaseKeyPassword.isNotBlank()
     val isReleaseTaskRequested =
-        gradle.startParameter.taskNames.any { taskName ->
-            taskName.contains("release", ignoreCase = true)
-        }
+        project.gradle.startParameter.taskNames
+            .joinToString(separator = " ")
+            .contains("release", ignoreCase = true)
 
     signingConfigs {
         create("UnifiedDebugKeystore") {
@@ -65,8 +65,8 @@ android {
         applicationId = "com.brios.miempresa"
         minSdk = 24
         targetSdk = 35
-        versionCode = 2
-        versionName = "2.0.0"
+        versionCode = 3
+        versionName = "2.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -164,4 +164,16 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+}
+
+val releaseApkFileName = "miempresa-app-release-v${android.defaultConfig.versionName}(${android.defaultConfig.versionCode}).apk"
+
+val renameReleaseApk by tasks.registering(Copy::class) {
+    from(layout.buildDirectory.file("outputs/apk/release/app-release.apk"))
+    into(layout.buildDirectory.dir("outputs/apk/release"))
+    rename("app-release.apk", releaseApkFileName)
+}
+
+tasks.matching { it.name == "assembleRelease" }.configureEach {
+    finalizedBy(renameReleaseApk)
 }

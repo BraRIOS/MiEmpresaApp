@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
@@ -163,6 +164,7 @@ fun CompanySelectionView(
                 )
                 Box(
                     modifier = Modifier
+                        .navigationBarsPadding()
                         .padding(AppDimensions.mediumPadding)
                         .padding(bottom = AppDimensions.smallPadding)
                 ) {

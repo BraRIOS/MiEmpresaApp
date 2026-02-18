@@ -70,6 +70,7 @@ import com.brios.miempresa.core.ui.theme.AppDimensions
 fun CartScreen(
     onNavigateBack: () -> Unit,
     onNavigateToCatalog: () -> Unit,
+    onNavigateToProductDetail: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: CartViewModel = hiltViewModel(),
 ) {
@@ -317,6 +318,7 @@ fun CartScreen(
                                     } else {
                                         null
                                     },
+                                onClick = { onNavigateToProductDetail(item.productId) },
                             )
                         }
                     }

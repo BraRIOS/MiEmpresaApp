@@ -40,7 +40,7 @@ class CategoriesViewModel
         private val companyDao: CompanyDao,
         private val syncManager: SyncManager,
         private val networkMonitor: NetworkMonitor,
-        @ApplicationContext private val appContext: Context,
+        @param:ApplicationContext private val appContext: Context,
     ) : ViewModel() {
         private val _searchQuery = MutableStateFlow("")
         val searchQuery: StateFlow<String> = _searchQuery

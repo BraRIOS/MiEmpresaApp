@@ -114,6 +114,18 @@ android {
     }
 }
 
+val releaseApkFileName = "miempresa-app-release-v${android.defaultConfig.versionName}(${android.defaultConfig.versionCode}).apk"
+
+val renameReleaseApk by tasks.registering(Copy::class) {
+    from(layout.buildDirectory.file("outputs/apk/release/app-release.apk"))
+    into(layout.buildDirectory.dir("outputs/apk/release-renamed"))
+    rename("app-release.apk", releaseApkFileName)
+}
+
+tasks.matching { it.name == "assembleRelease" }.configureEach {
+    finalizedBy(renameReleaseApk)
+}
+
 dependencies {
     implementation(libs.google.api.client.android)
     implementation(libs.google.api.services.sheets)
@@ -164,16 +176,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-}
-
-val releaseApkFileName = "miempresa-app-release-v${android.defaultConfig.versionName}(${android.defaultConfig.versionCode}).apk"
-
-val renameReleaseApk by tasks.registering(Copy::class) {
-    from(layout.buildDirectory.file("outputs/apk/release/app-release.apk"))
-    into(layout.buildDirectory.dir("outputs/apk/release"))
-    rename("app-release.apk", releaseApkFileName)
-}
-
-tasks.matching { it.name == "assembleRelease" }.configureEach {
-    finalizedBy(renameReleaseApk)
 }

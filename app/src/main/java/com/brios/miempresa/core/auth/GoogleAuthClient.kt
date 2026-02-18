@@ -40,7 +40,7 @@ import kotlin.coroutines.cancellation.CancellationException
 class GoogleAuthClient
     @Inject
     constructor(
-        @ApplicationContext private val context: Context,
+        @param:ApplicationContext private val context: Context,
     ) {
         private val scopes = listOf(Scope(DriveScopes.DRIVE_FILE), Scope(SheetsScopes.SPREADSHEETS))
         private val authorizationRequest = AuthorizationRequest.builder().setRequestedScopes(scopes).build()

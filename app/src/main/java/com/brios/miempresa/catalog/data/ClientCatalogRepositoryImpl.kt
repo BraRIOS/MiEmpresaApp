@@ -38,7 +38,7 @@ class ClientCatalogRepositoryImpl
         private val cartItemDao: CartItemDao,
         private val database: MiEmpresaDatabase,
         private val connectivityManager: ConnectivityManager,
-        @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+        @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) : ClientCatalogRepository {
         override suspend fun syncPublicSheet(publicSheetId: String): Result<Company> =
             withContext(ioDispatcher) {

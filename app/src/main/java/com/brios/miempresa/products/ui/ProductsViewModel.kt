@@ -43,7 +43,7 @@ class ProductsViewModel
         private val companyDao: CompanyDao,
         private val syncManager: SyncManager,
         private val networkMonitor: NetworkMonitor,
-        @ApplicationContext private val appContext: Context,
+        @param:ApplicationContext private val appContext: Context,
     ) : ViewModel() {
         private val _filters = MutableStateFlow(ProductFilters())
         val filters: StateFlow<ProductFilters> = _filters.asStateFlow()

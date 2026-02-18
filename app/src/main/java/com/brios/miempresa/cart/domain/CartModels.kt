@@ -6,10 +6,11 @@ data class CartItem(
     val productId: String,
     val productName: String,
     val productPrice: Double,
+    val productHidePrice: Boolean = false,
     val productImageUrl: String?,
     val quantity: Int,
     val addedAt: Long,
-    val subtotal: Double = productPrice * quantity,
+    val subtotal: Double = if (productHidePrice) 0.0 else productPrice * quantity,
 )
 
 sealed interface CartUiState {
@@ -23,6 +24,7 @@ sealed interface CartUiState {
         val items: List<CartItem>,
         val totalItems: Int,
         val totalPrice: Double,
+        val hasHiddenPrices: Boolean = false,
         val companyName: String,
         val validationResult: PriceValidationResult? = null,
         val blocked: Boolean = false,

@@ -15,6 +15,7 @@ data class CartItemWithProduct(
     val productName: String?,
     val productPrice: Double?,
     val productImageUrl: String?,
+    val productHidePrice: Boolean,
 )
 
 @Dao
@@ -40,7 +41,8 @@ interface CartItemDao {
             c.addedAt,
             p.name as productName,
             p.price as productPrice,
-            p.imageUrl as productImageUrl
+            p.imageUrl as productImageUrl,
+            p.hidePrice as productHidePrice
         FROM cart_items c
         INNER JOIN products p ON c.productId = p.id AND c.companyId = p.companyId
         WHERE c.companyId = :companyId
@@ -58,7 +60,8 @@ interface CartItemDao {
             c.addedAt,
             p.name as productName,
             p.price as productPrice,
-            p.imageUrl as productImageUrl
+            p.imageUrl as productImageUrl,
+            p.hidePrice as productHidePrice
         FROM cart_items c
         INNER JOIN products p ON c.productId = p.id AND c.companyId = p.companyId
         WHERE c.companyId = :companyId

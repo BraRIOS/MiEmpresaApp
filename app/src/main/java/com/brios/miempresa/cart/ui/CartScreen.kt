@@ -168,6 +168,7 @@ fun CartScreen(
             if (state != null) {
                 CartSummary(
                     totalPrice = state.totalPrice,
+                    showConsultTotal = state.hasHiddenPrices,
                     onCheckout = viewModel::validateAndCheckout,
                     enabled = !state.blocked,
                 )
@@ -301,6 +302,7 @@ fun CartScreen(
                             OrderProductListItem(
                                 name = item.productName,
                                 price = item.productPrice,
+                                hidePrice = item.productHidePrice,
                                 quantity = item.quantity,
                                 imageUrl = item.productImageUrl,
                                 onQuantityChange = { quantity -> viewModel.updateQuantity(item.id, quantity) },

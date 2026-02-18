@@ -91,6 +91,7 @@
     <string name="cart_explore_catalog">Explorar catálogo</string>
     <string name="items_count">%1$d artículos</string>
     <string name="cart_item_unit_price">%1$s c/u</string>
+    <string name="cart_item_unit_price_consult">Precio a consultar</string>
     <string name="cart_item_subtotal">Subtotal: %1$s</string>
     <string name="cart_item_previous_price">Antes: %1$s</string>
     <string name="cart_item_unavailable">Ya no disponible</string>
@@ -111,6 +112,8 @@
     <string name="product_detail_add_to_cart">Agregar al carrito</string>
     <string name="product_detail_add_with_subtotal">Añadir %1$s</string>
     <string name="product_detail_subtotal">Subtotal: %1$s</string>
+    <string name="price_consult">Consultar</string>
+    <string name="cart_total_consult">Total a consultar</string>
     <string name="client_catalog_placeholder_title">Catálogo del cliente</string>
     <string name="client_catalog_placeholder_subtitle">Sincronización lista para %1$s. La pantalla completa del catálogo se implementa en el siguiente batch.</string>
     <string name="my_stores_placeholder_subtitle">Escaneá el QR del catálogo o ingresá manualmente el código que comparte el dueño o encargado.</string>
@@ -140,7 +143,7 @@
     <string name="welcome_client_button">Explorar catálogos</string>
     <string name="welcome_admin_subtitle">Acceso para dueños</string>
     <string name="welcome_client_subtitle">Ver tiendas disponibles</string>
-    <string name="welcome_footer">Version 2.1.0</string>
+    <string name="welcome_footer">Version 2.1.1</string>
     <string name="welcome_terms">Términos y Condiciones</string>
 
     <!-- Company avatar -->
@@ -224,7 +227,7 @@
     <string name="config_action_share">Compartir Catálogo</string>
     <string name="config_sync_now">Sincronizar ahora</string>
     <string name="config_change_logo">Cambiar logo</string>
-    <string name="config_version">Versión 2.1.0</string>
+    <string name="config_version">Versión 2.1.1</string>
     <string name="config_edit_title">Editar Empresa</string>
     <string name="config_edit_cancel">Cancelar</string>
     <string name="config_edit_info_button">Editar información</string>
@@ -285,6 +288,8 @@
     <string name="description_placeholder">Detalles, materiales, tallas…</string>
     <string name="visible_public_catalog">Visible en catálogo público</string>
     <string name="public_switch_helper">El producto aparecerá en tu tienda online</string>
+    <string name="product_hide_price_label">Ocultar precio al cliente</string>
+    <string name="product_hide_price_helper">Mostraremos “Consultar” en catálogo, detalle y carrito.</string>
     <string name="select_category_placeholder">Seleccionar…</string>
     <string name="save_product">Guardar producto</string>
     <string name="saving_product">Guardando…</string>

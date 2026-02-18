@@ -233,7 +233,12 @@ private fun ProductsContentInternal(
                                     .find { it.id == product.categoryId }
                             ItemCard(
                                 title = product.name,
-                                subtitle = "$${product.price}",
+                                subtitle =
+                                    if (product.hidePrice) {
+                                        stringResource(R.string.price_consult)
+                                    } else {
+                                        "$${product.price}"
+                                    },
                                 imageUrl = product.localImagePath ?: product.imageUrl,
                                 isPublic = product.isPublic,
                                 badge =

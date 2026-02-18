@@ -88,6 +88,7 @@ class CartViewModel
                                         productId = item.productId,
                                         productName = item.productName ?: "Producto",
                                         productPrice = item.productPrice ?: 0.0,
+                                        productHidePrice = item.productHidePrice,
                                         productImageUrl = item.productImageUrl,
                                         quantity = item.quantity,
                                         addedAt = item.addedAt,
@@ -112,7 +113,8 @@ class CartViewModel
                                     CartUiState.Success(
                                         items = items,
                                         totalItems = items.sumOf { it.quantity },
-                                        totalPrice = items.sumOf { it.subtotal },
+                                        totalPrice = items.filterNot { it.productHidePrice }.sumOf { it.subtotal },
+                                        hasHiddenPrices = items.any { it.productHidePrice },
                                         companyName = company.name,
                                         validationResult = effectiveValidation,
                                         blocked = blocked,
@@ -324,6 +326,7 @@ class CartViewModel
                         productId = item.productId,
                         productName = item.productName ?: "Producto",
                         productPrice = item.productPrice ?: 0.0,
+                        productHidePrice = item.productHidePrice,
                         productImageUrl = item.productImageUrl,
                         quantity = item.quantity,
                         addedAt = item.addedAt,
@@ -335,8 +338,7 @@ class CartViewModel
                 return
             }
 
-            val total = items.sumOf { it.subtotal }
-            val message = WhatsAppHelper.buildMessage(items = items, companyName = companyName, total = total)
+            val message = WhatsAppHelper.buildMessage(items = items, companyName = companyName)
             _events.emit(
                 CartEvent.ProceedToWhatsApp(
                     phoneNumber = phoneNumber,

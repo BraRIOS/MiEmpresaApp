@@ -202,6 +202,7 @@ class ClientCatalogRepositoryImpl
                 val price = parsePrice(row.getOrNull(2)?.toString())
                 val categoryName = row.getOrNull(3)?.toString()?.trim()?.takeIf { it.isNotEmpty() }
                 val imageUrl = normalizeImageUrl(row.getOrNull(4)?.toString()?.trim())
+                val hidePrice = parseHidePrice(row.getOrNull(5)?.toString())
 
                 ProductEntity(
                     id = buildProductId(companyId, index, name, categoryName),
@@ -211,6 +212,7 @@ class ClientCatalogRepositoryImpl
                     categoryId = null,
                     categoryName = categoryName,
                     isPublic = true,
+                    hidePrice = hidePrice,
                     imageUrl = imageUrl,
                     companyId = companyId,
                     dirty = false,
@@ -253,6 +255,11 @@ class ClientCatalogRepositoryImpl
             if (rawPrice.isNullOrBlank()) return 0.0
             val normalized = rawPrice.replace(PRICE_CLEAN_REGEX, "").replace(',', '.')
             return normalized.toDoubleOrNull() ?: 0.0
+        }
+
+        private fun parseHidePrice(rawValue: String?): Boolean {
+            val normalized = rawValue?.trim()?.lowercase() ?: return false
+            return normalized == "true" || normalized == "1" || normalized == "yes" || normalized == "si" || normalized == "sí"
         }
 
         private fun buildProductId(
@@ -345,7 +352,7 @@ class ClientCatalogRepositoryImpl
 
         companion object {
             private const val INFO_RANGE = "Info!A:B"
-            private const val PRODUCTS_RANGE = "Products!A2:E"
+            private const val PRODUCTS_RANGE = "Products!A2:F"
             private const val DEFAULT_COUNTRY_CODE = "+54"
             private val PRICE_CLEAN_REGEX = Regex("[^0-9,.-]")
         }

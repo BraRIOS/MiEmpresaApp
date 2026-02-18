@@ -29,11 +29,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
+import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.products.data.ProductEntity
@@ -102,7 +104,12 @@ fun CatalogProductItem(
                 verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
             ) {
                 Text(
-                    text = currencyFormatter.format(product.price),
+                    text =
+                        if (product.hidePrice) {
+                            stringResource(R.string.price_consult)
+                        } else {
+                            currencyFormatter.format(product.price)
+                        },
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,

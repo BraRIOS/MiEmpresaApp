@@ -41,7 +41,7 @@ class ProductFormViewModel
         private val categoriesRepository: CategoriesRepository,
         private val companyDao: CompanyDao,
         private val syncManager: SyncManager,
-        @ApplicationContext private val appContext: Context,
+        @param:ApplicationContext private val appContext: Context,
         savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
     private val productId: String? = savedStateHandle["productId"]
@@ -52,6 +52,9 @@ class ProductFormViewModel
 
     private val _price = MutableStateFlow("")
     val price: StateFlow<String> = _price
+
+    private val _hidePrice = MutableStateFlow(false)
+    val hidePrice: StateFlow<Boolean> = _hidePrice
 
     private val _description = MutableStateFlow("")
     val description: StateFlow<String> = _description
@@ -106,6 +109,7 @@ class ProductFormViewModel
                     originalProduct = it
                     _name.value = it.name
                     _price.value = it.price.toString()
+                    _hidePrice.value = it.hidePrice
                     _description.value = it.description ?: ""
                     _selectedCategoryId.value = it.categoryId
                     _isPublic.value = it.isPublic
@@ -122,6 +126,11 @@ class ProductFormViewModel
 
     fun onPriceChanged(newPrice: String) {
         _price.value = newPrice
+        _priceError.value = null
+    }
+
+    fun onHidePriceChanged(newHidePrice: Boolean) {
+        _hidePrice.value = newHidePrice
         _priceError.value = null
     }
 
@@ -177,6 +186,7 @@ class ProductFormViewModel
         val currentCompanyId = companyId ?: return
         val currentName = _name.value.trim()
         val currentPrice = _price.value.toDoubleOrNull()
+        val currentHidePrice = _hidePrice.value
         val currentCategoryId = _selectedCategoryId.value
         val currentIsPublic = _isPublic.value
         val currentLocalImagePath = _localImagePath.value
@@ -186,7 +196,7 @@ class ProductFormViewModel
             _nameError.value = appContext.getString(R.string.error_name_required)
             hasError = true
         }
-        if (currentPrice == null || currentPrice < 0) {
+        if (!currentHidePrice && (currentPrice == null || currentPrice < 0)) {
             _priceError.value = appContext.getString(R.string.error_invalid_price)
             hasError = true
         }
@@ -195,6 +205,13 @@ class ProductFormViewModel
             hasError = true
         }
         if (hasError) return
+
+        val finalPrice =
+            if (currentHidePrice) {
+                currentPrice?.coerceAtLeast(0.0) ?: 0.0
+            } else {
+                currentPrice!!
+            }
 
         _isSaving.value = true
         saveJob = viewModelScope.launch {
@@ -232,7 +249,8 @@ class ProductFormViewModel
                 if (existing != null) {
                     existing.copy(
                         name = currentName,
-                        price = currentPrice!!,
+                        price = finalPrice,
+                        hidePrice = currentHidePrice,
                         description = _description.value.ifBlank { null },
                         categoryId = currentCategoryId,
                         isPublic = currentIsPublic,
@@ -246,11 +264,12 @@ class ProductFormViewModel
                 ProductEntity(
                     id = "",
                     name = currentName,
-                    price = currentPrice!!,
+                    price = finalPrice,
                     companyId = currentCompanyId,
                     description = _description.value.ifBlank { null },
                     categoryId = currentCategoryId,
                     isPublic = currentIsPublic,
+                    hidePrice = currentHidePrice,
                     imageUrl = finalImageUrl,
                     driveImageId = finalDriveImageId,
                     localImagePath = if (uploadFailed) currentLocalImagePath else null,

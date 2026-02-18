@@ -28,7 +28,8 @@ object DatabaseModule {
                 context.applicationContext,
                 MiEmpresaDatabase::class.java,
                 "miempresa_database",
-            ).fallbackToDestructiveMigration(false)
+            ).addMigrations(MiEmpresaDatabase.MIGRATION_14_15_HIDE_PRICE)
+            .fallbackToDestructiveMigration(false)
             .build()
     }
 

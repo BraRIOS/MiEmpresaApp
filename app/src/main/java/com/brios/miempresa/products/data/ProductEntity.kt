@@ -33,6 +33,7 @@ data class ProductEntity(
     val localImagePath: String? = null,
     val driveImageId: String? = null,
     val isPublic: Boolean = true,
+    val hidePrice: Boolean = false,
     val deleted: Boolean = false,
     // Modified offline, pending upload
     val dirty: Boolean = false,

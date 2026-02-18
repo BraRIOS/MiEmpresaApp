@@ -22,7 +22,7 @@ class ProductsRepositoryImpl
         private val companyDao: CompanyDao,
         private val sheetsApi: SpreadsheetsApi,
         private val driveApi: DriveApi,
-        @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+        @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) : ProductsRepository {
         override fun getFiltered(
             companyId: String,
@@ -114,6 +114,7 @@ class ProductsRepositoryImpl
                             vlookupFormula,
                             p.isPublic.toString().uppercase(),
                             p.imageUrl ?: "",
+                            p.hidePrice.toString().uppercase(),
                         )
                     }
 
@@ -140,9 +141,10 @@ class ProductsRepositoryImpl
                             listOf<Any>(
                                 p.name,
                                 p.description ?: "",
-                                p.price,
+                                if (p.hidePrice) "" else p.price,
                                 categoryLabel,
                                 p.imageUrl ?: "",
+                                p.hidePrice.toString().uppercase(),
                             )
                         }
 
@@ -169,7 +171,7 @@ class ProductsRepositoryImpl
                 val company = companyDao.getCompanyById(companyId) ?: return@withContext
                 val privateSheetId = company.privateSheetId ?: return@withContext
 
-                val sheetRows = sheetsApi.readRange(privateSheetId, "$PRODUCTS_TAB!A2:H") ?: return@withContext
+                val sheetRows = sheetsApi.readRange(privateSheetId, "$PRODUCTS_TAB!A2:I") ?: return@withContext
                 val sheetProductIds = mutableSetOf<String>()
 
                 for (row in sheetRows) {
@@ -182,6 +184,7 @@ class ProductsRepositoryImpl
                     // row[5] is CategoryName formula (skip)
                     val isPublic = row.getOrNull(6)?.toString()?.equals("TRUE", ignoreCase = true) ?: true
                     val imageUrl = row.getOrNull(7)?.toString()?.takeIf { it.isNotBlank() }
+                    val hidePrice = row.getOrNull(8)?.toString()?.equals("TRUE", ignoreCase = true) ?: false
                     sheetProductIds.add(id)
 
                     val existing = productDao.getById(id, companyId)
@@ -194,6 +197,7 @@ class ProductsRepositoryImpl
                                     price = price,
                                     categoryId = categoryId,
                                     isPublic = isPublic,
+                                    hidePrice = hidePrice,
                                     imageUrl = imageUrl,
                                     lastSyncedAt = System.currentTimeMillis(),
                                 ),
@@ -208,6 +212,7 @@ class ProductsRepositoryImpl
                                 price = price,
                                 categoryId = categoryId,
                                 isPublic = isPublic,
+                                hidePrice = hidePrice,
                                 imageUrl = imageUrl,
                                 companyId = companyId,
                                 lastSyncedAt = System.currentTimeMillis(),
@@ -301,9 +306,9 @@ class ProductsRepositoryImpl
         companion object {
             private const val PRODUCTS_TAB = "Products"
             private val PRIVATE_PRODUCTS_HEADERS =
-                listOf("ProductID", "Name", "Description", "Price", "CategoryID", "CategoryName", "Publico", "ImageUrl")
+                listOf("ProductID", "Name", "Description", "Price", "CategoryID", "CategoryName", "Publico", "ImageUrl", "OcultarPrecio")
             private val PUBLIC_PRODUCTS_HEADERS =
-                listOf("Name", "Description", "Price", "Category", "ImageUrl")
+                listOf("Name", "Description", "Price", "Category", "ImageUrl", "HidePrice")
         }
     }
 

@@ -167,6 +167,7 @@ fun ProductDetailScreenContent(
                 ProductDetailClientBottomAction(
                     quantity = data.quantity,
                     price = data.product.price,
+                    hidePrice = data.product.hidePrice,
                     onQuantityChange = onQuantityChange,
                     onAddToCart = onAddToCart,
                 )
@@ -327,7 +328,12 @@ private fun ProductDetailContent(
             }
 
             Text(
-                text = currencyFormatter.format(data.product.price),
+                text =
+                    if (data.product.hidePrice) {
+                        stringResource(R.string.price_consult)
+                    } else {
+                        currencyFormatter.format(data.product.price)
+                    },
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
@@ -475,6 +481,7 @@ private fun ProductImagePlaceholder() {
 private fun ProductDetailClientBottomAction(
     quantity: Int,
     price: Double,
+    hidePrice: Boolean,
     onQuantityChange: (Int) -> Unit,
     onAddToCart: () -> Unit,
 ) {
@@ -512,10 +519,14 @@ private fun ProductDetailClientBottomAction(
             ) {
                 Text(
                     text =
-                        stringResource(
-                            R.string.product_detail_add_with_subtotal,
-                            currencyFormatter.format(subtotal),
-                        ),
+                        if (hidePrice) {
+                            stringResource(R.string.product_detail_add_to_cart)
+                        } else {
+                            stringResource(
+                                R.string.product_detail_add_with_subtotal,
+                                currencyFormatter.format(subtotal),
+                            )
+                        },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                 )

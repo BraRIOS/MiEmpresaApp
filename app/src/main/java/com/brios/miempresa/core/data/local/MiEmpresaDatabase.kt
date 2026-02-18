@@ -27,7 +27,7 @@ import com.brios.miempresa.products.data.ProductEntity
         OrderEntity::class,
         OrderItemEntity::class,
     ],
-    version = 14,
+    version = 15,
     exportSchema = false,
 )
 abstract class MiEmpresaDatabase : RoomDatabase() {
@@ -125,6 +125,12 @@ abstract class MiEmpresaDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_14_15_HIDE_PRICE = object : Migration(14, 15) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE products ADD COLUMN hidePrice INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         fun getDatabase(context: Context): MiEmpresaDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance =
@@ -132,7 +138,13 @@ abstract class MiEmpresaDatabase : RoomDatabase() {
                         context.applicationContext,
                         MiEmpresaDatabase::class.java,
                         "miempresa_database",
-                    ).addMigrations(MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14)
+                    ).addMigrations(
+                        MIGRATION_10_11,
+                        MIGRATION_11_12,
+                        MIGRATION_12_13,
+                        MIGRATION_13_14,
+                        MIGRATION_14_15_HIDE_PRICE,
+                    )
                         .fallbackToDestructiveMigration(false)
                         .build()
                 INSTANCE = instance

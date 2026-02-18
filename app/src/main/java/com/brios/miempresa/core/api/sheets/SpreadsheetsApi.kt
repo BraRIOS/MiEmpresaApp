@@ -36,8 +36,8 @@ class SpreadsheetsApi
     @Inject
     constructor(
         private val googleAuthClient: GoogleAuthClient,
-        @ApplicationContext private val context: Context,
-        @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+        @param:ApplicationContext private val context: Context,
+        @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) {
         // Legacy online-first methods using Product/Category.
         // suspend fun readProductsFromSheet(spreadsheetId: String): List<Product> { ... }
@@ -347,7 +347,7 @@ class SpreadsheetsApi
         ): List<ProductEntity> {
             return withContext(ioDispatcher) {
                 try {
-                    val rows = readPublicRange(spreadsheetId = spreadsheetId, range = "Products!A2:E")
+                    val rows = readPublicRange(spreadsheetId = spreadsheetId, range = "Products!A2:F")
                     val now = System.currentTimeMillis()
 
                     rows.mapIndexedNotNull { index, row ->
@@ -356,6 +356,7 @@ class SpreadsheetsApi
                         val price = parsePublicPrice(row.getOrNull(2)?.toString())
                         val categoryName = row.getOrNull(3)?.toString()?.trim()?.takeIf { it.isNotEmpty() }
                         val imageUrl = normalizePublicImageUrl(row.getOrNull(4)?.toString()?.trim())
+                        val hidePrice = parsePublicHidePrice(row.getOrNull(5)?.toString())
                         val resolvedId = buildPublicProductId(companyId, index, name, categoryName)
 
                         ProductEntity(
@@ -367,6 +368,7 @@ class SpreadsheetsApi
                             categoryName = categoryName,
                             imageUrl = imageUrl,
                             isPublic = true,
+                            hidePrice = hidePrice,
                             dirty = false,
                             deleted = false,
                             lastSyncedAt = now,
@@ -414,6 +416,11 @@ class SpreadsheetsApi
             if (rawPrice.isNullOrBlank()) return 0.0
             val normalized = rawPrice.replace(PUBLIC_PRICE_CLEAN_REGEX, "").replace(',', '.')
             return normalized.toDoubleOrNull() ?: 0.0
+        }
+
+        private fun parsePublicHidePrice(rawValue: String?): Boolean {
+            val normalized = rawValue?.trim()?.lowercase() ?: return false
+            return normalized == "true" || normalized == "1" || normalized == "yes" || normalized == "si" || normalized == "sí"
         }
 
         private fun normalizePublicImageUrl(value: String?): String? {

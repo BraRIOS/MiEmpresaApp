@@ -60,7 +60,7 @@ sealed interface OrderManualEvent {
 class OrderManualViewModel
     @Inject
     constructor(
-        @ApplicationContext private val appContext: Context,
+        @param:ApplicationContext private val appContext: Context,
         private val ordersRepository: OrdersRepository,
         private val productDao: ProductDao,
         private val companyDao: CompanyDao,

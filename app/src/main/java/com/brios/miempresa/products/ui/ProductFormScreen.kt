@@ -100,6 +100,7 @@ fun ProductFormScreen(
 ) {
     val name by viewModel.name.collectAsStateWithLifecycle()
     val price by viewModel.price.collectAsStateWithLifecycle()
+    val hidePrice by viewModel.hidePrice.collectAsStateWithLifecycle()
     val description by viewModel.description.collectAsStateWithLifecycle()
     val selectedCategoryId by viewModel.selectedCategoryId.collectAsStateWithLifecycle()
     val isPublic by viewModel.isPublic.collectAsStateWithLifecycle()
@@ -134,6 +135,8 @@ fun ProductFormScreen(
         onNameChanged = viewModel::onNameChanged,
         price = price,
         onPriceChanged = viewModel::onPriceChanged,
+        hidePrice = hidePrice,
+        onHidePriceChanged = viewModel::onHidePriceChanged,
         description = description,
         onDescriptionChanged = viewModel::onDescriptionChanged,
         selectedCategoryId = selectedCategoryId,
@@ -164,6 +167,8 @@ fun ProductFormContent(
     onNameChanged: (String) -> Unit,
     price: String,
     onPriceChanged: (String) -> Unit,
+    hidePrice: Boolean = false,
+    onHidePriceChanged: (Boolean) -> Unit = {},
     description: String,
     onDescriptionChanged: (String) -> Unit,
     selectedCategoryId: String?,
@@ -480,14 +485,49 @@ fun ProductFormContent(
                     )
 
                     // Price field
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = AppDimensions.mediumPadding, vertical = AppDimensions.mediumPadding),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.product_hide_price_label),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onBackground,
+                            )
+                            Text(
+                                text = stringResource(R.string.product_hide_price_helper),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Switch(
+                            checked = hidePrice,
+                            onCheckedChange = onHidePriceChanged,
+                        )
+                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = AppDimensions.mediumPadding),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+
                     SimpleFormField(
                         label = stringResource(R.string.price_label),
                         value = price,
-                        onValueChange = onPriceChanged,
-                        placeholder = "0.00",
-                        prefix = "$",
-                        isError = priceError != null,
-                        errorText = priceError,
+                        onValueChange = { value ->
+                            if (!hidePrice) {
+                                onPriceChanged(value)
+                            }
+                        },
+                        placeholder = if (hidePrice) stringResource(R.string.price_consult) else "0.00",
+                        prefix = if (hidePrice) null else "$",
+                        isError = !hidePrice && priceError != null,
+                        errorText = if (hidePrice) null else priceError,
+                        inputModifier = Modifier.alpha(if (hidePrice) 0.6f else 1f),
                         keyboardType = KeyboardType.Decimal,
                     )
                 }

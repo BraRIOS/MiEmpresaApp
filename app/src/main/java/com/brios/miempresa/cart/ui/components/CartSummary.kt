@@ -38,6 +38,7 @@ import java.util.Locale
 fun CartSummary(
     modifier: Modifier = Modifier,
     totalPrice: Double,
+    showConsultTotal: Boolean = false,
     onCheckout: () -> Unit,
     enabled: Boolean = true,
 ) {
@@ -64,9 +65,14 @@ fun CartSummary(
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = currencyFormatter.format(totalPrice),
+                    text =
+                        if (showConsultTotal) {
+                            stringResource(R.string.cart_total_consult)
+                        } else {
+                            currencyFormatter.format(totalPrice)
+                        },
                     style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = if (showConsultTotal) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.ExtraBold,
                 )
             }

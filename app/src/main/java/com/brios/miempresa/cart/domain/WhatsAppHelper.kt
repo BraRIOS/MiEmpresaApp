@@ -11,18 +11,31 @@ object WhatsAppHelper {
     fun buildMessage(
         items: List<CartItem>,
         companyName: String,
-        total: Double,
     ): String {
         val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR"))
+        val hasHiddenPrices = items.any { it.productHidePrice }
+        val visibleTotal = items.filterNot { it.productHidePrice }.sumOf { it.subtotal }
         val body =
             buildString {
                 appendLine("¡Hola! Quiero hacer este pedido a $companyName:")
                 appendLine()
                 items.forEach { item ->
-                    appendLine("• ${item.productName} x${item.quantity} - ${currencyFormatter.format(item.subtotal)}")
+                    val priceLabel =
+                        if (item.productHidePrice) {
+                            "Consultar"
+                        } else {
+                            currencyFormatter.format(item.subtotal)
+                        }
+                    appendLine("• ${item.productName} x${item.quantity} - $priceLabel")
                 }
                 appendLine()
-                appendLine("Total: ${currencyFormatter.format(total)}")
+                val totalLabel =
+                    if (hasHiddenPrices) {
+                        "A consultar"
+                    } else {
+                        currencyFormatter.format(visibleTotal)
+                    }
+                appendLine("Total: $totalLabel")
                 appendLine()
                 append("Enviado desde MiEmpresa")
             }

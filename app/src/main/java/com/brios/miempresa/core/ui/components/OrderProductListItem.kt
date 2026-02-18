@@ -53,6 +53,7 @@ data class OrderProductPriceChange(
 fun OrderProductListItem(
     name: String,
     price: Double,
+    hidePrice: Boolean = false,
     quantity: Int,
     imageUrl: String?,
     onQuantityChange: (Int) -> Unit,
@@ -77,6 +78,7 @@ fun OrderProductListItem(
                 OrderProductContent(
                     name = name,
                     price = price,
+                    hidePrice = hidePrice,
                     quantity = quantity,
                     imageUrl = imageUrl,
                     onQuantityChange = onQuantityChange,
@@ -97,6 +99,7 @@ fun OrderProductListItem(
                 OrderProductContent(
                     name = name,
                     price = price,
+                    hidePrice = hidePrice,
                     quantity = quantity,
                     imageUrl = imageUrl,
                     onQuantityChange = onQuantityChange,
@@ -110,6 +113,7 @@ fun OrderProductListItem(
         OrderProductContent(
             name = name,
             price = price,
+            hidePrice = hidePrice,
             quantity = quantity,
             imageUrl = imageUrl,
             onQuantityChange = onQuantityChange,
@@ -125,6 +129,7 @@ fun OrderProductListItem(
 private fun OrderProductContent(
     name: String,
     price: Double,
+    hidePrice: Boolean,
     quantity: Int,
     imageUrl: String?,
     onQuantityChange: (Int) -> Unit,
@@ -194,26 +199,38 @@ private fun OrderProductContent(
             ) {
                 Column {
                     if (priceChange != null) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = stringResource(R.string.cart_item_previous_price, currencyFormat.format(priceChange.oldPrice*quantity)),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textDecoration = TextDecoration.LineThrough,
-                            )
+                        if (!hidePrice) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.cart_item_previous_price, currencyFormat.format(priceChange.oldPrice * quantity)),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textDecoration = TextDecoration.LineThrough,
+                                )
+                            }
                         }
                     }
                     Text(
-                        text = currencyFormat.format(price * quantity),
+                        text =
+                            if (hidePrice) {
+                                stringResource(R.string.price_consult)
+                            } else {
+                                currencyFormat.format(price * quantity)
+                            },
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "${currencyFormat.format(price)} c/u",
+                        text =
+                            if (hidePrice) {
+                                stringResource(R.string.cart_item_unit_price_consult)
+                            } else {
+                                "${currencyFormat.format(price)} c/u"
+                            },
                         style = MaterialTheme.typography.labelSmall,
                         color = SlateGray400,
                     )

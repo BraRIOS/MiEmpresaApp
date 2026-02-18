@@ -7,3 +7,9 @@ fun NavHostController.navigateClearingBackStack(route: String) {
         popUpTo(0) { inclusive = true }
     }
 }
+
+fun <T : Any> NavHostController.navigateClearingBackStack(route: T) {
+    navigate(route) {
+        popUpTo(0) { inclusive = true }
+    }
+}

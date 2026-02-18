@@ -1,6 +1,6 @@
 # ADR-002: Arquitectura de Navegación
 
-**Status:** Accepted (Reopened 2026-02-18 for phased refactor)  
+**Status:** Accepted (Implemented through Phase 2; Phase 3 deferred post-MVP)  
 **Date:** 2026-02-11  
 **Updated:** 2026-02-18
 
@@ -43,10 +43,10 @@ Adoptar **Opción C (phased refactor)**:
    - definir contrato de rutas centralizado (patterns/builders/args),
    - centralizar navegación en helpers/navigator de dominio UI,
    - volver TopBar/acciones route-aware (sin listas manuales de excepciones).
-3. **Fase 2 (en progreso):**
+3. **Fase 2 (completada):**
    - separar `authGraph`, `adminGraph`, `clientGraph` con nested graphs,
    - limpiar dependencias cruzadas de backstack.
-4. **Fase 3 (post-MVP / expansión):**
+4. **Fase 3 (deferida post-MVP / expansión):**
    - evaluar `NavigationSuiteScaffold` y layouts adaptativos (tablet/foldable).
 
 ## Implementation Progress (2026-02-18)
@@ -57,16 +57,17 @@ Adoptar **Opción C (phased refactor)**:
   - ✅ Migración de `NavHost` y `Drawer` al contrato central.
   - ✅ Tabs admin migradas de índices manuales a `AdminTopLevelTab`.
   - ✅ Eliminado `MiEmpresaScreen` para dejar una sola fuente de rutas.
-- **Fase 2:** en progreso.
+- **Fase 2:** completada.
   - ✅ `NavHost` reestructurado en nested graphs (`authGraph`, `clientGraph`, `adminGraph`).
-  - ✅ Limpieza inicial de dependencias cruzadas de backstack/fallback:
+  - ✅ Limpieza de dependencias cruzadas de backstack/fallback:
     - salida de sesión unificada hacia `authGraph`,
     - fallback de salida cliente centralizado por helper de sesión,
     - eliminación de ramas duplicadas `home/welcome` en callbacks críticos.
-  - ✅ Pilot técnico de type-safe routes:
+  - ✅ Migración type-safe routes con Kotlin Serialization en rutas auth/client/admin:
     - plugin Kotlin Serialization habilitado en el proyecto,
-    - rutas migradas a API tipada (`SignInRoute`, `OrderDetailRoute`) para validar integración incremental en casos sin/ con argumentos.
-  - 🔄 Pendiente: expandir migración tipada al resto de auth/client/admin.
+    - adopción de `composable<T>`, `navigate(T)` y `toRoute<T>` en destinos con y sin argumentos.
+- **Fase 3:** deferida por alcance de MVP.
+  - ✅ Decisión explícita: no adoptar aún `NavigationSuiteScaffold`; mantener la arquitectura actual hasta abrir el alcance adaptive.
 
 ## Consequences
 ### Positivas

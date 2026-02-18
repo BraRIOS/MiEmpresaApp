@@ -174,7 +174,7 @@ private fun DrawerContent(
                             onClick = {
                                 scope.launch {
                                     drawerState.close()
-                                    navController.navigate(MiEmpresaRoutes.onboarding("selector"))
+                                    navController.navigate(OnboardingRoute(mode = "selector"))
                                 }
                             },
                         )
@@ -186,7 +186,7 @@ private fun DrawerContent(
                             onClick = {
                                 scope.launch {
                                     drawerState.close()
-                                    navController.navigate(MiEmpresaRoutes.onboarding("create"))
+                                    navController.navigate(OnboardingRoute(mode = "create"))
                                 }
                             },
                         )
@@ -206,7 +206,7 @@ private fun DrawerContent(
                             onClick = {
                                 scope.launch {
                                     drawerState.close()
-                                    navController.navigate(MiEmpresaRoutes.myStores)
+                                    navController.navigate(MyStoresRoute)
                                 }
                             },
                         )

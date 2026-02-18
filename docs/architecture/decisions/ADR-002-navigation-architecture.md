@@ -1,12 +1,12 @@
 # ADR-002: Arquitectura de Navegación
 
-**Status:** Accepted (Implemented through Phase 2; Phase 3 deferred post-MVP)  
+**Status:** Accepted (Phases 0-2 implemented; adaptive phase deferred post-MVP)  
 **Date:** 2026-02-11  
 **Updated:** 2026-02-18
 
-## Document Scope
-- Este archivo es la **fuente canónica** de ADR-002 para el repositorio público.
-- Cualquier investigación extensa/histórica debe considerarse anexo interno, no la decisión oficial.
+## Purpose
+- Documentar la decisión de arquitectura de navegación para el MVP.
+- Comunicar públicamente el resultado de implementación y el roadmap post-MVP.
 
 ## Context
 La arquitectura legacy (rutas string dispersas + `NavHost` plano + tabs manuales) permitió cerrar el MVP, pero en pruebas reales aparecieron problemas de interacción durante transiciones push/pop (ghost taps).
@@ -68,6 +68,7 @@ Adoptar **Opción C (phased refactor)**:
     - adopción de `composable<T>`, `navigate(T)` y `toRoute<T>` en destinos con y sin argumentos.
 - **Fase 3:** deferida por alcance de MVP.
   - ✅ Decisión explícita: no adoptar aún `NavigationSuiteScaffold`; mantener la arquitectura actual hasta abrir el alcance adaptive.
+  - Criterio de activación: implementar cuando el alcance incluya tablet/foldable o UI adaptive como requerimiento explícito.
 
 ## Consequences
 ### Positivas

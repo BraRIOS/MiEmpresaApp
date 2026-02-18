@@ -59,7 +59,10 @@ Adoptar **Opción C (phased refactor)**:
   - ✅ Eliminado `MiEmpresaScreen` para dejar una sola fuente de rutas.
 - **Fase 2:** en progreso.
   - ✅ `NavHost` reestructurado en nested graphs (`authGraph`, `clientGraph`, `adminGraph`).
-  - 🔄 Pendiente: limpieza de dependencias cruzadas de backstack.
+  - ✅ Limpieza inicial de dependencias cruzadas de backstack/fallback:
+    - salida de sesión unificada hacia `authGraph`,
+    - fallback de salida cliente centralizado por helper de sesión,
+    - eliminación de ramas duplicadas `home/welcome` en callbacks críticos.
   - 🔄 Pendiente: evaluar migración a type-safe routes con Kotlin Serialization.
 
 ## Consequences

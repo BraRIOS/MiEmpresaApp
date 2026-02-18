@@ -80,6 +80,17 @@ fun NavHostComposable(
             action()
         }
     }
+    val signedOutEntryRoute = MiEmpresaRoutes.authGraph
+    val signedInEntryRoute = MiEmpresaRoutes.home
+    val resolveSessionEntryRoute: () -> String = {
+        if (isAlreadySignedIn) signedInEntryRoute else signedOutEntryRoute
+    }
+    val navigateToSessionEntryClearingBackStack: () -> Unit = {
+        navController.navigateClearingBackStack(resolveSessionEntryRoute())
+    }
+    val navigateToSignedOutEntryClearingBackStack: () -> Unit = {
+        navController.navigateClearingBackStack(signedOutEntryRoute)
+    }
 
     LaunchedEffect(pendingDeeplinkSheetId) {
         pendingDeeplinkSheetId?.let { sheetId ->
@@ -104,7 +115,7 @@ fun NavHostComposable(
                 }
 
                 is DeeplinkNavigationEvent.NavigateHome -> {
-                    navController.navigateClearingBackStack(MiEmpresaRoutes.home)
+                    navigateToSessionEntryClearingBackStack()
                     event.consumedSheetId?.let(onDeeplinkConsumed)
                 }
 
@@ -133,12 +144,12 @@ fun NavHostComposable(
                 is AuthState.PendingAuth -> {
                     signInViewModel.updateAuthState(authState)
                     navController.navigate(MiEmpresaRoutes.signIn) {
-                        popUpTo(MiEmpresaRoutes.onboarding) { inclusive = true }
+                        popUpTo(MiEmpresaRoutes.adminGraph) { inclusive = true }
                     }
                 }
                 else -> {
                     navController.navigate(MiEmpresaRoutes.signIn) {
-                        popUpTo(MiEmpresaRoutes.onboarding) { inclusive = true }
+                        popUpTo(MiEmpresaRoutes.adminGraph) { inclusive = true }
                     }
                 }
             }
@@ -219,13 +230,7 @@ fun NavHostComposable(
                         onNavigateBack = {
                             guardedBackNavigation(backStackEntry) {
                                 if (!navController.popBackStack()) {
-                                    val fallbackRoute =
-                                        if (isAlreadySignedIn) {
-                                            MiEmpresaRoutes.home
-                                        } else {
-                                            MiEmpresaRoutes.welcome
-                                        }
-                                    navController.navigateClearingBackStack(fallbackRoute)
+                                    navigateToSessionEntryClearingBackStack()
                                 }
                             }
                         },
@@ -235,16 +240,8 @@ fun NavHostComposable(
                             }
                         },
                         onNavigateToHome = {
-                            val targetRoute =
-                                if (isAlreadySignedIn) {
-                                    MiEmpresaRoutes.home
-                                } else {
-                                    MiEmpresaRoutes.welcome
-                                }
                             guardedResumedNavigation(backStackEntry) {
-                                navController.navigate(targetRoute) {
-                                    popUpTo(0) { inclusive = true }
-                                }
+                                navigateToSessionEntryClearingBackStack()
                             }
                         },
                         onNavigateToProductDetail = { productId ->
@@ -268,13 +265,7 @@ fun NavHostComposable(
                         onNavigateBack = {
                             guardedBackNavigation(backStackEntry) {
                                 if (!navController.popBackStack()) {
-                                    val fallbackRoute =
-                                        if (isAlreadySignedIn) {
-                                            MiEmpresaRoutes.home
-                                        } else {
-                                            MiEmpresaRoutes.welcome
-                                        }
-                                    navController.navigateClearingBackStack(fallbackRoute)
+                                    navigateToSessionEntryClearingBackStack()
                                 }
                             }
                         },
@@ -288,10 +279,7 @@ fun NavHostComposable(
                                 }
                             } else {
                                 guardedResumedNavigation(backStackEntry) {
-                                    navController.navigate(MiEmpresaRoutes.myStores) {
-                                        popUpTo(0) { inclusive = true }
-                                        launchSingleTop = true
-                                    }
+                                    navController.navigateClearingBackStack(MiEmpresaRoutes.myStores)
                                 }
                             }
                         },
@@ -307,14 +295,8 @@ fun NavHostComposable(
                 composable(route = MiEmpresaRoutes.myStores) { backStackEntry ->
                     MyStoresScreen(
                         onNavigateBack = {
-                            val targetRoute =
-                                if (isAlreadySignedIn) {
-                                    MiEmpresaRoutes.home
-                                } else {
-                                    MiEmpresaRoutes.welcome
-                                }
                             guardedBackNavigation(backStackEntry) {
-                                navController.navigateClearingBackStack(targetRoute)
+                                navigateToSessionEntryClearingBackStack()
                             }
                         },
                         onNavigateToCatalog = { companyId ->
@@ -384,14 +366,8 @@ fun NavHostComposable(
                             }
                         },
                         onGoHome = {
-                            if (isAlreadySignedIn) {
-                                guardedResumedNavigation(backStackEntry) {
-                                    navController.navigateClearingBackStack(MiEmpresaRoutes.home)
-                                }
-                            } else {
-                                guardedResumedNavigation(backStackEntry) {
-                                    navController.navigateClearingBackStack(MiEmpresaRoutes.welcome)
-                                }
+                            guardedResumedNavigation(backStackEntry) {
+                                navigateToSessionEntryClearingBackStack()
                             }
                         },
                     )
@@ -439,9 +415,9 @@ fun NavHostComposable(
                             signInViewModel.determinePostAuthDestination()
                         }
                         is AuthState.Unauthorized, is AuthState.Failed -> {
-                            // Authorization denied — sign out and return to Welcome
+                            // Authorization denied — sign out and return to auth entry
                             signInViewModel.signOut(activity)
-                            navController.navigateClearingBackStack(MiEmpresaRoutes.welcome)
+                            navigateToSignedOutEntryClearingBackStack()
                         }
                         null -> {}
                     }
@@ -480,7 +456,7 @@ fun NavHostComposable(
                 onSignOutRequested = {
                     guardedResumedNavigation(backStackEntry) {
                         signInViewModel.signOut(activity)
-                        navController.navigateClearingBackStack(MiEmpresaRoutes.welcome)
+                        navigateToSignedOutEntryClearingBackStack()
                     }
                 },
             )
@@ -512,7 +488,7 @@ fun NavHostComposable(
                 onNavigateToWelcome = {
                     guardedResumedNavigation(backStackEntry) {
                         signInViewModel.resetStates()
-                        navController.navigateClearingBackStack(MiEmpresaRoutes.welcome)
+                        navigateToSignedOutEntryClearingBackStack()
                     }
                 },
                 onNavigateToOrders = {

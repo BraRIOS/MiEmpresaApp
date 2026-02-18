@@ -291,7 +291,7 @@ private fun DrawerContent(
                     showLogoutDialog = false
                     if (signInViewModel != null && context != null) {
                         signInViewModel.signOut(context)
-                        navController.navigateClearingBackStack(MiEmpresaRoutes.welcome)
+                        navController.navigateClearingBackStack(MiEmpresaRoutes.authGraph)
                     }
                 }) {
                     Text(stringResource(R.string.config_logout_confirm))

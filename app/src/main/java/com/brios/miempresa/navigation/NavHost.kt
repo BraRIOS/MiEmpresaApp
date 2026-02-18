@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
+import androidx.navigation.navigation
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
@@ -170,13 +171,13 @@ fun NavHostComposable(
         }
     }
 
-    // Start at Onboarding if already signed in (shows discovery loading),
-    // otherwise start at Welcome for new/signed-out users
+    // Signed-in users start in admin graph (onboarding is graph start),
+    // otherwise users start in auth graph (welcome is graph start).
     val startDestination =
         if (isAlreadySignedIn && !suppressDefaultStartupRouting) {
-            MiEmpresaRoutes.onboarding
+            MiEmpresaRoutes.adminGraph
         } else {
-            MiEmpresaRoutes.welcome
+            MiEmpresaRoutes.authGraph
         }
 
     NavHost(
@@ -184,269 +185,283 @@ fun NavHostComposable(
         startDestination = startDestination,
         modifier = Modifier.fillMaxSize(),
     ) {
-        composable(route = MiEmpresaRoutes.welcome) { backStackEntry ->
-            WelcomeScreen(
-                onNavigateToSignIn = {
-                    guardedResumedNavigation(backStackEntry) {
-                        navController.navigate(MiEmpresaRoutes.signIn)
-                    }
-                },
-                onNavigateToMyStores = {
-                    guardedResumedNavigation(backStackEntry) {
-                        navController.navigate(MiEmpresaRoutes.myStores)
-                    }
-                },
-            )
-        }
-        composable(
-            route = MiEmpresaRoutes.ClientCatalog.pattern,
-            arguments = listOf(navArgument(MiEmpresaRoutes.ClientCatalog.companyIdArg) { type = NavType.StringType }),
-        ) { backStackEntry ->
-            val companyId =
-                backStackEntry.arguments
-                    ?.getString(MiEmpresaRoutes.ClientCatalog.companyIdArg)
-                    .orEmpty()
-            ClientCatalogScreen(
-                onNavigateBack = {
-                    guardedBackNavigation(backStackEntry) {
-                        if (!navController.popBackStack()) {
-                            val fallbackRoute =
+        navigation(
+            route = MiEmpresaRoutes.authGraph,
+            startDestination = MiEmpresaRoutes.welcome,
+        ) {
+            composable(route = MiEmpresaRoutes.welcome) { backStackEntry ->
+                WelcomeScreen(
+                    onNavigateToSignIn = {
+                        guardedResumedNavigation(backStackEntry) {
+                            navController.navigate(MiEmpresaRoutes.signIn)
+                        }
+                    },
+                    onNavigateToMyStores = {
+                        guardedResumedNavigation(backStackEntry) {
+                            navController.navigate(MiEmpresaRoutes.myStores)
+                        }
+                    },
+                )
+            }
+            navigation(
+                route = MiEmpresaRoutes.clientGraph,
+                startDestination = MiEmpresaRoutes.myStores,
+            ) {
+                composable(
+                    route = MiEmpresaRoutes.ClientCatalog.pattern,
+                    arguments = listOf(navArgument(MiEmpresaRoutes.ClientCatalog.companyIdArg) { type = NavType.StringType }),
+                ) { backStackEntry ->
+                    val companyId =
+                        backStackEntry.arguments
+                            ?.getString(MiEmpresaRoutes.ClientCatalog.companyIdArg)
+                            .orEmpty()
+                    ClientCatalogScreen(
+                        onNavigateBack = {
+                            guardedBackNavigation(backStackEntry) {
+                                if (!navController.popBackStack()) {
+                                    val fallbackRoute =
+                                        if (isAlreadySignedIn) {
+                                            MiEmpresaRoutes.home
+                                        } else {
+                                            MiEmpresaRoutes.welcome
+                                        }
+                                    navController.navigateClearingBackStack(fallbackRoute)
+                                }
+                            }
+                        },
+                        onNavigateToCart = { selectedCompanyId ->
+                            guardedResumedNavigation(backStackEntry) {
+                                navController.navigate(MiEmpresaRoutes.Cart.create(selectedCompanyId))
+                            }
+                        },
+                        onNavigateToHome = {
+                            val targetRoute =
                                 if (isAlreadySignedIn) {
                                     MiEmpresaRoutes.home
                                 } else {
                                     MiEmpresaRoutes.welcome
                                 }
-                            navController.navigateClearingBackStack(fallbackRoute)
-                        }
-                    }
-                },
-                onNavigateToCart = { selectedCompanyId ->
-                    guardedResumedNavigation(backStackEntry) {
-                        navController.navigate(MiEmpresaRoutes.Cart.create(selectedCompanyId))
-                    }
-                },
-                onNavigateToHome = {
-                    val targetRoute =
-                        if (isAlreadySignedIn) {
-                            MiEmpresaRoutes.home
-                        } else {
-                            MiEmpresaRoutes.welcome
-                        }
-                    guardedResumedNavigation(backStackEntry) {
-                        navController.navigate(targetRoute) {
-                            popUpTo(0) { inclusive = true }
-                        }
-                    }
-                },
-                onNavigateToProductDetail = { productId ->
-                    if (companyId.isNotBlank()) {
-                        guardedResumedNavigation(backStackEntry) {
-                            navController.navigate(MiEmpresaRoutes.ProductDetail.create(productId, companyId, "client"))
-                        }
-                    }
-                },
-            )
-        }
-        composable(
-            route = MiEmpresaRoutes.Cart.pattern,
-            arguments = listOf(navArgument(MiEmpresaRoutes.Cart.companyIdArg) { type = NavType.StringType }),
-        ) { backStackEntry ->
-            val companyId =
-                backStackEntry.arguments
-                    ?.getString(MiEmpresaRoutes.Cart.companyIdArg)
-                    .orEmpty()
-            CartScreen(
-                onNavigateBack = {
-                    guardedBackNavigation(backStackEntry) {
-                        if (!navController.popBackStack()) {
-                            val fallbackRoute =
+                            guardedResumedNavigation(backStackEntry) {
+                                navController.navigate(targetRoute) {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            }
+                        },
+                        onNavigateToProductDetail = { productId ->
+                            if (companyId.isNotBlank()) {
+                                guardedResumedNavigation(backStackEntry) {
+                                    navController.navigate(MiEmpresaRoutes.ProductDetail.create(productId, companyId, "client"))
+                                }
+                            }
+                        },
+                    )
+                }
+                composable(
+                    route = MiEmpresaRoutes.Cart.pattern,
+                    arguments = listOf(navArgument(MiEmpresaRoutes.Cart.companyIdArg) { type = NavType.StringType }),
+                ) { backStackEntry ->
+                    val companyId =
+                        backStackEntry.arguments
+                            ?.getString(MiEmpresaRoutes.Cart.companyIdArg)
+                            .orEmpty()
+                    CartScreen(
+                        onNavigateBack = {
+                            guardedBackNavigation(backStackEntry) {
+                                if (!navController.popBackStack()) {
+                                    val fallbackRoute =
+                                        if (isAlreadySignedIn) {
+                                            MiEmpresaRoutes.home
+                                        } else {
+                                            MiEmpresaRoutes.welcome
+                                        }
+                                    navController.navigateClearingBackStack(fallbackRoute)
+                                }
+                            }
+                        },
+                        onNavigateToCatalog = {
+                            if (companyId.isNotBlank()) {
+                                guardedResumedNavigation(backStackEntry) {
+                                    navController.navigate(MiEmpresaRoutes.ClientCatalog.create(companyId)) {
+                                        popUpTo(MiEmpresaRoutes.Cart.create(companyId)) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            } else {
+                                guardedResumedNavigation(backStackEntry) {
+                                    navController.navigate(MiEmpresaRoutes.myStores) {
+                                        popUpTo(0) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            }
+                        },
+                        onNavigateToProductDetail = { productId ->
+                            if (companyId.isNotBlank()) {
+                                guardedResumedNavigation(backStackEntry) {
+                                    navController.navigate(MiEmpresaRoutes.ProductDetail.create(productId, companyId, "client"))
+                                }
+                            }
+                        },
+                    )
+                }
+                composable(route = MiEmpresaRoutes.myStores) { backStackEntry ->
+                    MyStoresScreen(
+                        onNavigateBack = {
+                            val targetRoute =
                                 if (isAlreadySignedIn) {
                                     MiEmpresaRoutes.home
                                 } else {
                                     MiEmpresaRoutes.welcome
                                 }
-                            navController.navigateClearingBackStack(fallbackRoute)
-                        }
-                    }
-                },
-                onNavigateToCatalog = {
-                    if (companyId.isNotBlank()) {
-                        guardedResumedNavigation(backStackEntry) {
-                            navController.navigate(MiEmpresaRoutes.ClientCatalog.create(companyId)) {
-                                popUpTo(MiEmpresaRoutes.Cart.create(companyId)) { inclusive = true }
-                                launchSingleTop = true
+                            guardedBackNavigation(backStackEntry) {
+                                navController.navigateClearingBackStack(targetRoute)
                             }
-                        }
-                    } else {
-                        guardedResumedNavigation(backStackEntry) {
-                            navController.navigate(MiEmpresaRoutes.myStores) {
-                                popUpTo(0) { inclusive = true }
-                                launchSingleTop = true
+                        },
+                        onNavigateToCatalog = { companyId ->
+                            guardedResumedNavigation(backStackEntry) {
+                                navController.navigate(MiEmpresaRoutes.ClientCatalog.create(companyId))
                             }
-                        }
-                    }
-                },
-                onNavigateToProductDetail = { productId ->
-                    if (companyId.isNotBlank()) {
-                        guardedResumedNavigation(backStackEntry) {
-                            navController.navigate(MiEmpresaRoutes.ProductDetail.create(productId, companyId, "client"))
-                        }
-                    }
-                },
-            )
-        }
-        composable(route = MiEmpresaRoutes.myStores) { backStackEntry ->
-            MyStoresScreen(
-                onNavigateBack = {
-                    val targetRoute =
-                        if (isAlreadySignedIn) {
-                            MiEmpresaRoutes.home
-                        } else {
-                            MiEmpresaRoutes.welcome
-                        }
-                    guardedBackNavigation(backStackEntry) {
-                        navController.navigateClearingBackStack(targetRoute)
-                    }
-                },
-                onNavigateToCatalog = { companyId ->
-                    guardedResumedNavigation(backStackEntry) {
-                        navController.navigate(MiEmpresaRoutes.ClientCatalog.create(companyId))
-                    }
-                },
-                onNavigateToSignIn = {
-                    guardedResumedNavigation(backStackEntry) {
-                        navController.navigate(MiEmpresaRoutes.signIn)
-                    }
-                },
-            )
-        }
-        composable(
-            route = MiEmpresaRoutes.ProductDetail.pattern,
-            arguments = listOf(
-                navArgument(MiEmpresaRoutes.ProductDetail.productIdArg) { type = NavType.StringType },
-                navArgument(MiEmpresaRoutes.ProductDetail.companyIdArg) { type = NavType.StringType },
-                navArgument(MiEmpresaRoutes.ProductDetail.modeArg) {
-                    type = NavType.StringType
-                    defaultValue = "admin"
-                },
-            ),
-        ) { backStackEntry ->
-            val detailCompanyId =
-                backStackEntry.arguments
-                    ?.getString(MiEmpresaRoutes.ProductDetail.companyIdArg)
-                    .orEmpty()
-            ProductDetailScreen(
-                onNavigateBack = { guardedBackNavigation(backStackEntry) { navController.popBackStack() } },
-                onNavigateToEdit = { productId ->
-                    guardedResumedNavigation(backStackEntry) {
-                        navController.navigate(MiEmpresaRoutes.ProductForm.create(productId))
-                    }
-                },
-                onNavigateToCart = { companyId ->
-                    val targetCompanyId = companyId.ifBlank { detailCompanyId }
-                    if (targetCompanyId.isNotBlank()) {
-                        guardedResumedNavigation(backStackEntry) {
-                            navController.navigate(MiEmpresaRoutes.Cart.create(targetCompanyId))
-                        }
-                    }
-                },
-            )
-        }
-        composable(
-            route = MiEmpresaRoutes.DeeplinkError.pattern,
-            arguments = listOf(
-                navArgument(MiEmpresaRoutes.DeeplinkError.errorTypeArg) { type = NavType.StringType },
-                navArgument(MiEmpresaRoutes.DeeplinkError.sheetIdArg) {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
-                },
-            ),
-        ) { backStackEntry ->
-            val errorTypeArg = backStackEntry.arguments?.getString(MiEmpresaRoutes.DeeplinkError.errorTypeArg)
-            val sheetIdArg = backStackEntry.arguments?.getString(MiEmpresaRoutes.DeeplinkError.sheetIdArg)
+                        },
+                        onNavigateToSignIn = {
+                            guardedResumedNavigation(backStackEntry) {
+                                navController.navigate(MiEmpresaRoutes.signIn)
+                            }
+                        },
+                    )
+                }
+                composable(
+                    route = MiEmpresaRoutes.ProductDetail.pattern,
+                    arguments = listOf(
+                        navArgument(MiEmpresaRoutes.ProductDetail.productIdArg) { type = NavType.StringType },
+                        navArgument(MiEmpresaRoutes.ProductDetail.companyIdArg) { type = NavType.StringType },
+                        navArgument(MiEmpresaRoutes.ProductDetail.modeArg) {
+                            type = NavType.StringType
+                            defaultValue = "admin"
+                        },
+                    ),
+                ) { backStackEntry ->
+                    val detailCompanyId =
+                        backStackEntry.arguments
+                            ?.getString(MiEmpresaRoutes.ProductDetail.companyIdArg)
+                            .orEmpty()
+                    ProductDetailScreen(
+                        onNavigateBack = { guardedBackNavigation(backStackEntry) { navController.popBackStack() } },
+                        onNavigateToEdit = { productId ->
+                            guardedResumedNavigation(backStackEntry) {
+                                navController.navigate(MiEmpresaRoutes.ProductForm.create(productId))
+                            }
+                        },
+                        onNavigateToCart = { companyId ->
+                            val targetCompanyId = companyId.ifBlank { detailCompanyId }
+                            if (targetCompanyId.isNotBlank()) {
+                                guardedResumedNavigation(backStackEntry) {
+                                    navController.navigate(MiEmpresaRoutes.Cart.create(targetCompanyId))
+                                }
+                            }
+                        },
+                    )
+                }
+                composable(
+                    route = MiEmpresaRoutes.DeeplinkError.pattern,
+                    arguments = listOf(
+                        navArgument(MiEmpresaRoutes.DeeplinkError.errorTypeArg) { type = NavType.StringType },
+                        navArgument(MiEmpresaRoutes.DeeplinkError.sheetIdArg) {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        },
+                    ),
+                ) { backStackEntry ->
+                    val errorTypeArg = backStackEntry.arguments?.getString(MiEmpresaRoutes.DeeplinkError.errorTypeArg)
+                    val sheetIdArg = backStackEntry.arguments?.getString(MiEmpresaRoutes.DeeplinkError.sheetIdArg)
 
-            DeeplinkErrorScreen(
-                error = CatalogAccessError.fromRouteValue(errorTypeArg),
-                showRetry = !sheetIdArg.isNullOrBlank() && deeplinkRoutingViewModel.isOnlineNow(),
-                onRetry = {
-                    runWhenResumed(backStackEntry) {
-                        sheetIdArg?.let { deeplinkRoutingViewModel.retryDeeplink(it) }
+                    DeeplinkErrorScreen(
+                        error = CatalogAccessError.fromRouteValue(errorTypeArg),
+                        showRetry = !sheetIdArg.isNullOrBlank() && deeplinkRoutingViewModel.isOnlineNow(),
+                        onRetry = {
+                            runWhenResumed(backStackEntry) {
+                                sheetIdArg?.let { deeplinkRoutingViewModel.retryDeeplink(it) }
+                            }
+                        },
+                        onGoHome = {
+                            if (isAlreadySignedIn) {
+                                guardedResumedNavigation(backStackEntry) {
+                                    navController.navigateClearingBackStack(MiEmpresaRoutes.home)
+                                }
+                            } else {
+                                guardedResumedNavigation(backStackEntry) {
+                                    navController.navigateClearingBackStack(MiEmpresaRoutes.welcome)
+                                }
+                            }
+                        },
+                    )
+                }
+            }
+            composable(route = MiEmpresaRoutes.signIn) { backStackEntry ->
+                val signInState by signInViewModel.signInStateFlow.collectAsStateWithLifecycle()
+                val authState by signInViewModel.authStateFlow.collectAsStateWithLifecycle()
+                val activity = LocalActivity.current as Activity
+
+                val authorizationSuccess = stringResource(R.string.authorization_success)
+                val authorizationFailed = stringResource(R.string.authorization_failed)
+
+                LaunchedEffect(key1 = signInState.isSignInSuccessful) {
+                    if (signInState.isSignInSuccessful) {
+                        signInViewModel.authorizeDriveAndSheets(activity)
+                        signInViewModel.resetSignInState()
                     }
-                },
-                onGoHome = {
-                    if (isAlreadySignedIn) {
-                        guardedResumedNavigation(backStackEntry) {
-                            navController.navigateClearingBackStack(MiEmpresaRoutes.home)
+                }
+
+                val authorizationLauncher =
+                    rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.StartIntentSenderForResult(),
+                    ) { result ->
+                        if (result.resultCode == Activity.RESULT_OK) {
+                            Toast.makeText(applicationContext, authorizationSuccess, Toast.LENGTH_LONG).show()
+                            signInViewModel.updateAuthState(AuthState.Authorized)
+                        } else {
+                            Toast.makeText(applicationContext, authorizationFailed, Toast.LENGTH_LONG).show()
+                            signInViewModel.updateAuthState(AuthState.Unauthorized)
+                            signInViewModel.signOut(activity)
                         }
-                    } else {
-                        guardedResumedNavigation(backStackEntry) {
+                    }
+
+                LaunchedEffect(key1 = authState) {
+                    when (authState) {
+                        is AuthState.PendingAuth -> {
+                            (authState as AuthState.PendingAuth).intentSender?.let { intentSender ->
+                                authorizationLauncher.launch(
+                                    IntentSenderRequest.Builder(intentSender).build(),
+                                )
+                            }
+                        }
+                        is AuthState.Authorized -> {
+                            signInViewModel.determinePostAuthDestination()
+                        }
+                        is AuthState.Unauthorized, is AuthState.Failed -> {
+                            // Authorization denied — sign out and return to Welcome
+                            signInViewModel.signOut(activity)
                             navController.navigateClearingBackStack(MiEmpresaRoutes.welcome)
                         }
-                    }
-                },
-            )
-        }
-        composable(route = MiEmpresaRoutes.signIn) { backStackEntry ->
-            val signInState by signInViewModel.signInStateFlow.collectAsStateWithLifecycle()
-            val authState by signInViewModel.authStateFlow.collectAsStateWithLifecycle()
-            val activity = LocalActivity.current as Activity
-
-            val authorizationSuccess = stringResource(R.string.authorization_success)
-            val authorizationFailed = stringResource(R.string.authorization_failed)
-
-            LaunchedEffect(key1 = signInState.isSignInSuccessful) {
-                if (signInState.isSignInSuccessful) {
-                    signInViewModel.authorizeDriveAndSheets(activity)
-                    signInViewModel.resetSignInState()
-                }
-            }
-
-            val authorizationLauncher =
-                rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.StartIntentSenderForResult(),
-                ) { result ->
-                    if (result.resultCode == Activity.RESULT_OK) {
-                        Toast.makeText(applicationContext, authorizationSuccess, Toast.LENGTH_LONG).show()
-                        signInViewModel.updateAuthState(AuthState.Authorized)
-                    } else {
-                        Toast.makeText(applicationContext, authorizationFailed, Toast.LENGTH_LONG).show()
-                        signInViewModel.updateAuthState(AuthState.Unauthorized)
-                        signInViewModel.signOut(activity)
+                        null -> {}
                     }
                 }
 
-            LaunchedEffect(key1 = authState) {
-                when (authState) {
-                    is AuthState.PendingAuth -> {
-                        (authState as AuthState.PendingAuth).intentSender?.let { intentSender ->
-                            authorizationLauncher.launch(
-                                IntentSenderRequest.Builder(intentSender).build(),
-                            )
+                SignInScreen(
+                    signInState,
+                    onSignInClick = {
+                        runWhenResumed(backStackEntry) {
+                            signInViewModel.signIn(activity)
                         }
-                    }
-                    is AuthState.Authorized -> {
-                        signInViewModel.determinePostAuthDestination()
-                    }
-                    is AuthState.Unauthorized, is AuthState.Failed -> {
-                        // Authorization denied — sign out and return to Welcome
-                        signInViewModel.signOut(activity)
-                        navController.navigateClearingBackStack(MiEmpresaRoutes.welcome)
-                    }
-                    null -> {}
-                }
+                    },
+                )
             }
-
-            SignInScreen(
-                signInState,
-                onSignInClick = {
-                    runWhenResumed(backStackEntry) {
-                        signInViewModel.signIn(activity)
-                    }
-                },
-            )
         }
-        composable(
+        navigation(
+            route = MiEmpresaRoutes.adminGraph,
+            startDestination = MiEmpresaRoutes.onboarding,
+        ) {
+            composable(
             route = MiEmpresaRoutes.onboardingWithModePattern,
             arguments = listOf(navArgument(MiEmpresaRoutes.onboardingModeArg) {
                 type = NavType.StringType
@@ -601,6 +616,7 @@ fun NavHostComposable(
             OrderDetailScreen(
                 onNavigateBack = { guardedBackNavigation(backStackEntry) { navController.popBackStack() } },
             )
+        }
         }
     }
 }

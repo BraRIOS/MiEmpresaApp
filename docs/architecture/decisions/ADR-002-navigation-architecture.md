@@ -39,11 +39,11 @@ Los hotfix de lifecycle resolvieron el riesgo inmediato, pero no eliminan la deu
 Adoptar **Opción C (phased refactor)**:
 
 1. **Fase 0 (completada):** hardening anti ghost-tap por lifecycle/transición.
-2. **Fase 1 (siguiente):**
+2. **Fase 1 (completada):**
    - definir contrato de rutas centralizado (patterns/builders/args),
    - centralizar navegación en helpers/navigator de dominio UI,
    - volver TopBar/acciones route-aware (sin listas manuales de excepciones).
-3. **Fase 2 (siguiente):**
+3. **Fase 2 (en progreso):**
    - separar `authGraph`, `adminGraph`, `clientGraph` con nested graphs,
    - limpiar dependencias cruzadas de backstack.
 4. **Fase 3 (post-MVP / expansión):**
@@ -51,13 +51,16 @@ Adoptar **Opción C (phased refactor)**:
 
 ## Implementation Progress (2026-02-18)
 - **Fase 0:** completada.
-- **Fase 1:** parcialmente implementada.
+- **Fase 1:** completada.
   - ✅ Contrato central de rutas (`MiEmpresaRoutes`).
   - ✅ Helper central de clear-backstack (`navigateClearingBackStack`).
   - ✅ Migración de `NavHost` y `Drawer` al contrato central.
   - ✅ Tabs admin migradas de índices manuales a `AdminTopLevelTab`.
   - ✅ Eliminado `MiEmpresaScreen` para dejar una sola fuente de rutas.
-  - 🔄 Pendiente: separación por nested graphs (Fase 2) y evaluación de type-safe routes con Kotlin Serialization.
+- **Fase 2:** en progreso.
+  - ✅ `NavHost` reestructurado en nested graphs (`authGraph`, `clientGraph`, `adminGraph`).
+  - 🔄 Pendiente: limpieza de dependencias cruzadas de backstack.
+  - 🔄 Pendiente: evaluar migración a type-safe routes con Kotlin Serialization.
 
 ## Consequences
 ### Positivas

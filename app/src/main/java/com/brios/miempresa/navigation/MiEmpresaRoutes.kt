@@ -7,6 +7,10 @@ import android.net.Uri
  * Keeps route patterns and route builders in one place.
  */
 object MiEmpresaRoutes {
+    const val authGraph = "AuthGraph"
+    const val clientGraph = "ClientGraph"
+    const val adminGraph = "AdminGraph"
+
     const val welcome = "Welcome"
     const val signIn = "SignIn"
     const val onboarding = "Onboarding"

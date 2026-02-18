@@ -53,6 +53,12 @@ fun CartSummary(
             modifier = Modifier.fillMaxWidth().padding(AppDimensions.mediumPadding),
             verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
         ) {
+            Text(
+                text = stringResource(R.string.cart_checkout_disclaimer),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

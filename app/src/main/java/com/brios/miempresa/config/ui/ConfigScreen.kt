@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.brios.miempresa.BuildConfig
 import com.brios.miempresa.R
 import com.brios.miempresa.core.domain.model.defaultCountryCodes
 import com.brios.miempresa.core.ui.components.CompanyAvatar
@@ -280,7 +281,7 @@ fun ConfigScreenContent(
 
         // Version
         Text(
-            text = stringResource(R.string.config_version),
+            text = stringResource(R.string.config_version, BuildConfig.VERSION_NAME),
             style = MaterialTheme.typography.labelSmall,
             color = SlateGray400,
             modifier = Modifier.align(Alignment.CenterHorizontally),

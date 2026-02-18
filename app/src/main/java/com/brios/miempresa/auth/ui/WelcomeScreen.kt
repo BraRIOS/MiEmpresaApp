@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.brios.miempresa.BuildConfig
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
@@ -119,7 +120,7 @@ fun WelcomeScreen(
         Text(
             text =
                 buildAnnotatedString {
-                    append(stringResource(R.string.welcome_footer))
+                    append(stringResource(R.string.welcome_footer, BuildConfig.VERSION_NAME))
                     append(" • ")
                     withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
                         append(stringResource(R.string.welcome_terms))

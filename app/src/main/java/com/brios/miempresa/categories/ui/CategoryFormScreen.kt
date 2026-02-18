@@ -73,6 +73,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.emoji2.emojipicker.EmojiPickerView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.components.InfoCard
@@ -92,6 +94,10 @@ fun CategoryFormScreen(
     onSaved: () -> Unit = {},
     viewModel: CategoryFormViewModel = hiltViewModel(),
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsStateWithLifecycle()
+    val isScreenInteractive = lifecycleState == Lifecycle.State.RESUMED
+
     val name by viewModel.name.collectAsStateWithLifecycle()
     val selectedEmoji by viewModel.selectedEmoji.collectAsStateWithLifecycle()
     val nameError by viewModel.nameError.collectAsStateWithLifecycle()
@@ -114,9 +120,10 @@ fun CategoryFormScreen(
         productCount = productCount,
         onNameChanged = viewModel::onNameChanged,
         onEmojiSelected = viewModel::onEmojiSelected,
-        onSave = viewModel::save,
-        onDelete = viewModel::delete,
-        onNavigateBack = onNavigateBack
+        isScreenInteractive = isScreenInteractive,
+        onSave = { if (isScreenInteractive) viewModel.save() },
+        onDelete = { if (isScreenInteractive) viewModel.delete() },
+        onNavigateBack = { if (isScreenInteractive) onNavigateBack() },
     )
 }
 
@@ -127,6 +134,7 @@ private fun CategoryFormContent(
     selectedEmoji: String,
     nameError: String?,
     isSaving: Boolean,
+    isScreenInteractive: Boolean = true,
     isEditMode: Boolean,
     productCount: Int,
     onNameChanged: (String) -> Unit,
@@ -153,7 +161,7 @@ private fun CategoryFormContent(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
+                        IconButton(onClick = onNavigateBack, enabled = isScreenInteractive) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = stringResource(R.string.go_back)
@@ -162,7 +170,10 @@ private fun CategoryFormContent(
                     },
                     actions = {
                         if (isEditMode) {
-                            IconButton(onClick = { showDeleteDialog = true }) {
+                            IconButton(
+                                onClick = { showDeleteDialog = true },
+                                enabled = isScreenInteractive,
+                            ) {
                                 Icon(
                                     Icons.Default.Delete,
                                     contentDescription = stringResource(R.string.delete)
@@ -193,7 +204,7 @@ private fun CategoryFormContent(
             ) {
                 Button(
                     onClick = onSave,
-                    enabled = name.isNotBlank() && !isSaving,
+                    enabled = name.isNotBlank() && !isSaving && isScreenInteractive,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(AppDimensions.mediumLargePadding)

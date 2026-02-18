@@ -44,6 +44,8 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.components.CompanyAvatar
@@ -60,6 +62,10 @@ fun EditCompanyDataScreen(
     onNavigateBack: () -> Unit,
     viewModel: ConfigViewModel = hiltViewModel(),
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsStateWithLifecycle()
+    val isScreenInteractive = lifecycleState == Lifecycle.State.RESUMED
+
     val form by viewModel.form.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isSaving = uiState is ConfigUiState.Saving
@@ -73,18 +79,21 @@ fun EditCompanyDataScreen(
     EditCompanyDataContent(
         form = form,
         isSaving = isSaving,
+        isScreenInteractive = isScreenInteractive,
         onUpdateName = viewModel::updateCompanyName,
         onUpdateCountryCode = viewModel::updateCountryCode,
         onUpdateWhatsapp = viewModel::updateWhatsappNumber,
         onUpdateSpecialization = viewModel::updateSpecialization,
         onUpdateAddress = viewModel::updateAddress,
         onUpdateBusinessHours = viewModel::updateBusinessHours,
-        onPickLogo = { imagePickerLauncher.launch("image/*") },
+        onPickLogo = { if (isScreenInteractive) imagePickerLauncher.launch("image/*") },
         onSave = {
-            viewModel.save()
-            onNavigateBack()
+            if (isScreenInteractive) {
+                viewModel.save()
+                onNavigateBack()
+            }
         },
-        onCancel = onNavigateBack,
+        onCancel = { if (isScreenInteractive) onNavigateBack() },
     )
 }
 
@@ -92,6 +101,7 @@ fun EditCompanyDataScreen(
 fun EditCompanyDataContent(
     form: ConfigFormState,
     isSaving: Boolean = false,
+    isScreenInteractive: Boolean = true,
     onUpdateName: (String) -> Unit = {},
     onUpdateCountryCode: (String) -> Unit = {},
     onUpdateWhatsapp: (String) -> Unit = {},
@@ -130,7 +140,7 @@ fun EditCompanyDataContent(
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
                 color = SlateGray500,
-                modifier = Modifier.clickable { onCancel() },
+                modifier = Modifier.clickable(enabled = isScreenInteractive) { onCancel() },
             )
             Text(
                 text = stringResource(R.string.config_edit_title),
@@ -148,7 +158,7 @@ fun EditCompanyDataContent(
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
                 },
                 modifier = Modifier.clickable(
-                    enabled = form.isFormValid && !isSaving,
+                    enabled = form.isFormValid && !isSaving && isScreenInteractive,
                 ) { onSave() },
             )
         }
@@ -180,7 +190,7 @@ fun EditCompanyDataContent(
                             .size(AppDimensions.mediumLargeIconSize)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primary)
-                            .clickable { onPickLogo() },
+                            .clickable(enabled = isScreenInteractive) { onPickLogo() },
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(

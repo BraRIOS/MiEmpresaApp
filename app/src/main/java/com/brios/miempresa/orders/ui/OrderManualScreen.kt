@@ -58,6 +58,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.components.CountryCodeDropdown
@@ -83,6 +85,10 @@ fun OrderManualScreen(
     onOrderCreated: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsStateWithLifecycle()
+    val isScreenInteractive = lifecycleState == Lifecycle.State.RESUMED
+
     val form by viewModel.form.collectAsStateWithLifecycle()
     val products by viewModel.products.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
@@ -102,16 +108,17 @@ fun OrderManualScreen(
         modifier = modifier,
         form = form,
         isSaving = isSaving,
-        onNavigateBack = onNavigateBack,
+        isScreenInteractive = isScreenInteractive,
+        onNavigateBack = { if (isScreenInteractive) onNavigateBack() },
         onUpdateCustomerName = viewModel::updateCustomerName,
         onUpdateCustomerPhone = viewModel::updateCustomerPhone,
         onUpdateCustomerPhoneCountryCode = viewModel::updateCustomerPhoneCountryCode,
         onUpdateDate = viewModel::updateDate,
         onUpdateNotes = viewModel::updateNotes,
-        onAddProductClick = { showProductSheet = true },
+        onAddProductClick = { if (isScreenInteractive) showProductSheet = true },
         onRemoveItem = viewModel::removeItem,
         onUpdateItemQuantity = viewModel::updateItemQuantity,
-        onCreateOrder = viewModel::createOrder,
+        onCreateOrder = { if (isScreenInteractive) viewModel.createOrder() },
     )
 
     if (showProductSheet) {
@@ -132,6 +139,7 @@ private fun OrderManualContent(
     modifier: Modifier = Modifier,
     form: OrderFormState,
     isSaving: Boolean = false,
+    isScreenInteractive: Boolean = true,
     onNavigateBack: () -> Unit = {},
     onUpdateCustomerName: (String) -> Unit = {},
     onUpdateCustomerPhone: (String) -> Unit = {},
@@ -183,7 +191,7 @@ private fun OrderManualContent(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = onNavigateBack, enabled = isScreenInteractive) {
                         Icon(
                             Icons.Outlined.Close,
                             contentDescription = stringResource(R.string.action_close),
@@ -229,7 +237,7 @@ private fun OrderManualContent(
                         onClick = onCreateOrder,
                         modifier = Modifier
                             .fillMaxWidth(),
-                        enabled = form.isValid && !isSaving,
+                        enabled = form.isValid && !isSaving && isScreenInteractive,
                         shape = CircleShape,
                         contentPadding = PaddingValues(AppDimensions.mediumPadding),
                     ) {
@@ -373,6 +381,7 @@ private fun OrderManualContent(
 
                             TextButton(
                                 onClick = onAddProductClick,
+                                enabled = isScreenInteractive,
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                                 modifier = Modifier.height(32.dp)
                             ) {

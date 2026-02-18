@@ -79,6 +79,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -98,6 +100,10 @@ fun ProductFormScreen(
     onSaved: () -> Unit = {},
     viewModel: ProductFormViewModel = hiltViewModel(),
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsStateWithLifecycle()
+    val isScreenInteractive = lifecycleState == Lifecycle.State.RESUMED
+
     val name by viewModel.name.collectAsStateWithLifecycle()
     val price by viewModel.price.collectAsStateWithLifecycle()
     val hidePrice by viewModel.hidePrice.collectAsStateWithLifecycle()
@@ -149,11 +155,12 @@ fun ProductFormScreen(
         onImageRemoved = viewModel::onImageRemoved,
         isEditMode = viewModel.isEditMode,
         isSaving = isSaving,
-        onSave = viewModel::save,
+        isScreenInteractive = isScreenInteractive,
+        onSave = { if (isScreenInteractive) viewModel.save() },
         onCancel = viewModel::cancelSave,
-        onNavigateBack = onNavigateBack,
-        onNavigateToAddCategory = onNavigateToAddCategory,
-        onDelete = viewModel::delete,
+        onNavigateBack = { if (isScreenInteractive) onNavigateBack() },
+        onNavigateToAddCategory = { if (isScreenInteractive) onNavigateToAddCategory() },
+        onDelete = { if (isScreenInteractive) viewModel.delete() },
         nameError = nameError,
         priceError = priceError,
         categoryError = categoryError,
@@ -181,6 +188,7 @@ fun ProductFormContent(
     onImageRemoved: () -> Unit,
     isEditMode: Boolean,
     isSaving: Boolean,
+    isScreenInteractive: Boolean = true,
     onSave: () -> Unit,
     onCancel: () -> Unit,
     onNavigateBack: () -> Unit,
@@ -212,7 +220,7 @@ fun ProductFormContent(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = onNavigateBack, enabled = !isSaving) {
+                        IconButton(onClick = onNavigateBack, enabled = !isSaving && isScreenInteractive) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back))
                         }
                     },
@@ -250,6 +258,7 @@ fun ProductFormContent(
                                 .weight(0.4f)
                                 .height(56.dp),
                             shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                            enabled = isScreenInteractive,
                             colors = ButtonDefaults.outlinedButtonColors(
                                 containerColor = Color.Transparent,
                                 contentColor = MaterialTheme.colorScheme.error,
@@ -271,6 +280,7 @@ fun ProductFormContent(
                             modifier = Modifier.size(56.dp),
                             shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
                             contentPadding = PaddingValues(0.dp),
+                            enabled = isScreenInteractive,
                             colors = ButtonDefaults.outlinedButtonColors(
                                 containerColor = Color(0xFFFFEBEE), // red-50
                                 contentColor = Color(0xFFE53935),   // red-600
@@ -290,7 +300,7 @@ fun ProductFormContent(
 
                     Button(
                         onClick = onSave,
-                        enabled = !isSaving,
+                        enabled = !isSaving && isScreenInteractive,
                         modifier = Modifier
                             .weight(if (isSaving) 0.5f else 1f)
                             .height(56.dp),
@@ -365,7 +375,7 @@ fun ProductFormContent(
                                 }
                         },
                     )
-                    .clickable(enabled = !isSaving) { onImageClick() },
+                    .clickable(enabled = !isSaving && isScreenInteractive) { onImageClick() },
                 contentAlignment = Alignment.Center,
             ) {
                 if (imageUrl != null) {

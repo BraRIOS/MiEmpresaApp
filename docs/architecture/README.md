@@ -41,7 +41,21 @@ com.brios.miempresa/
 ❌ Features CANNOT depend on other features  
 ❌ core/ CANNOT depend on feature/data or feature/ui
 
+## C4 Architecture Documentation
+
+Full C4 model documentation (4 levels, bottom-up):
+
+| Level | Document | Description |
+|-------|----------|-------------|
+| **Context** | [c4/c4-context.md](c4/c4-context.md) | System context: personas, external systems, user journeys |
+| **Container** | [c4/c4-container.md](c4/c4-container.md) | Deployment containers: Android App, Room DB, Google APIs, Firebase, WorkManager |
+| **Component** | [c4/c4-component.md](c4/c4-component.md) | 11 logical components across 3 architectural layers |
+| **Code** | [c4/c4-code-core.md](c4/c4-code-core.md) | Core module: API, auth, sync, data, DI, UI, util |
+| **Code** | [c4/c4-code-cart.md](c4/c4-code-cart.md) | Cart feature: domain use cases, price validation, WhatsApp checkout |
+| **Code** | [c4/c4-code-features.md](c4/c4-code-features.md) | All other features: auth, onboarding, products, categories, catalog, orders, config, navigation |
+
 ## See Also
 
 - ADR-001: Package-by-Feature decision
+- ADR-002: Navigation architecture
 - Decisiones_Tecnicas_y_Alcance_MVP.md §10: Comparativa arquitecturas

@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.cart.data.CartRepository
+import com.brios.miempresa.cart.domain.ResolveCartQuantityAdditionUseCase
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.products.data.ProductEntity
@@ -68,6 +69,7 @@ class ProductDetailViewModel
         private val productsRepository: ProductsRepository,
         private val companyDao: CompanyDao,
         private val cartRepository: CartRepository,
+        private val resolveCartQuantityAdditionUseCase: ResolveCartQuantityAdditionUseCase,
         private val connectivityManager: ConnectivityManager,
     ) : ViewModel() {
         private val productId: String = savedStateHandle.get<String>("productId").orEmpty()
@@ -156,23 +158,25 @@ class ProductDetailViewModel
                         companyId = companyId,
                         productId = current.data.product.id,
                     )
-                if (currentQuantity >= MAX_CART_QUANTITY_PER_PRODUCT) {
+                val quantityDecision =
+                    resolveCartQuantityAdditionUseCase(
+                        currentQuantity = currentQuantity,
+                        requestedQuantity = current.data.quantity,
+                    )
+                if (!quantityDecision.canAdd) {
                     _events.emit(ProductDetailEvent.ShowSnackbar("No podés agregar más de 99 unidades por producto"))
                     return@launch
                 }
-                val requestedQuantity = current.data.quantity
-                val remaining = MAX_CART_QUANTITY_PER_PRODUCT - currentQuantity
-                val quantityToAdd = requestedQuantity.coerceAtMost(remaining)
 
                 runCatching {
                     cartRepository.addItem(
                         companyId = companyId,
                         productId = current.data.product.id,
-                        quantity = quantityToAdd,
+                        quantity = quantityDecision.quantityToAdd,
                     )
                 }.onSuccess {
                     val message =
-                        if (quantityToAdd < requestedQuantity) {
+                        if (quantityDecision.reachedLimit) {
                             "No podés agregar más de 99 unidades por producto"
                         } else {
                             "Agregado al carrito ✓"
@@ -224,6 +228,5 @@ class ProductDetailViewModel
 
         companion object {
             private const val HOURS_24_IN_MILLIS = 24L * 60L * 60L * 1000L
-            private const val MAX_CART_QUANTITY_PER_PRODUCT = 99
         }
     }

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.cart.data.CartItemDao
 import com.brios.miempresa.cart.data.CartRepository
+import com.brios.miempresa.cart.domain.ResolveCartQuantityAdditionUseCase
 import com.brios.miempresa.catalog.domain.CatalogAccessError
 import com.brios.miempresa.catalog.domain.CatalogSyncException
 import com.brios.miempresa.catalog.domain.ClientCatalogRepository
@@ -52,6 +53,7 @@ class ClientCatalogViewModel
         private val productDao: ProductDao,
         private val cartItemDao: CartItemDao,
         private val cartRepository: CartRepository,
+        private val resolveCartQuantityAdditionUseCase: ResolveCartQuantityAdditionUseCase,
         private val clientCatalogRepository: ClientCatalogRepository,
         private val networkMonitor: NetworkMonitor,
     ) : ViewModel() {
@@ -273,14 +275,19 @@ class ClientCatalogViewModel
         fun addProductToCart(productId: String) {
             viewModelScope.launch {
                 val currentQuantity = cartRepository.getCurrentQuantityForProduct(companyId, productId)
-                if (currentQuantity >= MAX_CART_QUANTITY_PER_PRODUCT) {
+                val quantityDecision =
+                    resolveCartQuantityAdditionUseCase(
+                        currentQuantity = currentQuantity,
+                        requestedQuantity = 1,
+                    )
+                if (!quantityDecision.canAdd) {
                     _events.emit(ClientCatalogEvent.ShowSnackbar("No podés agregar más de 99 unidades por producto"))
                     return@launch
                 }
                 cartRepository.addItem(
                     companyId = companyId,
                     productId = productId,
-                    quantity = 1,
+                    quantity = quantityDecision.quantityToAdd,
                 )
             }
         }
@@ -295,10 +302,6 @@ class ClientCatalogViewModel
                 }
             }
             return error.message ?: "No pudimos sincronizar el catálogo"
-        }
-
-        companion object {
-            private const val MAX_CART_QUANTITY_PER_PRODUCT = 99
         }
 
     }

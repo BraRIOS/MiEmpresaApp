@@ -8,7 +8,11 @@ import com.brios.miempresa.cart.data.CartRepository
 import com.brios.miempresa.cart.domain.CartEvent
 import com.brios.miempresa.cart.domain.CartItem
 import com.brios.miempresa.cart.domain.CartUiState
+import com.brios.miempresa.cart.domain.CheckoutValidationDecision
+import com.brios.miempresa.cart.domain.NormalizeWhatsAppPhoneUseCase
 import com.brios.miempresa.cart.domain.PriceValidationResult
+import com.brios.miempresa.cart.domain.ResolveCartValidationUiStateUseCase
+import com.brios.miempresa.cart.domain.ResolveCheckoutValidationDecisionUseCase
 import com.brios.miempresa.cart.domain.WhatsAppHelper
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,6 +43,9 @@ class CartViewModel
         savedStateHandle: SavedStateHandle,
         private val cartRepository: CartRepository,
         private val companyDao: CompanyDao,
+        private val resolveCartValidationUiStateUseCase: ResolveCartValidationUiStateUseCase,
+        private val resolveCheckoutValidationDecisionUseCase: ResolveCheckoutValidationDecisionUseCase,
+        private val normalizeWhatsAppPhoneUseCase: NormalizeWhatsAppPhoneUseCase,
     ) : ViewModel() {
         private var validationJob: Job? = null
         private val routeCompanyId: String = savedStateHandle.get<String>("companyId").orEmpty()
@@ -100,24 +107,19 @@ class CartViewModel
                                 items.isEmpty() -> CartUiState.Empty
                                 company == null -> CartUiState.Error("No pudimos cargar la tienda")
                                 else -> {
-                                    val effectiveValidation =
-                                        if (!isOnline) {
-                                            PriceValidationResult.Blocked
-                                        } else {
-                                            validation
-                                        }
-                                    val blocked =
-                                        !isOnline ||
-                                            effectiveValidation is PriceValidationResult.Blocked ||
-                                            effectiveValidation is PriceValidationResult.ItemsUnavailable
+                                    val validationUiState =
+                                        resolveCartValidationUiStateUseCase(
+                                            isOnline = isOnline,
+                                            validationResult = validation,
+                                        )
                                     CartUiState.Success(
                                         items = items,
                                         totalItems = items.sumOf { it.quantity },
                                         totalPrice = items.filterNot { it.productHidePrice }.sumOf { it.subtotal },
                                         hasHiddenPrices = items.any { it.productHidePrice },
                                         companyName = company.name,
-                                        validationResult = effectiveValidation,
-                                        blocked = blocked,
+                                        validationResult = validationUiState.effectiveValidationResult,
+                                        blocked = validationUiState.blocked,
                                     )
                                 }
                             }
@@ -277,7 +279,8 @@ class CartViewModel
                         return@launch
                     }
                 val publicSheetId = company.publicSheetId
-                val normalizedPhone = normalizeWhatsAppPhone("${company.whatsappCountryCode}${company.whatsappNumber.orEmpty()}")
+                val normalizedPhone =
+                    normalizeWhatsAppPhoneUseCase("${company.whatsappCountryCode}${company.whatsappNumber.orEmpty()}")
                 if (normalizedPhone == null) {
                     _events.emit(CartEvent.ShowError("Esta tienda no tiene WhatsApp configurado"))
                     return@launch
@@ -293,15 +296,15 @@ class CartViewModel
                     val result = cartRepository.validateCartPrices(companyId, publicSheetId)
                     validationResult.value = result
 
-                    when (result) {
-                        PriceValidationResult.AllValid -> proceedToWhatsApp(companyId, company.name, normalizedPhone)
-                        is PriceValidationResult.PricesUpdated ->
+                    when (resolveCheckoutValidationDecisionUseCase(result)) {
+                        CheckoutValidationDecision.ProceedToWhatsApp -> proceedToWhatsApp(companyId, company.name, normalizedPhone)
+                        CheckoutValidationDecision.ShowPricesUpdatedNotice ->
                             _events.emit(CartEvent.ShowSnackbar("Algunos precios se actualizaron"))
 
-                        is PriceValidationResult.ItemsUnavailable ->
+                        CheckoutValidationDecision.ShowItemsUnavailableError ->
                             _events.emit(CartEvent.ShowError("Algunos productos ya no están disponibles"))
 
-                        PriceValidationResult.Blocked ->
+                        CheckoutValidationDecision.ShowBlockedError ->
                             _events.emit(CartEvent.ShowError("Conectate para verificar precios antes de enviar"))
                     }
                 } catch (error: Throwable) {
@@ -355,10 +358,5 @@ class CartViewModel
             } else {
                 companyId
             }
-        }
-
-        private fun normalizeWhatsAppPhone(value: String): String? {
-            val normalized = value.replace(Regex("\\D"), "")
-            return normalized.takeIf { it.isNotBlank() }
         }
     }

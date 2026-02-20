@@ -7,6 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
 import com.brios.miempresa.config.domain.ConfigRepository
+import com.brios.miempresa.config.domain.SaveCompanyConfigRequest
+import com.brios.miempresa.config.domain.SaveCompanyConfigUseCase
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.core.data.local.entities.Company
 import com.brios.miempresa.core.domain.LogoutUseCase
@@ -80,6 +82,7 @@ class ConfigViewModel
         private val companyDao: CompanyDao,
         private val syncManager: SyncManager,
         private val logoutUseCase: LogoutUseCase,
+        private val saveCompanyConfigUseCase: SaveCompanyConfigUseCase,
     ) : ViewModel() {
         private val _companyId = MutableStateFlow<String?>(null)
         private var originalCompany: Company? = null
@@ -229,40 +232,25 @@ class ConfigViewModel
             viewModelScope.launch {
                 _uiState.value = ConfigUiState.Saving(validatedForm)
                 try {
-                    val original = originalCompany ?: return@launch
-                    val updated = original.copy(
-                        name = validatedForm.companyName.trim(),
-                        whatsappCountryCode = validatedForm.whatsappCountryCode,
-                        whatsappNumber = validatedForm.whatsappNumber.trim(),
-                        specialization = validatedForm.specialization.trim().takeIf { it.isNotEmpty() },
-                        address = validatedForm.address.trim().takeIf { it.isNotEmpty() },
-                        businessHours = validatedForm.businessHours.trim().takeIf { it.isNotEmpty() },
-                    )
-
-                    // Handle logo upload if changed
-                    val logoUri = validatedForm.localLogoUri
-                    val finalCompany = if (logoUri != null) {
-                        val fileId = configRepository.uploadCompanyLogo(
-                            companyId, logoUri, validatedForm.companyName,
+                    val original = originalCompany ?: run {
+                        _uiState.value = ConfigUiState.Ready(validatedForm)
+                        return@launch
+                    }
+                    val finalCompany =
+                        saveCompanyConfigUseCase(
+                            SaveCompanyConfigRequest(
+                                companyId = companyId,
+                                originalCompany = original,
+                                companyName = validatedForm.companyName,
+                                whatsappCountryCode = validatedForm.whatsappCountryCode,
+                                whatsappNumber = validatedForm.whatsappNumber,
+                                specialization = validatedForm.specialization,
+                                address = validatedForm.address,
+                                businessHours = validatedForm.businessHours,
+                                localLogoUri = validatedForm.localLogoUri,
+                            ),
                         )
-                        if (fileId != null) {
-                            updated.copy(logoUrl = fileId)
-                        } else {
-                            updated
-                        }
-                    } else {
-                        updated
-                    }
-
-                    configRepository.updateCompanyInfo(finalCompany)
                     originalCompany = finalCompany
-
-                    // Sync to Sheets in background
-                    try {
-                        configRepository.syncCompanyInfoToSheets(companyId)
-                    } catch (_: Exception) {
-                        // Sync failure is non-blocking
-                    }
 
                     _form.value = _form.value.copy(localLogoUri = null, logoUrl = finalCompany.logoUrl)
                     _uiState.value = ConfigUiState.Ready(_form.value)

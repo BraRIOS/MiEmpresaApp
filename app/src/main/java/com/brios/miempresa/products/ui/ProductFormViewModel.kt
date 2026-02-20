@@ -14,7 +14,10 @@ import com.brios.miempresa.core.sync.SyncManager
 import com.brios.miempresa.core.sync.SyncType
 import com.brios.miempresa.core.util.formatPlainDecimal
 import com.brios.miempresa.products.data.ProductEntity
+import com.brios.miempresa.products.domain.ProductSaveMode
 import com.brios.miempresa.products.domain.ProductsRepository
+import com.brios.miempresa.products.domain.SaveProductRequest
+import com.brios.miempresa.products.domain.SaveProductUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +43,7 @@ class ProductFormViewModel
         private val categoriesRepository: CategoriesRepository,
         private val companyDao: CompanyDao,
         private val syncManager: SyncManager,
+        private val saveProductUseCase: SaveProductUseCase,
         @param:ApplicationContext private val appContext: Context,
         private val savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
@@ -254,85 +258,26 @@ class ProductFormViewModel
 
         _isSaving.value = true
         saveJob = viewModelScope.launch {
-            // Upload image if localImagePath exists
-            var finalImageUrl: String? = null
-            var finalDriveImageId: String? = null
-            var uploadFailed = false
-            var driveImageIdToDelete: String? = null
-
-            if (currentLocalImagePath != null) {
-                // Here we might simulate a long running task or actual upload
-                // For now, assume productsRepository.uploadProductImage handles it.
-                // We should check if this job is cancellable. If the repository function
-                // is not cancellable, we might have issues, but standard suspend functions
-                // should be cooperative.
-                val uploadResult = productsRepository.uploadProductImage( // This signature is guess work from previous read
-                    companyId = currentCompanyId,
-                    localImagePath = currentLocalImagePath,
-                    productName = currentName,
+            val saveResult =
+                saveProductUseCase(
+                    SaveProductRequest(
+                        mode = if (isEditMode) ProductSaveMode.Update else ProductSaveMode.Create,
+                        companyId = currentCompanyId,
+                        name = currentName,
+                        price = finalPrice,
+                        hidePrice = currentHidePrice,
+                        description = _description.value.ifBlank { null },
+                        categoryId = currentCategoryId,
+                        isPublic = currentIsPublic,
+                        localImagePath = currentLocalImagePath,
+                        imageRemoved = currentImageRemoved,
+                        existingProduct = originalProduct,
+                    ),
                 )
 
-                if (uploadResult != null) {
-                    finalDriveImageId = uploadResult
-                    finalImageUrl = "https://lh3.googleusercontent.com/d/$uploadResult"
-                    val originalDriveImageId = originalProduct?.driveImageId
-                    if (isEditMode && !originalDriveImageId.isNullOrBlank() && originalDriveImageId != uploadResult) {
-                        driveImageIdToDelete = originalDriveImageId
-                    }
-                } else {
-                    uploadFailed = true
-                }
-            } else if (isEditMode) {
-                if (currentImageRemoved) {
-                    finalImageUrl = null
-                    finalDriveImageId = null
-                    driveImageIdToDelete = originalProduct?.driveImageId
-                } else {
-                    // Keep existing URLs if no image change in edit mode
-                    finalImageUrl = originalProduct?.imageUrl
-                    finalDriveImageId = originalProduct?.driveImageId
-                }
-            }
-
-            val product = if (isEditMode && productId != null) {
-                val existing = originalProduct
-                existing?.copy(
-                    name = currentName,
-                    price = finalPrice,
-                    hidePrice = currentHidePrice,
-                    description = _description.value.ifBlank { null },
-                    categoryId = currentCategoryId,
-                    isPublic = currentIsPublic,
-                    imageUrl = finalImageUrl,
-                    driveImageId = finalDriveImageId,
-                    localImagePath = if (uploadFailed) currentLocalImagePath else null,
-                    dirty = uploadFailed || existing.dirty,
-                )
-            } else {
-                ProductEntity(
-                    id = "",
-                    name = currentName,
-                    price = finalPrice,
-                    companyId = currentCompanyId,
-                    description = _description.value.ifBlank { null },
-                    categoryId = currentCategoryId,
-                    isPublic = currentIsPublic,
-                    hidePrice = currentHidePrice,
-                    imageUrl = finalImageUrl,
-                    driveImageId = finalDriveImageId,
-                    localImagePath = if (uploadFailed) currentLocalImagePath else null,
-                    dirty = uploadFailed,
-                )
-            }
-
-            if (product != null) {
+            if (saveResult != null) {
                 if (isEditMode) {
-                    productsRepository.update(product)
-                } else {
-                    productsRepository.create(product)
-                }
-                if (!driveImageIdToDelete.isNullOrBlank()) {
-                    productsRepository.deleteProductImage(driveImageIdToDelete)
+                    originalProduct = saveResult.product
                 }
                 syncManager.syncNow(SyncType.PRODUCTS)
                 markSaveCompleted()

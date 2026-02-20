@@ -6,9 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
 import com.brios.miempresa.core.data.local.daos.CompanyDao
-import com.brios.miempresa.orders.data.OrderEntity
-import com.brios.miempresa.orders.data.OrderItemEntity
-import com.brios.miempresa.orders.domain.OrdersRepository
+import com.brios.miempresa.orders.domain.CreateManualOrderItem
+import com.brios.miempresa.orders.domain.CreateManualOrderRequest
+import com.brios.miempresa.orders.domain.CreateManualOrderUseCase
 import com.brios.miempresa.products.data.ProductDao
 import com.brios.miempresa.products.data.ProductEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.util.UUID
 import javax.inject.Inject
 
 data class OrderFormItem(
@@ -61,7 +60,7 @@ class OrderManualViewModel
     @Inject
     constructor(
         @param:ApplicationContext private val appContext: Context,
-        private val ordersRepository: OrdersRepository,
+        private val createManualOrderUseCase: CreateManualOrderUseCase,
         private val productDao: ProductDao,
         private val companyDao: CompanyDao,
         private val savedStateHandle: SavedStateHandle,
@@ -166,30 +165,26 @@ class OrderManualViewModel
             viewModelScope.launch {
                 _isSaving.value = true
                 try {
-                    val orderId = UUID.randomUUID().toString()
-                    val order = OrderEntity(
-                        id = orderId,
-                        companyId = companyId,
-                        customerName = formValue.customerName.ifBlank { "" },
-                        customerPhone = formValue.fullPhoneNumber,
-                        notes = formValue.notes.ifBlank { null },
-                        totalAmount = formValue.total,
-                        orderDate = formValue.date,
-                        dirty = true,
-                    )
-                    val items = formValue.items.mapIndexed { index, item ->
-                        OrderItemEntity(
-                            id = "${orderId}_$index",
-                            orderId = orderId,
+                    createManualOrderUseCase(
+                        CreateManualOrderRequest(
                             companyId = companyId,
-                            productId = item.productId,
-                            productName = item.productName,
-                            priceAtOrder = item.price,
-                            quantity = item.quantity,
-                            thumbnailUrl = item.thumbnailUrl,
-                        )
-                    }
-                    ordersRepository.createOrder(order, items)
+                            customerName = formValue.customerName,
+                            customerPhone = formValue.fullPhoneNumber,
+                            notes = formValue.notes,
+                            totalAmount = formValue.total,
+                            orderDate = formValue.date,
+                            items =
+                                formValue.items.map { item ->
+                                    CreateManualOrderItem(
+                                        productId = item.productId,
+                                        productName = item.productName,
+                                        price = item.price,
+                                        quantity = item.quantity,
+                                        thumbnailUrl = item.thumbnailUrl,
+                                    )
+                                },
+                        ),
+                    )
                     markOrderCreated()
                 } catch (e: Exception) {
                     _events.emit(

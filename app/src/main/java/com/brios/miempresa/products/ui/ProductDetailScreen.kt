@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -59,6 +60,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -520,7 +522,7 @@ private fun ProductDetailClientBottomAction(
                 onClick = onAddToCart,
                 modifier = Modifier
                     .weight(1f)
-                    .height(AppDimensions.largeIconSize),
+                    .defaultMinSize(minHeight = AppDimensions.largeIconSize),
                 shape = RoundedCornerShape(AppDimensions.largeCornerRadius),
             ) {
                 Text(
@@ -533,8 +535,9 @@ private fun ProductDetailClientBottomAction(
                                 currencyFormatter.format(subtotal),
                             )
                         },
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
                 )
             }
         }

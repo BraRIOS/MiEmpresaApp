@@ -446,7 +446,7 @@ private fun ItemCardNoActionsPreview() {
     MiEmpresaTheme {
         ItemCard(
             title = "Producto de ejemplo",
-            subtitle = "$1.500,00",
+            subtitle = "$1500,00",
             badge = {
                 CategoryBadge(emoji = "🏷️", name = "Accesorios")
             }

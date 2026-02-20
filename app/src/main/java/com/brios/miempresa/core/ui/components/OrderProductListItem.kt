@@ -149,7 +149,7 @@ private fun OrderProductContent(
         // Image
         BoxImage(imageUrl = imageUrl)
 
-        Spacer(modifier = Modifier.width(AppDimensions.mediumPadding))
+        Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
 
         // Content
         Column(
@@ -197,7 +197,11 @@ private fun OrderProductContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = AppDimensions.smallPadding),
+                ) {
                     if (priceChange != null) {
                         if (!hidePrice) {
                             Row(
@@ -209,6 +213,8 @@ private fun OrderProductContent(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textDecoration = TextDecoration.LineThrough,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
                                 )
                             }
                         }
@@ -222,7 +228,9 @@ private fun OrderProductContent(
                             },
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Text(
                         text =
@@ -233,6 +241,8 @@ private fun OrderProductContent(
                             },
                         style = MaterialTheme.typography.labelSmall,
                         color = SlateGray400,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
 
@@ -292,7 +302,7 @@ private fun OrderProductListItemPreview() {
     MiEmpresaTheme {
         OrderProductListItem(
             name = "Café con Leche",
-            price = 156800.0,
+            price = 15680213540.0,
             quantity = 2,
             imageUrl = null,
             onQuantityChange = {},

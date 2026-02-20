@@ -99,6 +99,7 @@ class ProductFormViewModel
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     private var saveJob: Job? = null
+    private var pendingNewCategorySnapshot: Set<String>? = null
 
     init {
         viewModelScope.launch {
@@ -106,8 +107,19 @@ class ProductFormViewModel
                 if (!createdCategoryId.isNullOrBlank()) {
                     _selectedCategoryId.value = createdCategoryId
                     _categoryError.value = null
+                    pendingNewCategorySnapshot = null
                     savedStateHandle[CREATED_CATEGORY_RESULT_KEY] = null
                 }
+            }
+        }
+
+        viewModelScope.launch {
+            categories.collect { currentCategories ->
+                val snapshot = pendingNewCategorySnapshot ?: return@collect
+                val createdCategory = currentCategories.firstOrNull { it.id !in snapshot } ?: return@collect
+                _selectedCategoryId.value = createdCategory.id
+                _categoryError.value = null
+                pendingNewCategorySnapshot = null
             }
         }
 
@@ -153,6 +165,11 @@ class ProductFormViewModel
     fun onCategorySelected(categoryId: String) {
         _selectedCategoryId.value = categoryId
         _categoryError.value = null
+        pendingNewCategorySnapshot = null
+    }
+
+    fun onCreateCategoryFlowStarted() {
+        pendingNewCategorySnapshot = categories.value.map { it.id }.toSet()
     }
 
     fun onPublicChanged(isPublic: Boolean) {

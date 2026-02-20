@@ -168,7 +168,12 @@ fun ProductFormScreen(
         onSave = { screenActionGuard.runIfActive { viewModel.save() } },
         onCancel = { screenActionGuard.runIfActive { viewModel.cancelSave() } },
         onNavigateBack = { screenActionGuard.runAndNavigate(onNavigateBack) },
-        onNavigateToAddCategory = { screenActionGuard.runAndNavigate(onNavigateToAddCategory) },
+        onNavigateToAddCategory = {
+            screenActionGuard.runAndNavigate {
+                viewModel.onCreateCategoryFlowStarted()
+                onNavigateToAddCategory()
+            }
+        },
         onDelete = { screenActionGuard.runIfActive { viewModel.delete() } },
         nameError = nameError,
         priceError = priceError,

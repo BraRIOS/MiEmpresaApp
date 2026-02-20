@@ -500,9 +500,16 @@ fun NavHostComposable(
                             .getBackStackEntry(MiEmpresaRoutes.home)
                             .savedStateHandle["categories_sync_feedback"] = true
                         if (!createdCategoryId.isNullOrBlank()) {
+                            val resultKey = "created_category_id"
                             navController.previousBackStackEntry
                                 ?.savedStateHandle
-                                ?.set("created_category_id", createdCategoryId)
+                                ?.set(resultKey, createdCategoryId)
+                            // Fallback for ProductForm add flow: ensure result reaches this route even
+                            // if previousBackStackEntry is not the expected one at callback time.
+                            runCatching { navController.getBackStackEntry("Product/add") }
+                                .getOrNull()
+                                ?.savedStateHandle
+                                ?.set(resultKey, createdCategoryId)
                         }
                     },
                 )

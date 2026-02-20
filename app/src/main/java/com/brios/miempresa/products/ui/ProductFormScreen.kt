@@ -115,9 +115,11 @@ fun ProductFormScreen(
     val categoryError by viewModel.categoryError.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
     val saveCompleted by viewModel.saveCompleted.collectAsStateWithLifecycle()
+    val imageRemoved by viewModel.imageRemoved.collectAsStateWithLifecycle()
 
     val localImagePath by viewModel.localImagePath.collectAsStateWithLifecycle()
     val imageUrl = when {
+        imageRemoved -> null
         localImagePath != null -> localImagePath
         viewModel.isEditMode -> viewModel.originalImageUrl
         else -> null
@@ -715,7 +717,10 @@ fun ProductFormContent(
                 showCategorySheet = false
             },
             onDismiss = { showCategorySheet = false },
-            onCreateCategory = onNavigateToAddCategory,
+            onCreateCategory = {
+                showCategorySheet = false
+                onNavigateToAddCategory()
+            },
         )
     }
 }
@@ -735,7 +740,7 @@ private fun ProductFormPreview() {
         ProductFormContent(
             name = "Café Latte",
             onNameChanged = {},
-            price = "4.50",
+            price = "45000000",
             onPriceChanged = {},
             description = "Un delicioso café con leche",
             onDescriptionChanged = {},

@@ -27,13 +27,14 @@ class CategoriesRepositoryImpl
             companyId: String,
         ): Category? = categoryDao.getById(id, companyId)
 
-        override suspend fun create(category: Category) {
+        override suspend fun create(category: Category): Category {
             val newCategory =
                 category.copy(
                     id = UUID.randomUUID().toString(),
                     dirty = true,
                 )
             categoryDao.upsert(newCategory)
+            return newCategory
         }
 
         override suspend fun update(category: Category) {

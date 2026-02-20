@@ -46,4 +46,6 @@ interface ProductsRepository {
         localImagePath: String,
         productName: String,
     ): String?
+
+    suspend fun deleteProductImage(driveImageId: String): Boolean
 }

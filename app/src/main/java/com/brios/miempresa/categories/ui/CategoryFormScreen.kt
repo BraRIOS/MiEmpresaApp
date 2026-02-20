@@ -91,7 +91,7 @@ private val QuickPickEmojis = listOf("🍔", "🥤", "👕", "🏠", "📦", "�
 @Composable
 fun CategoryFormScreen(
     onNavigateBack: () -> Unit,
-    onSaved: () -> Unit = {},
+    onSaved: (String?) -> Unit = {},
     viewModel: CategoryFormViewModel = hiltViewModel(),
 ) {
     val screenActionGuard = rememberScreenActionGuard()
@@ -102,6 +102,7 @@ fun CategoryFormScreen(
     val nameError by viewModel.nameError.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
     val saveCompleted by viewModel.saveCompleted.collectAsStateWithLifecycle()
+    val createdCategoryId by viewModel.createdCategoryId.collectAsStateWithLifecycle()
     val productCount by viewModel.productCount.collectAsStateWithLifecycle()
 
     BackHandler(enabled = !isSaving) {
@@ -111,7 +112,7 @@ fun CategoryFormScreen(
     LaunchedEffect(saveCompleted, isScreenInteractive) {
         if (saveCompleted) {
             screenActionGuard.runAndNavigate {
-                onSaved()
+                onSaved(createdCategoryId)
                 onNavigateBack()
                 viewModel.onSaveNavigationHandled()
             }
@@ -298,6 +299,9 @@ private fun IntegratedNameField(
     onNameChanged: (String) -> Unit,
 ) {
     var isFocused by remember { mutableStateOf(false) }
+    val maxNameLength = CategoryFormViewModel.MAX_NAME_LENGTH
+    val currentLength = name.length
+    val isAtLimit = currentLength >= maxNameLength
 
     // Colors matching the design
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -398,13 +402,35 @@ private fun IntegratedNameField(
             }
         }
 
-        // Helper text
-        Text(
-            text = nameError ?: stringResource(R.string.category_name_helper),
-            style = MaterialTheme.typography.bodySmall,
-            color = if (nameError != null) errorColor else slate400,
-            modifier = Modifier.padding(start = 8.dp, top = 8.dp)
-        )
+        val helperText =
+            when {
+                nameError != null -> nameError
+                isAtLimit -> stringResource(R.string.input_max_characters_reached, maxNameLength)
+                else -> stringResource(R.string.category_name_helper)
+            }
+        val helperColor = if (nameError != null || isAtLimit) errorColor else slate400
+
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp, top = 8.dp, end = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = helperText,
+                style = MaterialTheme.typography.bodySmall,
+                color = helperColor,
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+            Text(
+                text = stringResource(R.string.input_character_counter, currentLength, maxNameLength),
+                style = MaterialTheme.typography.labelSmall,
+                color = helperColor,
+            )
+        }
     }
 }
 

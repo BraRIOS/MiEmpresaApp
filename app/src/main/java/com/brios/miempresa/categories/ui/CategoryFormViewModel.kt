@@ -44,6 +44,8 @@ class CategoryFormViewModel
 
         private val _saveCompleted = MutableStateFlow(savedStateHandle[SAVE_COMPLETED_KEY] ?: false)
         val saveCompleted: StateFlow<Boolean> = _saveCompleted
+        private val _createdCategoryId = MutableStateFlow(savedStateHandle.get<String?>(CREATED_CATEGORY_ID_KEY))
+        val createdCategoryId: StateFlow<String?> = _createdCategoryId
 
         private val _productCount = MutableStateFlow(0)
         val productCount: StateFlow<Int> = _productCount
@@ -72,6 +74,8 @@ class CategoryFormViewModel
             if (newName.length <= MAX_NAME_LENGTH) {
                 _name.value = newName
                 _nameError.value = null
+            } else {
+                _nameError.value = appContext.getString(R.string.input_max_characters_reached, MAX_NAME_LENGTH)
             }
         }
 
@@ -102,8 +106,11 @@ class CategoryFormViewModel
                             dirty = true,
                         ),
                     )
+                    _createdCategoryId.value = null
+                    savedStateHandle[CREATED_CATEGORY_ID_KEY] = null
                 } else {
-                    categoriesRepository.create(
+                    val createdCategory =
+                        categoriesRepository.create(
                         Category(
                             id = "",
                             name = currentName,
@@ -111,6 +118,8 @@ class CategoryFormViewModel
                             companyId = currentCompanyId,
                         ),
                     )
+                    _createdCategoryId.value = createdCategory.id
+                    savedStateHandle[CREATED_CATEGORY_ID_KEY] = createdCategory.id
                 }
                 syncManager.syncNow(SyncType.CATEGORIES)
                 markSaveCompleted()
@@ -131,6 +140,8 @@ class CategoryFormViewModel
         fun onSaveNavigationHandled() {
             _saveCompleted.value = false
             savedStateHandle[SAVE_COMPLETED_KEY] = false
+            _createdCategoryId.value = null
+            savedStateHandle[CREATED_CATEGORY_ID_KEY] = null
         }
 
         private fun markSaveCompleted() {
@@ -141,6 +152,7 @@ class CategoryFormViewModel
 
         companion object {
             private const val SAVE_COMPLETED_KEY = "category_form_save_completed"
+            private const val CREATED_CATEGORY_ID_KEY = "created_category_id"
             const val MAX_NAME_LENGTH = 50
         }
     }

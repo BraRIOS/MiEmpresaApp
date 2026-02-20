@@ -270,6 +270,11 @@ class ProductsRepositoryImpl
                 }
             }
 
+        override suspend fun deleteProductImage(driveImageId: String): Boolean =
+            withContext(ioDispatcher) {
+                driveApi.deleteFile(driveImageId)
+            }
+
         private suspend fun getOrCreateProductsFolder(companyId: String): String? {
             val company = companyDao.getCompanyById(companyId) ?: return null
 

@@ -11,7 +11,7 @@ interface CategoriesRepository {
         companyId: String,
     ): Category?
 
-    suspend fun create(category: Category)
+    suspend fun create(category: Category): Category
 
     suspend fun update(category: Category)
 

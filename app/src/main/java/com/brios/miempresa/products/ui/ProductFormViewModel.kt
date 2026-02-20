@@ -12,6 +12,7 @@ import com.brios.miempresa.categories.domain.CategoriesRepository
 import com.brios.miempresa.core.data.local.daos.CompanyDao
 import com.brios.miempresa.core.sync.SyncManager
 import com.brios.miempresa.core.sync.SyncType
+import com.brios.miempresa.core.util.formatPlainDecimal
 import com.brios.miempresa.products.data.ProductEntity
 import com.brios.miempresa.products.domain.ProductsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,6 +23,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
@@ -64,6 +66,8 @@ class ProductFormViewModel
 
     private val _localImagePath = MutableStateFlow<String?>(null)
     val localImagePath: StateFlow<String?> = _localImagePath
+    private val _imageRemoved = MutableStateFlow(false)
+    val imageRemoved: StateFlow<Boolean> = _imageRemoved
 
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving
@@ -98,6 +102,16 @@ class ProductFormViewModel
 
     init {
         viewModelScope.launch {
+            savedStateHandle.getStateFlow<String?>(CREATED_CATEGORY_RESULT_KEY, null).collect { createdCategoryId ->
+                if (!createdCategoryId.isNullOrBlank()) {
+                    _selectedCategoryId.value = createdCategoryId
+                    _categoryError.value = null
+                    savedStateHandle[CREATED_CATEGORY_RESULT_KEY] = null
+                }
+            }
+        }
+
+        viewModelScope.launch {
             companyId = companyDao.getSelectedOwnedCompany()?.id
             _companyIdFlow.value = companyId
             if (isEditMode && productId != null && companyId != null) {
@@ -105,12 +119,13 @@ class ProductFormViewModel
                 product?.let {
                     originalProduct = it
                     _name.value = it.name
-                    _price.value = it.price.toString()
+                    _price.value = formatPlainDecimal(it.price)
                     _hidePrice.value = it.hidePrice
                     _description.value = it.description ?: ""
                     _selectedCategoryId.value = it.categoryId
                     _isPublic.value = it.isPublic
                     _localImagePath.value = it.localImagePath
+                    _imageRemoved.value = false
                 }
             }
         }
@@ -148,7 +163,13 @@ class ProductFormViewModel
         viewModelScope.launch(Dispatchers.IO) {
             val uri = uriString.toUri()
             val localFile = copyUriToInternalStorage(uri)
-            _localImagePath.value = localFile?.absolutePath
+            val previousPath = _localImagePath.value
+            val newPath = localFile?.absolutePath
+            if (!previousPath.isNullOrBlank() && previousPath != newPath) {
+                File(previousPath).delete()
+            }
+            _localImagePath.value = newPath
+            _imageRemoved.value = false
         }
     }
 
@@ -160,6 +181,7 @@ class ProductFormViewModel
             }
         }
         _localImagePath.value = null
+        _imageRemoved.value = true
     }
 
     private fun copyUriToInternalStorage(uri: Uri): File? {
@@ -189,6 +211,7 @@ class ProductFormViewModel
         val currentCategoryId = _selectedCategoryId.value
         val currentIsPublic = _isPublic.value
         val currentLocalImagePath = _localImagePath.value
+        val currentImageRemoved = _imageRemoved.value
 
         var hasError = false
         if (currentName.isBlank()) {
@@ -218,6 +241,7 @@ class ProductFormViewModel
             var finalImageUrl: String? = null
             var finalDriveImageId: String? = null
             var uploadFailed = false
+            var driveImageIdToDelete: String? = null
 
             if (currentLocalImagePath != null) {
                 // Here we might simulate a long running task or actual upload
@@ -234,31 +258,39 @@ class ProductFormViewModel
                 if (uploadResult != null) {
                     finalDriveImageId = uploadResult
                     finalImageUrl = "https://lh3.googleusercontent.com/d/$uploadResult"
+                    val originalDriveImageId = originalProduct?.driveImageId
+                    if (isEditMode && !originalDriveImageId.isNullOrBlank() && originalDriveImageId != uploadResult) {
+                        driveImageIdToDelete = originalDriveImageId
+                    }
                 } else {
                     uploadFailed = true
                 }
             } else if (isEditMode) {
-                // Keep existing URLs if no image change in edit mode
-                finalImageUrl = originalProduct?.imageUrl
-                finalDriveImageId = originalProduct?.driveImageId
+                if (currentImageRemoved) {
+                    finalImageUrl = null
+                    finalDriveImageId = null
+                    driveImageIdToDelete = originalProduct?.driveImageId
+                } else {
+                    // Keep existing URLs if no image change in edit mode
+                    finalImageUrl = originalProduct?.imageUrl
+                    finalDriveImageId = originalProduct?.driveImageId
+                }
             }
 
             val product = if (isEditMode && productId != null) {
                 val existing = originalProduct
-                if (existing != null) {
-                    existing.copy(
-                        name = currentName,
-                        price = finalPrice,
-                        hidePrice = currentHidePrice,
-                        description = _description.value.ifBlank { null },
-                        categoryId = currentCategoryId,
-                        isPublic = currentIsPublic,
-                        imageUrl = finalImageUrl,
-                        driveImageId = finalDriveImageId,
-                        localImagePath = if (uploadFailed) currentLocalImagePath else null,
-                        dirty = uploadFailed || existing.dirty,
-                    )
-                } else null
+                existing?.copy(
+                    name = currentName,
+                    price = finalPrice,
+                    hidePrice = currentHidePrice,
+                    description = _description.value.ifBlank { null },
+                    categoryId = currentCategoryId,
+                    isPublic = currentIsPublic,
+                    imageUrl = finalImageUrl,
+                    driveImageId = finalDriveImageId,
+                    localImagePath = if (uploadFailed) currentLocalImagePath else null,
+                    dirty = uploadFailed || existing.dirty,
+                )
             } else {
                 ProductEntity(
                     id = "",
@@ -281,6 +313,9 @@ class ProductFormViewModel
                     productsRepository.update(product)
                 } else {
                     productsRepository.create(product)
+                }
+                if (!driveImageIdToDelete.isNullOrBlank()) {
+                    productsRepository.deleteProductImage(driveImageIdToDelete)
                 }
                 syncManager.syncNow(SyncType.PRODUCTS)
                 markSaveCompleted()
@@ -312,11 +347,13 @@ class ProductFormViewModel
 
     private fun markSaveCompleted() {
         _isSaving.value = false
+        _imageRemoved.value = false
         _saveCompleted.value = true
         savedStateHandle[SAVE_COMPLETED_KEY] = true
     }
 
     companion object {
         private const val SAVE_COMPLETED_KEY = "product_form_save_completed"
+        const val CREATED_CATEGORY_RESULT_KEY = "created_category_id"
     }
 }

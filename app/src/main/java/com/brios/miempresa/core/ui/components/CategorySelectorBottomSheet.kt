@@ -6,11 +6,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -61,16 +61,20 @@ fun CategorySelectorBottomSheet(
     productCountByCategory: Map<String, Int> = emptyMap(),
     onCreateCategory: (() -> Unit)? = null,
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        modifier = modifier,
+        modifier = modifier.fillMaxHeight(),
         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
     ) {
         Column(
-            modifier = Modifier.navigationBarsPadding()
+            modifier =
+                Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
         ) {
             // Header
             Row(
@@ -110,7 +114,8 @@ fun CategorySelectorBottomSheet(
 
             LazyColumn(
                 modifier = Modifier
-                    .heightIn(max = AppDimensions.bottomSheetPeekHeight)
+                    .weight(1f, fill = true)
+                    .fillMaxWidth()
                     .padding(horizontal = AppDimensions.smallPadding),
             ) {
                 items(categories, key = { it.id }) { category ->
@@ -125,15 +130,13 @@ fun CategorySelectorBottomSheet(
                 }
             }
 
-            // Footer actions
+            // Footer actions (sticky bottom)
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
                 if (showItemCount && selectedCategoryId != null) {
-                    // "Limpiar filtros" button
                     TextButton(
                         onClick = { onCategorySelected(null) },
                         modifier = Modifier
@@ -163,7 +166,7 @@ fun CategorySelectorBottomSheet(
                         Text(text = stringResource(R.string.create_category))
                     }
                 } else {
-                     Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
+                    Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
                 }
             }
         }

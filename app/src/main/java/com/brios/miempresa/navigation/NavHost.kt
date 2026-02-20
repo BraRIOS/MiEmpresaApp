@@ -495,10 +495,15 @@ fun NavHostComposable(
             composable<CategoryFormAddRoute> { backStackEntry ->
                 CategoryFormScreen(
                     onNavigateBack = { guardedBackNavigation(backStackEntry) { navController.popBackStack() } },
-                    onSaved = {
+                    onSaved = { createdCategoryId ->
                         navController
                             .getBackStackEntry(MiEmpresaRoutes.home)
                             .savedStateHandle["categories_sync_feedback"] = true
+                        if (!createdCategoryId.isNullOrBlank()) {
+                            navController.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.set("created_category_id", createdCategoryId)
+                        }
                     },
                 )
             }

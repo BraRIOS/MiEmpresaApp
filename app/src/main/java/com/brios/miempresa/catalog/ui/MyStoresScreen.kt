@@ -278,7 +278,7 @@ private fun MyStoresContent(
                     uiState.filteredStores.isNotEmpty() -> {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(bottom = AppDimensions.largePadding),
+                            contentPadding = PaddingValues(bottom = AppDimensions.fabContentBottomPadding),
                             verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding),
                         ) {
                             items(

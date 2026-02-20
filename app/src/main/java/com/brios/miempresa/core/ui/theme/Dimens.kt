@@ -51,6 +51,7 @@ object AppDimensions {
     // Buttons
     val mainFABSize = 64.dp
     val mainFABIconSize = 32.dp
+    val fabContentBottomPadding = 144.dp
 
     val smallFabSize = 48.dp
     val smallFabIconSize = 20.dp

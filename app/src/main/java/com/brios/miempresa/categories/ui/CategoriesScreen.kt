@@ -190,8 +190,10 @@ private fun CategoriesContentInternal(
                                 modifier = Modifier.fillMaxSize(),
                                 contentPadding =
                                     androidx.compose.foundation.layout.PaddingValues(
-                                        horizontal = AppDimensions.mediumPadding,
-                                        vertical = AppDimensions.smallPadding,
+                                        start = AppDimensions.mediumPadding,
+                                        top = AppDimensions.smallPadding,
+                                        end = AppDimensions.mediumPadding,
+                                        bottom = AppDimensions.fabContentBottomPadding,
                                     ),
                                 verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
                             ) {

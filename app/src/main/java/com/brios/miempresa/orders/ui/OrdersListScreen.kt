@@ -156,6 +156,7 @@ private fun OrderListContent(
                         .fillMaxSize()
                         .padding(padding)
                         .padding(horizontal = AppDimensions.largePadding),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = AppDimensions.fabContentBottomPadding),
                     verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumSmallPadding),
                 ) {
                     item { Spacer(modifier = Modifier.height(AppDimensions.smallPadding)) }
@@ -165,7 +166,6 @@ private fun OrderListContent(
                             onClick = { onNavigateToOrderDetail(order.id) },
                         )
                     }
-                    item { Spacer(modifier = Modifier.height(80.dp)) }
                 }
             }
             is OrdersListUiState.Error -> {

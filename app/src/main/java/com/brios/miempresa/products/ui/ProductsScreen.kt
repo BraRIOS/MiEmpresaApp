@@ -59,6 +59,7 @@ import com.brios.miempresa.core.ui.components.SearchBar
 import com.brios.miempresa.core.ui.components.TriangleArrowRefreshIndicator
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
+import com.brios.miempresa.core.util.formatCurrencyAr
 import com.brios.miempresa.products.data.ProductEntity
 import kotlinx.coroutines.flow.collect
 
@@ -190,6 +191,7 @@ private fun ProductsContentInternal(
                     is ProductsUiState.Loading -> {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = AppDimensions.fabContentBottomPadding),
                         ) {
                             items(5) {
                                 ProductItemShimmer()
@@ -221,6 +223,7 @@ private fun ProductsContentInternal(
                     is ProductsUiState.Success -> {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = AppDimensions.fabContentBottomPadding),
                         ) {
                             items(
                                 uiState.products,
@@ -235,7 +238,7 @@ private fun ProductsContentInternal(
                                         if (product.hidePrice) {
                                             stringResource(R.string.price_consult)
                                         } else {
-                                            "$${product.price}"
+                                            formatCurrencyAr(product.price)
                                         },
                                     imageUrl = product.localImagePath ?: product.imageUrl,
                                     isPublic = product.isPublic,

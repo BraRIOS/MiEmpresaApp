@@ -11,7 +11,10 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.imeNestedScroll
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -47,6 +51,7 @@ import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RippleConfiguration
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -86,7 +91,7 @@ import com.brios.miempresa.onboarding.ui.OnboardingFormState
 private val cardShape = RoundedCornerShape(AppDimensions.mediumCornerRadius)
 private val cardBorder = BorderStroke(1.dp, SlateGray100)
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun CompanyFormStep(
     form: OnboardingFormState,
@@ -142,38 +147,74 @@ fun CompanyFormStep(
             maxLength = OnboardingFormState.MAX_BUSINESS_HOURS,
         )
 
-    Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .padding(horizontal = AppDimensions.mediumPadding)
-    ) {
-        // Top bar: Cancel
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = AppDimensions.mediumPadding),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.onboarding_cancel),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = SlateGray500,
-                modifier = Modifier.clickable { showCancelDialog = true },
-            )
-        }
-
-        // Scrollable content
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets.safeDrawing,
+        topBar = {
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .padding(
+                            horizontal = AppDimensions.mediumPadding,
+                            vertical = AppDimensions.mediumPadding,
+                        ),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.onboarding_cancel),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = SlateGray500,
+                    modifier = Modifier.clickable { showCancelDialog = true },
+                )
+            }
+        },
+        bottomBar = {
+            Button(
+                onClick = onContinue,
+                enabled = form.isFormValid,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = AppDimensions.mediumPadding)
+                        .padding(
+                            top = AppDimensions.smallPadding,
+                            bottom = AppDimensions.mediumPadding,
+                        )
+                        .height(AppDimensions.OnboardingSuccess.ctaButtonHeight),
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                    ),
+                shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+            ) {
+                Text(
+                    text = stringResource(R.string.onboarding_continue),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = null,
+                    modifier = Modifier.size(AppDimensions.defaultSmallIconSize),
+                )
+            }
+        },
+    ) { innerPadding ->
         Column(
             modifier =
                 Modifier
-                    .weight(1f)
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = AppDimensions.mediumPadding)
                     .verticalScroll(rememberScrollState())
-                    .imePadding(),
+                    .imePadding()
+                    .imeNestedScroll(),
         ) {
             // Hero text
             Text(
@@ -463,59 +504,29 @@ fun CompanyFormStep(
 
             Spacer(modifier = Modifier.height(AppDimensions.largePadding))
         }
+    }
 
-        // Sticky bottom CTA
-        Button(
-            onClick = onContinue,
-            enabled = form.isFormValid,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(AppDimensions.OnboardingSuccess.ctaButtonHeight)
-                    .navigationBarsPadding(),
-            colors =
-                ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                ),
-            shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
-        ) {
-            Text(
-                text = stringResource(R.string.onboarding_continue),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = null,
-                modifier = Modifier.size(AppDimensions.defaultSmallIconSize),
-            )
-        }
-
-        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
-
-        if (showCancelDialog) {
-            AlertDialog(
-                onDismissRequest = { showCancelDialog = false },
-                title = { Text(stringResource(R.string.onboarding_cancel_dialog_title)) },
-                text = { Text(stringResource(R.string.onboarding_cancel_dialog_message)) },
-                titleContentColor = MaterialTheme.colorScheme.onBackground,
-                containerColor = MaterialTheme.colorScheme.background,
-                confirmButton = {
-                    TextButton(onClick = {
-                        showCancelDialog = false
-                        onCancel()
-                    }) {
-                        Text(stringResource(R.string.onboarding_cancel_dialog_confirm))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showCancelDialog = false }) {
-                        Text(stringResource(R.string.onboarding_cancel_dialog_dismiss))
-                    }
-                },
-            )
-        }
+    if (showCancelDialog) {
+        AlertDialog(
+            onDismissRequest = { showCancelDialog = false },
+            title = { Text(stringResource(R.string.onboarding_cancel_dialog_title)) },
+            text = { Text(stringResource(R.string.onboarding_cancel_dialog_message)) },
+            titleContentColor = MaterialTheme.colorScheme.onBackground,
+            containerColor = MaterialTheme.colorScheme.background,
+            confirmButton = {
+                TextButton(onClick = {
+                    showCancelDialog = false
+                    onCancel()
+                }) {
+                    Text(stringResource(R.string.onboarding_cancel_dialog_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCancelDialog = false }) {
+                    Text(stringResource(R.string.onboarding_cancel_dialog_dismiss))
+                }
+            },
+        )
     }
 }
 

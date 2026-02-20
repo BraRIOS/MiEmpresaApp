@@ -39,12 +39,22 @@ data class ConfigFormState(
     val address: String = "",
     val businessHours: String = "",
     val localLogoUri: String? = null,
+    val companyNameError: String? = null,
+    val whatsappError: String? = null,
 ) {
     val isFormValid: Boolean
         get() = companyName.isNotBlank() && whatsappNumber.matches(Regex("^\\d{6,15}$"))
 
     val hasChanges: Boolean
         get() = true // Simplified; compared against original in ViewModel
+
+    companion object {
+        const val MAX_COMPANY_NAME = 50
+        const val MAX_WHATSAPP_NUMBER = 15
+        const val MAX_SPECIALIZATION = 30
+        const val MAX_ADDRESS = 100
+        const val MAX_BUSINESS_HOURS = 50
+    }
 }
 
 sealed interface ConfigUiState {
@@ -141,7 +151,11 @@ class ConfigViewModel
 
         fun updateCompanyName(name: String) {
             isEditing = true
-            _form.value = _form.value.copy(companyName = name)
+            _form.value =
+                _form.value.copy(
+                    companyName = name.take(ConfigFormState.MAX_COMPANY_NAME),
+                    companyNameError = null,
+                )
             _uiState.value = ConfigUiState.Ready(_form.value)
         }
 
@@ -153,25 +167,29 @@ class ConfigViewModel
 
         fun updateWhatsappNumber(number: String) {
             isEditing = true
-            _form.value = _form.value.copy(whatsappNumber = number)
+            _form.value =
+                _form.value.copy(
+                    whatsappNumber = number.take(ConfigFormState.MAX_WHATSAPP_NUMBER),
+                    whatsappError = null,
+                )
             _uiState.value = ConfigUiState.Ready(_form.value)
         }
 
         fun updateSpecialization(specialization: String) {
             isEditing = true
-            _form.value = _form.value.copy(specialization = specialization)
+            _form.value = _form.value.copy(specialization = specialization.take(ConfigFormState.MAX_SPECIALIZATION))
             _uiState.value = ConfigUiState.Ready(_form.value)
         }
 
         fun updateAddress(address: String) {
             isEditing = true
-            _form.value = _form.value.copy(address = address)
+            _form.value = _form.value.copy(address = address.take(ConfigFormState.MAX_ADDRESS))
             _uiState.value = ConfigUiState.Ready(_form.value)
         }
 
         fun updateBusinessHours(hours: String) {
             isEditing = true
-            _form.value = _form.value.copy(businessHours = hours)
+            _form.value = _form.value.copy(businessHours = hours.take(ConfigFormState.MAX_BUSINESS_HOURS))
             _uiState.value = ConfigUiState.Ready(_form.value)
         }
 
@@ -184,26 +202,48 @@ class ConfigViewModel
         fun save() {
             val companyId = _companyId.value ?: return
             val form = _form.value
-            if (!form.isFormValid) return
+
+            var hasError = false
+            var validatedForm =
+                form.copy(
+                    companyNameError = null,
+                    whatsappError = null,
+                )
+            if (validatedForm.companyName.isBlank()) {
+                validatedForm =
+                    validatedForm.copy(companyNameError = appContext.getString(R.string.onboarding_name_required))
+                hasError = true
+            }
+            if (!validatedForm.whatsappNumber.matches(Regex("^\\d{6,15}$"))) {
+                validatedForm =
+                    validatedForm.copy(whatsappError = appContext.getString(R.string.onboarding_whatsapp_invalid))
+                hasError = true
+            }
+
+            if (hasError) {
+                _form.value = validatedForm
+                _uiState.value = ConfigUiState.Ready(validatedForm)
+                return
+            }
 
             viewModelScope.launch {
-                _uiState.value = ConfigUiState.Saving(form)
+                _uiState.value = ConfigUiState.Saving(validatedForm)
                 try {
                     val original = originalCompany ?: return@launch
                     val updated = original.copy(
-                        name = form.companyName.trim(),
-                        whatsappCountryCode = form.whatsappCountryCode,
-                        whatsappNumber = form.whatsappNumber.trim(),
-                        specialization = form.specialization.trim().takeIf { it.isNotEmpty() },
-                        address = form.address.trim().takeIf { it.isNotEmpty() },
-                        businessHours = form.businessHours.trim().takeIf { it.isNotEmpty() },
+                        name = validatedForm.companyName.trim(),
+                        whatsappCountryCode = validatedForm.whatsappCountryCode,
+                        whatsappNumber = validatedForm.whatsappNumber.trim(),
+                        specialization = validatedForm.specialization.trim().takeIf { it.isNotEmpty() },
+                        address = validatedForm.address.trim().takeIf { it.isNotEmpty() },
+                        businessHours = validatedForm.businessHours.trim().takeIf { it.isNotEmpty() },
                     )
 
                     // Handle logo upload if changed
-                    val logoUri = form.localLogoUri
+                    val logoUri = validatedForm.localLogoUri
                     val finalCompany = if (logoUri != null) {
                         val fileId = configRepository.uploadCompanyLogo(
-                            companyId, logoUri, form.companyName,
+                            companyId, logoUri, validatedForm.companyName,
                         )
                         if (fileId != null) {
                             updated.copy(logoUrl = fileId)

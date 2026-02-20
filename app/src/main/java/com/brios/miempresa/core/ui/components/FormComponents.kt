@@ -26,12 +26,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
+import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.RequiredRed
 import com.brios.miempresa.core.ui.theme.SlateGray200
@@ -72,6 +74,20 @@ fun FormFieldGroup(
     Column {
         FormLabel(text = label, required = required)
         content()
+    }
+}
+
+@Composable
+fun buildLimitSupportingText(
+    valueLength: Int,
+    maxLength: Int,
+    errorText: String? = null,
+): String {
+    val counter = stringResource(R.string.input_character_counter, valueLength, maxLength)
+    return when {
+        errorText != null -> errorText
+        valueLength >= maxLength -> "${stringResource(R.string.input_max_characters_reached, maxLength)} - $counter"
+        else -> counter
     }
 }
 

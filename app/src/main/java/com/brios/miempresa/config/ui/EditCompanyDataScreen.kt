@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -28,6 +29,8 @@ import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Sms
+import androidx.compose.material.icons.outlined.Store
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -50,6 +53,7 @@ import com.brios.miempresa.R
 import com.brios.miempresa.core.ui.components.CompanyAvatar
 import com.brios.miempresa.core.ui.components.FormFieldGroup
 import com.brios.miempresa.core.ui.components.FormOutlinedTextField
+import com.brios.miempresa.core.ui.components.buildLimitSupportingText
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray500
@@ -122,6 +126,34 @@ fun EditCompanyDataContent(
             .copy(alpha = 0.8f),
         focusedTextColor = MaterialTheme.colorScheme.onBackground
     )
+    val companyNameSupportingText =
+        buildLimitSupportingText(
+            valueLength = form.companyName.length,
+            maxLength = ConfigFormState.MAX_COMPANY_NAME,
+            errorText = form.companyNameError,
+        )
+    val whatsappSupportingText =
+        buildLimitSupportingText(
+            valueLength = form.whatsappNumber.length,
+            maxLength = ConfigFormState.MAX_WHATSAPP_NUMBER,
+            errorText = form.whatsappError,
+        )
+    val specializationSupportingText =
+        buildLimitSupportingText(
+            valueLength = form.specialization.length,
+            maxLength = ConfigFormState.MAX_SPECIALIZATION,
+        )
+    val addressSupportingText =
+        buildLimitSupportingText(
+            valueLength = form.address.length,
+            maxLength = ConfigFormState.MAX_ADDRESS,
+        )
+    val businessHoursSupportingText =
+        buildLimitSupportingText(
+            valueLength = form.businessHours.length,
+            maxLength = ConfigFormState.MAX_BUSINESS_HOURS,
+        )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -171,6 +203,7 @@ fun EditCompanyDataContent(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
+                .imePadding()
                 .padding(horizontal = AppDimensions.largePadding),
         ) {
             Spacer(modifier = Modifier.height(AppDimensions.largePadding))
@@ -217,7 +250,10 @@ fun EditCompanyDataContent(
                     value = form.companyName,
                     onValueChange = onUpdateName,
                     placeholder = stringResource(R.string.placeholder_company_name),
-                    colors = formColors
+                    leadingIcon = Icons.Outlined.Store,
+                    isError = form.companyNameError != null,
+                    supportingText = companyNameSupportingText,
+                    colors = formColors,
                 )
             }
 
@@ -245,8 +281,11 @@ fun EditCompanyDataContent(
                             onUpdateWhatsapp(filtered)
                         },
                         placeholder = stringResource(R.string.placeholder_whatsapp),
+                        leadingIcon = Icons.Outlined.Sms,
+                        isError = form.whatsappError != null,
+                        supportingText = whatsappSupportingText,
                         keyboardType = KeyboardType.Phone,
-                        colors = formColors
+                        colors = formColors,
                     )
                 }
             }
@@ -260,7 +299,8 @@ fun EditCompanyDataContent(
                     onValueChange = onUpdateSpecialization,
                     placeholder = stringResource(R.string.placeholder_specialization),
                     leadingIcon = Icons.Outlined.Category,
-                    colors = formColors
+                    supportingText = specializationSupportingText,
+                    colors = formColors,
                 )
             }
 
@@ -273,7 +313,8 @@ fun EditCompanyDataContent(
                     onValueChange = onUpdateAddress,
                     placeholder = stringResource(R.string.placeholder_address),
                     leadingIcon = Icons.Outlined.LocationOn,
-                    colors = formColors
+                    supportingText = addressSupportingText,
+                    colors = formColors,
                 )
             }
 
@@ -286,7 +327,8 @@ fun EditCompanyDataContent(
                     onValueChange = onUpdateBusinessHours,
                     placeholder = stringResource(R.string.placeholder_hours),
                     leadingIcon = Icons.Outlined.Schedule,
-                    colors = formColors
+                    supportingText = businessHoursSupportingText,
+                    colors = formColors,
                 )
             }
 

@@ -72,6 +72,7 @@ import com.brios.miempresa.core.ui.components.CountryCodeDropdown
 import com.brios.miempresa.core.ui.components.FormFieldGroup
 import com.brios.miempresa.core.ui.components.FormLabel
 import com.brios.miempresa.core.ui.components.FormOutlinedTextField
+import com.brios.miempresa.core.ui.components.buildLimitSupportingText
 import com.brios.miempresa.core.ui.theme.AppDimensions
 import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import com.brios.miempresa.core.ui.theme.SlateGray100
@@ -515,22 +516,6 @@ fun CompanyFormStep(
                 },
             )
         }
-    }
-}
-
-@Composable
-private fun buildLimitSupportingText(
-    valueLength: Int,
-    maxLength: Int,
-    errorText: String? = null,
-): String {
-    val counter = stringResource(R.string.input_character_counter, valueLength, maxLength)
-    return when {
-        errorText != null -> errorText
-        valueLength >= maxLength -> {
-            "${stringResource(R.string.input_max_characters_reached, maxLength)} - $counter"
-        }
-        else -> counter
     }
 }
 

@@ -102,7 +102,6 @@ fun CategoryFormScreen(
     val nameError by viewModel.nameError.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
     val saveCompleted by viewModel.saveCompleted.collectAsStateWithLifecycle()
-    val createdCategoryId by viewModel.createdCategoryId.collectAsStateWithLifecycle()
     val productCount by viewModel.productCount.collectAsStateWithLifecycle()
 
     BackHandler(enabled = !isSaving) {
@@ -112,7 +111,7 @@ fun CategoryFormScreen(
     LaunchedEffect(saveCompleted, isScreenInteractive) {
         if (saveCompleted) {
             screenActionGuard.runAndNavigate {
-                onSaved(createdCategoryId)
+                onSaved(viewModel.createdCategoryId.value)
                 onNavigateBack()
                 viewModel.onSaveNavigationHandled()
             }

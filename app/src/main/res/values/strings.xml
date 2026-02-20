@@ -325,6 +325,8 @@
     <string name="error_name_required">El nombre es obligatorio</string>
     <string name="error_invalid_price">Ingresá un precio válido</string>
     <string name="error_category_required">Seleccioná una categoría</string>
+    <string name="input_character_counter">%1$d/%2$d</string>
+    <string name="input_max_characters_reached">Máximo de %1$d caracteres alcanzado</string>
     <string name="config_changes_saved">Cambios guardados</string>
     <string name="error_save_config">Error al guardar</string>
     <string name="sync_in_progress">Sincronización en progreso…</string>

@@ -11,17 +11,17 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -113,12 +113,40 @@ fun CompanyFormStep(
             uri?.toString()?.let { onUpdateLogoUri(it) }
         }
 
+    val companyNameSupportingText =
+        buildLimitSupportingText(
+            valueLength = form.companyName.length,
+            maxLength = OnboardingFormState.MAX_COMPANY_NAME,
+            errorText = form.companyNameError?.let { stringResource(R.string.onboarding_name_required) },
+        )
+    val whatsappSupportingText =
+        buildLimitSupportingText(
+            valueLength = form.whatsappNumber.length,
+            maxLength = OnboardingFormState.MAX_WHATSAPP_NUMBER,
+            errorText = form.whatsappError?.let { stringResource(R.string.onboarding_whatsapp_invalid) },
+        )
+    val specializationSupportingText =
+        buildLimitSupportingText(
+            valueLength = form.specialization.length,
+            maxLength = OnboardingFormState.MAX_SPECIALIZATION,
+        )
+    val addressSupportingText =
+        buildLimitSupportingText(
+            valueLength = form.address.length,
+            maxLength = OnboardingFormState.MAX_ADDRESS,
+        )
+    val businessHoursSupportingText =
+        buildLimitSupportingText(
+            valueLength = form.businessHours.length,
+            maxLength = OnboardingFormState.MAX_BUSINESS_HOURS,
+        )
+
     Column(
         modifier =
             modifier
                 .fillMaxSize()
+                .statusBarsPadding()
                 .padding(horizontal = AppDimensions.mediumPadding)
-                .windowInsetsPadding(WindowInsets.safeDrawing),
     ) {
         // Top bar: Cancel
         Row(
@@ -143,7 +171,8 @@ fun CompanyFormStep(
             modifier =
                 Modifier
                     .weight(1f)
-                    .verticalScroll(rememberScrollState()),
+                    .verticalScroll(rememberScrollState())
+                    .imePadding(),
         ) {
             // Hero text
             Text(
@@ -180,19 +209,19 @@ fun CompanyFormStep(
                     verticalArrangement = Arrangement.spacedBy(AppDimensions.largePadding),
                 ) {
                     // Company name
-                    FormFieldGroup(
-                        label = stringResource(R.string.label_company_name),
-                        required = true,
-                    ) {
-                        FormOutlinedTextField(
+                        FormFieldGroup(
+                            label = stringResource(R.string.label_company_name),
+                            required = true,
+                        ) {
+                            FormOutlinedTextField(
                             value = form.companyName,
                             onValueChange = onUpdateName,
-                            placeholder = stringResource(R.string.placeholder_company_name),
-                            leadingIcon = Icons.Outlined.Store,
-                            isError = form.companyNameError != null,
-                            supportingText = form.companyNameError?.let { stringResource(R.string.onboarding_name_required) },
-                        )
-                    }
+                                placeholder = stringResource(R.string.placeholder_company_name),
+                                leadingIcon = Icons.Outlined.Store,
+                                isError = form.companyNameError != null,
+                                supportingText = companyNameSupportingText,
+                            )
+                        }
 
                     // WhatsApp
                     FormFieldGroup(
@@ -219,7 +248,7 @@ fun CompanyFormStep(
                                 placeholder = stringResource(R.string.placeholder_whatsapp),
                                 leadingIcon = Icons.Outlined.Sms,
                                 isError = form.whatsappError != null,
-                                supportingText = form.whatsappError?.let { stringResource(R.string.onboarding_whatsapp_invalid) },
+                                supportingText = whatsappSupportingText,
                                 keyboardType = KeyboardType.Phone,
                             )
                         }
@@ -253,13 +282,7 @@ fun CompanyFormStep(
                             onValueChange = onUpdateSpecialization,
                             placeholder = stringResource(R.string.placeholder_specialization),
                             leadingIcon = Icons.Outlined.Category,
-                        )
-                        Text(
-                            text = stringResource(R.string.onboarding_specialization_helper),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Medium,
-                            color = SlateGray400,
-                            modifier = Modifier.padding(start = AppDimensions.extraSmallPadding, top = AppDimensions.smallPadding),
+                            supportingText = specializationSupportingText,
                         )
                     }
                 }
@@ -420,6 +443,7 @@ fun CompanyFormStep(
                                     onValueChange = onUpdateAddress,
                                     placeholder = stringResource(R.string.placeholder_address),
                                     leadingIcon = Icons.Outlined.LocationOn,
+                                    supportingText = addressSupportingText,
                                 )
                             }
                             FormFieldGroup(label = stringResource(R.string.label_hours)) {
@@ -428,6 +452,7 @@ fun CompanyFormStep(
                                     onValueChange = onUpdateBusinessHours,
                                     placeholder = stringResource(R.string.placeholder_hours),
                                     leadingIcon = Icons.Outlined.Schedule,
+                                    supportingText = businessHoursSupportingText,
                                 )
                             }
                         }
@@ -445,7 +470,8 @@ fun CompanyFormStep(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .height(AppDimensions.OnboardingSuccess.ctaButtonHeight),
+                    .height(AppDimensions.OnboardingSuccess.ctaButtonHeight)
+                    .navigationBarsPadding(),
             colors =
                 ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
@@ -489,6 +515,22 @@ fun CompanyFormStep(
                 },
             )
         }
+    }
+}
+
+@Composable
+private fun buildLimitSupportingText(
+    valueLength: Int,
+    maxLength: Int,
+    errorText: String? = null,
+): String {
+    val counter = stringResource(R.string.input_character_counter, valueLength, maxLength)
+    return when {
+        errorText != null -> errorText
+        valueLength >= maxLength -> {
+            "${stringResource(R.string.input_max_characters_reached, maxLength)} - $counter"
+        }
+        else -> counter
     }
 }
 

@@ -17,6 +17,14 @@ data class OnboardingFormState(
 ) {
     val isFormValid: Boolean
         get() = companyName.isNotBlank() && whatsappNumber.matches(Regex("^\\d{6,15}$"))
+
+    companion object {
+        const val MAX_COMPANY_NAME = 50
+        const val MAX_WHATSAPP_NUMBER = 15
+        const val MAX_SPECIALIZATION = 30
+        const val MAX_ADDRESS = 100
+        const val MAX_BUSINESS_HOURS = 50
+    }
 }
 
 sealed class OnboardingUiState {

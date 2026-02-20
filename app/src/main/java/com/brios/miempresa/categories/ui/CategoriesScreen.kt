@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
@@ -123,99 +124,106 @@ private fun CategoriesContentInternal(
             )
         },
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            if (isOffline) {
-                OfflineBanner()
-            }
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Sticky header: SearchBar + counter
+                Column(
+                    modifier = Modifier.background(MaterialTheme.colorScheme.background),
+                ) {
+                    Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
 
-            // Sticky header: SearchBar + counter
-            Column(
-                modifier = Modifier.background(MaterialTheme.colorScheme.background),
-            ) {
-                Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
-
-                SearchBar(
-                    query = searchQuery,
-                    onQueryChange = onSearchQueryChanged,
-                    placeholderText = stringResource(R.string.search_categories),
-                    modifier = Modifier.padding(horizontal = AppDimensions.mediumPadding),
-                )
-
-                if (uiState is CategoriesUiState.Success && uiState.categories.isNotEmpty()) {
-                    Text(
-                        text = stringResource(R.string.categories_count_label, uiState.categories.size),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = SlateGray400,
-                        modifier =
-                            Modifier.padding(
-                                horizontal = AppDimensions.largePadding,
-                                vertical = AppDimensions.smallPadding,
-                            ),
+                    SearchBar(
+                        query = searchQuery,
+                        onQueryChange = onSearchQueryChanged,
+                        placeholderText = stringResource(R.string.search_categories),
+                        modifier = Modifier.padding(horizontal = AppDimensions.mediumPadding),
                     )
-                }
-            }
 
-            // Body content
-            when (val state = uiState) {
-                is CategoriesUiState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-                is CategoriesUiState.Empty -> {
-                    EmptyStateView(
-                        icon = Icons.Outlined.FolderOpen,
-                        title = stringResource(R.string.empty_state_categories),
-                        subtitle = stringResource(R.string.empty_state_categories_subtitle),
-                        actionLabel = stringResource(R.string.empty_state_categories_action),
-                        onAction = onNavigateToAddCategory,
-                    )
-                }
-                is CategoriesUiState.Error -> {
-                    EmptyStateView(
-                        icon = Icons.Outlined.SearchOff,
-                        title = state.message,
-                        subtitle = "",
-                    )
-                }
-                is CategoriesUiState.Success -> {
-                    if (state.categories.isEmpty()) {
-                        NotFoundView(
-                            message = stringResource(R.string.no_categories_match),
-                        )
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding =
-                                androidx.compose.foundation.layout.PaddingValues(
-                                    horizontal = AppDimensions.mediumPadding,
+                    if (uiState is CategoriesUiState.Success && uiState.categories.isNotEmpty()) {
+                        Text(
+                            text = stringResource(R.string.categories_count_label, uiState.categories.size),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = SlateGray400,
+                            modifier =
+                                Modifier.padding(
+                                    horizontal = AppDimensions.largePadding,
                                     vertical = AppDimensions.smallPadding,
                                 ),
-                            verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
+                        )
+                    }
+                }
+
+                // Body content
+                when (val state = uiState) {
+                    is CategoriesUiState.Loading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
                         ) {
-                            items(
-                                state.categories,
-                                key = { it.category.id },
-                            ) { item ->
-                                ItemCard(
-                                    title = item.category.name,
-                                    subtitle = "",
-                                    emojiIcon = item.category.iconEmoji,
-                                    productCount = item.productCount,
-                                    itemType = ItemType.CATEGORY,
-                                    onDelete = { itemToDelete = Triple(item.category.id, item.category.name, item.productCount) },
-                                    onClick = {
-                                        onNavigateToCategoryDetail(item.category.id)
-                                    },
-                                )
+                            CircularProgressIndicator()
+                        }
+                    }
+                    is CategoriesUiState.Empty -> {
+                        EmptyStateView(
+                            icon = Icons.Outlined.FolderOpen,
+                            title = stringResource(R.string.empty_state_categories),
+                            subtitle = stringResource(R.string.empty_state_categories_subtitle),
+                            actionLabel = stringResource(R.string.empty_state_categories_action),
+                            onAction = onNavigateToAddCategory,
+                        )
+                    }
+                    is CategoriesUiState.Error -> {
+                        EmptyStateView(
+                            icon = Icons.Outlined.SearchOff,
+                            title = state.message,
+                            subtitle = "",
+                        )
+                    }
+                    is CategoriesUiState.Success -> {
+                        if (state.categories.isEmpty()) {
+                            NotFoundView(
+                                message = stringResource(R.string.no_categories_match),
+                            )
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding =
+                                    androidx.compose.foundation.layout.PaddingValues(
+                                        horizontal = AppDimensions.mediumPadding,
+                                        vertical = AppDimensions.smallPadding,
+                                    ),
+                                verticalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
+                            ) {
+                                items(
+                                    state.categories,
+                                    key = { it.category.id },
+                                ) { item ->
+                                    ItemCard(
+                                        title = item.category.name,
+                                        subtitle = "",
+                                        emojiIcon = item.category.iconEmoji,
+                                        productCount = item.productCount,
+                                        itemType = ItemType.CATEGORY,
+                                        onDelete = { itemToDelete = Triple(item.category.id, item.category.name, item.productCount) },
+                                        onClick = {
+                                            onNavigateToCategoryDetail(item.category.id)
+                                        },
+                                    )
+                                }
                             }
                         }
                     }
                 }
+            }
+
+            if (isOffline) {
+                OfflineBanner(
+                    modifier =
+                        Modifier
+                            .align(Alignment.TopCenter)
+                            .zIndex(1f),
+                )
             }
         }
     }

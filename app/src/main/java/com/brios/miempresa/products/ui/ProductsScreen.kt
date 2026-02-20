@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.brios.miempresa.R
@@ -154,113 +155,120 @@ private fun ProductsContentInternal(
             )
         },
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            if (isOffline) {
-                OfflineBanner()
-            }
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Sticky header: SearchBar + FilterChips
+                Column(
+                    modifier = Modifier.background(MaterialTheme.colorScheme.background),
+                ) {
+                    Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
 
-            // Sticky header: SearchBar + FilterChips
-            Column(
-                modifier = Modifier.background(MaterialTheme.colorScheme.background),
-            ) {
-                Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
-
-                SearchBar(
-                    query = filters.searchQuery,
-                    onQueryChange = onSearchQueryChanged,
-                    placeholderText = stringResource(R.string.search_products),
-                    modifier = Modifier.padding(horizontal = AppDimensions.mediumPadding),
-                )
-
-                when (uiState) {
-                    is ProductsUiState.Success, is ProductsUiState.EmptyFiltered -> {
-                        FilterChipsRow(
-                            filters = filters,
-                            selectedCategoryName = allCategories
-                                .find { it.id == filters.categoryId }
-                                ?.let { if (it.iconEmoji.isNotEmpty()) "${it.iconEmoji} ${it.name}" else it.name },
-                            onPublicFilterChanged = onPublicFilterChanged,
-                            onShowCategorySelector = { showCategorySelector = true },
-                        )
-                    }
-                    else -> {}
-                }
-            }
-
-            // Body content
-            when (uiState) {
-                is ProductsUiState.Loading -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        items(5) {
-                            ProductItemShimmer()
-                        }
-                    }
-                }
-                is ProductsUiState.Empty -> {
-                    EmptyStateView(
-                        icon = Icons.Outlined.ShoppingBag,
-                        title = stringResource(R.string.empty_state_products),
-                        subtitle = stringResource(R.string.empty_state_products_subtitle),
-                        actionLabel = stringResource(R.string.empty_state_products_action),
-                        onAction = onNavigateToAddProduct,
+                    SearchBar(
+                        query = filters.searchQuery,
+                        onQueryChange = onSearchQueryChanged,
+                        placeholderText = stringResource(R.string.search_products),
+                        modifier = Modifier.padding(horizontal = AppDimensions.mediumPadding),
                     )
-                }
-                is ProductsUiState.Error -> {
-                    EmptyStateView(
-                        icon = Icons.Outlined.SearchOff,
-                        title = uiState.message,
-                        subtitle = "",
-                    )
-                }
-                is ProductsUiState.EmptyFiltered -> {
-                    NotFoundView(
-                        message = stringResource(R.string.no_products_match),
-                        onAction = onClearFilters,
-                    )
-                }
-                is ProductsUiState.Success -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        items(
-                            uiState.products,
-                            key = { it.id },
-                        ) { product ->
-                            val category =
-                                uiState.categories
-                                    .find { it.id == product.categoryId }
-                            ItemCard(
-                                title = product.name,
-                                subtitle =
-                                    if (product.hidePrice) {
-                                        stringResource(R.string.price_consult)
-                                    } else {
-                                        "$${product.price}"
-                                    },
-                                imageUrl = product.localImagePath ?: product.imageUrl,
-                                isPublic = product.isPublic,
-                                badge =
-                                    if (category != null) {
-                                        {
-                                            CategoryBadge(
-                                                emoji = category.iconEmoji,
-                                                name = category.name,
-                                            )
-                                        }
-                                    } else {
-                                        null
-                                    },
-                                onToggleVisibility = {
-                                    onToggleVisibility(product.id, !product.isPublic)
-                                },
-                                onDelete = { itemToDelete = product.id to product.name },
-                                onClick = { onNavigateToProductDetail(product.id) },
+
+                    when (uiState) {
+                        is ProductsUiState.Success, is ProductsUiState.EmptyFiltered -> {
+                            FilterChipsRow(
+                                filters = filters,
+                                selectedCategoryName = allCategories
+                                    .find { it.id == filters.categoryId }
+                                    ?.let { if (it.iconEmoji.isNotEmpty()) "${it.iconEmoji} ${it.name}" else it.name },
+                                onPublicFilterChanged = onPublicFilterChanged,
+                                onShowCategorySelector = { showCategorySelector = true },
                             )
                         }
+                        else -> {}
                     }
                 }
+
+                // Body content
+                when (uiState) {
+                    is ProductsUiState.Loading -> {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            items(5) {
+                                ProductItemShimmer()
+                            }
+                        }
+                    }
+                    is ProductsUiState.Empty -> {
+                        EmptyStateView(
+                            icon = Icons.Outlined.ShoppingBag,
+                            title = stringResource(R.string.empty_state_products),
+                            subtitle = stringResource(R.string.empty_state_products_subtitle),
+                            actionLabel = stringResource(R.string.empty_state_products_action),
+                            onAction = onNavigateToAddProduct,
+                        )
+                    }
+                    is ProductsUiState.Error -> {
+                        EmptyStateView(
+                            icon = Icons.Outlined.SearchOff,
+                            title = uiState.message,
+                            subtitle = "",
+                        )
+                    }
+                    is ProductsUiState.EmptyFiltered -> {
+                        NotFoundView(
+                            message = stringResource(R.string.no_products_match),
+                            onAction = onClearFilters,
+                        )
+                    }
+                    is ProductsUiState.Success -> {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            items(
+                                uiState.products,
+                                key = { it.id },
+                            ) { product ->
+                                val category =
+                                    uiState.categories
+                                        .find { it.id == product.categoryId }
+                                ItemCard(
+                                    title = product.name,
+                                    subtitle =
+                                        if (product.hidePrice) {
+                                            stringResource(R.string.price_consult)
+                                        } else {
+                                            "$${product.price}"
+                                        },
+                                    imageUrl = product.localImagePath ?: product.imageUrl,
+                                    isPublic = product.isPublic,
+                                    badge =
+                                        if (category != null) {
+                                            {
+                                                CategoryBadge(
+                                                    emoji = category.iconEmoji,
+                                                    name = category.name,
+                                                )
+                                            }
+                                        } else {
+                                            null
+                                        },
+                                    onToggleVisibility = {
+                                        onToggleVisibility(product.id, !product.isPublic)
+                                    },
+                                    onDelete = { itemToDelete = product.id to product.name },
+                                    onClick = { onNavigateToProductDetail(product.id) },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (isOffline) {
+                OfflineBanner(
+                    modifier =
+                        Modifier
+                            .align(Alignment.TopCenter)
+                            .zIndex(1f),
+                )
             }
         }
     }

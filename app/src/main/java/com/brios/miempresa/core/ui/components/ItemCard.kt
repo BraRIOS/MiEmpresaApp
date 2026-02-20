@@ -159,7 +159,9 @@ fun ProductItem(
 
                 Spacer(modifier = Modifier.width(AppDimensions.mediumPadding))
 
-                Column(modifier = Modifier.height(AppDimensions.productItemImageSize),
+                Column(modifier = Modifier
+                    .weight(1f)
+                    .height(AppDimensions.productItemImageSize),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column(
@@ -184,15 +186,15 @@ fun ProductItem(
                     }
 
                     Row(
+                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.Bottom,
                         horizontalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding, Alignment.End),
                     ) {
                         if (badge != null) {
-                            badge()
+                            Box(modifier = Modifier.weight(1f)) {
+                                badge()
+                            }
                         }
-
-
-                        Spacer(modifier = Modifier.weight(1f))
 
                         if (isPublic != null) {
                             val icon = if (isPublic) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff

@@ -303,63 +303,72 @@ private fun ColumnScope.CatalogSuccessContent(
 ) {
     val productRows = remember(data.products) { data.products.chunked(2) }
 
-    LazyColumn(
-        state = listState,
+    Box(
         modifier = Modifier.weight(1f),
-        contentPadding = PaddingValues(bottom = bottomPadding),
     ) {
-        item("company-header") {
-            CompanyHeader(
-                company = data.company,
-                modifier = Modifier.padding(top = AppDimensions.mediumPadding, bottom = AppDimensions.smallPadding),
-                )
-        }
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = bottomPadding),
+        ) {
+            item("company-header") {
+                CompanyHeader(
+                    company = data.company,
+                    modifier = Modifier.padding(top = AppDimensions.mediumPadding, bottom = AppDimensions.smallPadding),
+                    )
+            }
 
-        stickyHeader("catalog-filters") {
-            Column(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.background),
-            ) {
-                CatalogFilterRow(
-                    query = data.searchQuery,
-                    selectedCategory = data.selectedCategory,
-                    onQueryChange = onSearchQueryChange,
-                    onCategoryClick = onCategoryClick,
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            stickyHeader("catalog-filters") {
+                Column(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.background),
+                ) {
+                    CatalogFilterRow(
+                        query = data.searchQuery,
+                        selectedCategory = data.selectedCategory,
+                        onQueryChange = onSearchQueryChange,
+                        onCategoryClick = onCategoryClick,
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                }
+            }
+
+            items(
+                items = productRows,
+                key = { row -> row.first().id },
+            ) { rowProducts ->
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = AppDimensions.mediumPadding)
+                            .padding(top = AppDimensions.mediumPadding),
+                    horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding)
+                ) {
+                    rowProducts.forEach { product ->
+                        CatalogProductItem(
+                            product = product,
+                            onClick = { onNavigateToProductDetail(product.id) },
+                            onAddToCart = { onAddProductToCart(product.id) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    if (rowProducts.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
             }
         }
 
         if (data.isOffline) {
-            item("offline-banner") { OfflineBanner() }
-        }
-
-        items(
-            items = productRows,
-            key = { row -> row.first().id },
-        ) { rowProducts ->
-            Row(
+            OfflineBanner(
                 modifier =
                     Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = AppDimensions.mediumPadding)
-                        .padding(top = AppDimensions.mediumPadding),
-                horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding)
-            ) {
-                rowProducts.forEach { product ->
-                    CatalogProductItem(
-                        product = product,
-                        onClick = { onNavigateToProductDetail(product.id) },
-                        onAddToCart = { onAddProductToCart(product.id) },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                if (rowProducts.size == 1) {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-            }
+                        .align(Alignment.TopCenter)
+                        .zIndex(1f),
+            )
         }
     }
 }
@@ -373,57 +382,66 @@ private fun ColumnScope.CatalogStaticContent(
     onClearFilters: () -> Unit,
 ) {
     val data = state.data
-    Column(
+    Box(
         modifier = Modifier.weight(1f),
     ) {
-        CompanyHeader(
-            company = data.company,
-            modifier = Modifier.padding(top = AppDimensions.smallPadding),
-        )
+        Column(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            CompanyHeader(
+                company = data.company,
+                modifier = Modifier.padding(top = AppDimensions.smallPadding),
+            )
 
-        CatalogFilterRow(
-            query = data.searchQuery,
-            selectedCategory = data.selectedCategory,
-            onQueryChange = onSearchQueryChange,
-            onCategoryClick = onCategoryClick,
-        )
+            CatalogFilterRow(
+                query = data.searchQuery,
+                selectedCategory = data.selectedCategory,
+                onQueryChange = onSearchQueryChange,
+                onCategoryClick = onCategoryClick,
+            )
 
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-        if (data.isOffline) {
-            OfflineBanner()
-        }
+            when (state) {
+                is ClientCatalogState.Empty -> {
+                    if (state.hasActiveFilters) {
+                        NotFoundView(
+                            modifier = Modifier.weight(1f),
+                            message = stringResource(R.string.client_catalog_empty_filtered),
+                            onAction = onClearFilters,
+                        )
+                    } else {
+                        EmptyStateView(
+                            modifier = Modifier.weight(1f),
+                            icon = Icons.Filled.ShoppingBag,
+                            title = stringResource(R.string.client_catalog_empty_title),
+                            subtitle = stringResource(R.string.client_catalog_empty_subtitle),
+                        )
+                    }
+                }
 
-        when (state) {
-            is ClientCatalogState.Empty -> {
-                if (state.hasActiveFilters) {
-                    NotFoundView(
-                        modifier = Modifier.weight(1f),
-                        message = stringResource(R.string.client_catalog_empty_filtered),
-                        onAction = onClearFilters,
-                    )
-                } else {
+                is ClientCatalogState.Offline -> {
                     EmptyStateView(
                         modifier = Modifier.weight(1f),
-                        icon = Icons.Filled.ShoppingBag,
-                        title = stringResource(R.string.client_catalog_empty_title),
-                        subtitle = stringResource(R.string.client_catalog_empty_subtitle),
+                        icon = Icons.Outlined.CloudOff,
+                        title = stringResource(R.string.client_catalog_offline_title),
+                        subtitle = stringResource(R.string.client_catalog_offline_subtitle),
+                        actionLabel = stringResource(R.string.deeplink_retry),
+                        onAction = onRefresh,
                     )
                 }
-            }
 
-            is ClientCatalogState.Offline -> {
-                EmptyStateView(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Outlined.CloudOff,
-                    title = stringResource(R.string.client_catalog_offline_title),
-                    subtitle = stringResource(R.string.client_catalog_offline_subtitle),
-                    actionLabel = stringResource(R.string.deeplink_retry),
-                    onAction = onRefresh,
-                )
+                else -> Unit
             }
+        }
 
-            else -> Unit
+        if (data.isOffline) {
+            OfflineBanner(
+                modifier =
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .zIndex(1f),
+            )
         }
     }
 }

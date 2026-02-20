@@ -61,6 +61,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
@@ -281,130 +282,135 @@ private fun ProductDetailContent(
 ) {
     val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR")) }
 
-    Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .background(MaterialTheme.colorScheme.background)
-                .padding(bottom = AppDimensions.largePadding),
-    ) {
-        if (data.showOfflineWarning) {
-            OfflineBanner()
-            Spacer(modifier = Modifier.height(AppDimensions.smallPadding))
-        }
-
-        ProductDetailImage(
-            imageUrl = resolveProductDetailImageSource(data.product),
-            contentDescription = data.product.name,
-        )
-
+    Box(modifier = modifier) {
         Column(
             modifier =
                 Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = AppDimensions.mediumPadding, vertical = AppDimensions.mediumPadding),
-            verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(bottom = AppDimensions.largePadding),
         ) {
+            ProductDetailImage(
+                imageUrl = resolveProductDetailImageSource(data.product),
+                contentDescription = data.product.name,
+            )
+
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = AppDimensions.mediumPadding, vertical = AppDimensions.mediumPadding),
+                verticalArrangement = Arrangement.spacedBy(AppDimensions.smallPadding)
             ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = data.product.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                    )
+
+                    data.product.categoryName
+                        ?.takeIf { it.isNotBlank() }
+                        ?.let { rawCategory ->
+                            val (emoji, name) = splitCategoryLabel(rawCategory)
+                            CategoryBadge(
+                                emoji = emoji,
+                                name = name,
+                                onClick = {  },
+                            )
+                        }
+                }
+
                 Text(
-                    text = data.product.name,
-                    style = MaterialTheme.typography.titleLarge,
+                    text =
+                        if (data.product.hidePrice) {
+                            stringResource(R.string.price_consult)
+                        } else {
+                            currencyFormatter.format(data.product.price)
+                        },
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                 )
 
-                data.product.categoryName
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = AppDimensions.smallPadding),
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
+
+                Text(
+                    text = stringResource(R.string.description_label),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+
+                data.product.description
                     ?.takeIf { it.isNotBlank() }
-                    ?.let { rawCategory ->
-                        val (emoji, name) = splitCategoryLabel(rawCategory)
-                        CategoryBadge(
-                            emoji = emoji,
-                            name = name,
-                            onClick = {  },
+                    ?.let { description ->
+                        Text(
+                            text = description,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-            }
 
-            Text(
-                text =
-                    if (data.product.hidePrice) {
-                        stringResource(R.string.price_consult)
-                    } else {
-                        currencyFormatter.format(data.product.price)
-                    },
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-            )
-
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = AppDimensions.smallPadding),
-                color = MaterialTheme.colorScheme.outlineVariant
-            )
-
-            Text(
-                text = stringResource(R.string.description_label),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-            )
-
-            data.product.description
-                ?.takeIf { it.isNotBlank() }
-                ?.let { description ->
-                    Text(
-                        text = description,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-
-            when (data.mode) {
-                ProductDetailMode.CLIENT -> Unit
-                ProductDetailMode.ADMIN -> {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
-                    ) {
-                        Button(
-                            onClick = onEdit,
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(56.dp),
-                            shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                when (data.mode) {
+                    ProductDetailMode.CLIENT -> Unit
+                    ProductDetailMode.ADMIN -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Edit,
-                                contentDescription = null,
-                            )
-                            Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
-                            Text(text = stringResource(R.string.edit_product))
-                        }
+                            Button(
+                                onClick = onEdit,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(56.dp),
+                                shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Edit,
+                                    contentDescription = null,
+                                )
+                                Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+                                Text(text = stringResource(R.string.edit_product))
+                            }
 
-                        OutlinedButton(
-                            onClick = onDelete,
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(56.dp),
-                            shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
-                            border = BorderStroke(AppDimensions.smallBorderWidth, SlateGray200),
-                            colors =
-                                ButtonDefaults.outlinedButtonColors(
-                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                ),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
-                            Text(text = stringResource(R.string.delete))
+                            OutlinedButton(
+                                onClick = onDelete,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(56.dp),
+                                shape = RoundedCornerShape(AppDimensions.mediumCornerRadius),
+                                border = BorderStroke(AppDimensions.smallBorderWidth, SlateGray200),
+                                colors =
+                                    ButtonDefaults.outlinedButtonColors(
+                                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    ),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Delete,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Spacer(modifier = Modifier.width(AppDimensions.smallPadding))
+                                Text(text = stringResource(R.string.delete))
+                            }
                         }
                     }
                 }
             }
+        }
+
+        if (data.showOfflineWarning) {
+            OfflineBanner(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .zIndex(1f)
+            )
         }
     }
 }
@@ -418,7 +424,7 @@ private fun ProductDetailImage(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .aspectRatio(4f / 5f)
+                .aspectRatio(3f / 4f)
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh),
         contentAlignment = Alignment.Center,
     ) {

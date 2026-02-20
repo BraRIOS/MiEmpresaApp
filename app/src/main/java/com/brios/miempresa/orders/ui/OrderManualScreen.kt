@@ -91,6 +91,7 @@ fun OrderManualScreen(
     val form by viewModel.form.collectAsStateWithLifecycle()
     val products by viewModel.products.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
+    val orderCreated by viewModel.orderCreated.collectAsStateWithLifecycle()
 
     var showProductSheet by rememberSaveable { mutableStateOf(false) }
 
@@ -98,14 +99,11 @@ fun OrderManualScreen(
         screenActionGuard.runAndNavigate(onNavigateBack)
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.events.collect { event ->
-            when (event) {
-                is OrderManualEvent.OrderCreated -> {
-                    screenActionGuard.beginNavigation()
-                    onOrderCreated()
-                }
-                is OrderManualEvent.ShowError -> {}
+    LaunchedEffect(orderCreated, isScreenInteractive) {
+        if (orderCreated) {
+            screenActionGuard.runAndNavigate {
+                onOrderCreated()
+                viewModel.onOrderNavigationHandled()
             }
         }
     }

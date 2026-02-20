@@ -101,17 +101,20 @@ fun CategoryFormScreen(
     val selectedEmoji by viewModel.selectedEmoji.collectAsStateWithLifecycle()
     val nameError by viewModel.nameError.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
+    val saveCompleted by viewModel.saveCompleted.collectAsStateWithLifecycle()
     val productCount by viewModel.productCount.collectAsStateWithLifecycle()
 
     BackHandler(enabled = !isSaving) {
         screenActionGuard.runAndNavigate(onNavigateBack)
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.saveComplete.collect {
-            screenActionGuard.beginNavigation()
-            onSaved()
-            onNavigateBack()
+    LaunchedEffect(saveCompleted, isScreenInteractive) {
+        if (saveCompleted) {
+            screenActionGuard.runAndNavigate {
+                onSaved()
+                onNavigateBack()
+                viewModel.onSaveNavigationHandled()
+            }
         }
     }
 

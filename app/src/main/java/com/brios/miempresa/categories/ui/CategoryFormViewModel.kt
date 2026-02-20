@@ -12,11 +12,8 @@ import com.brios.miempresa.core.sync.SyncManager
 import com.brios.miempresa.core.sync.SyncType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -28,7 +25,7 @@ class CategoryFormViewModel
         private val categoriesRepository: CategoriesRepository,
         private val companyDao: CompanyDao,
         private val syncManager: SyncManager,
-        savedStateHandle: SavedStateHandle,
+        private val savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
         private val categoryId: String? = savedStateHandle["categoryId"]
         val isEditMode: Boolean = categoryId != null
@@ -45,8 +42,8 @@ class CategoryFormViewModel
         private val _isSaving = MutableStateFlow(false)
         val isSaving: StateFlow<Boolean> = _isSaving
 
-        private val _saveComplete = MutableSharedFlow<Unit>(replay = 0)
-        val saveComplete: SharedFlow<Unit> = _saveComplete.asSharedFlow()
+        private val _saveCompleted = MutableStateFlow(savedStateHandle[SAVE_COMPLETED_KEY] ?: false)
+        val saveCompleted: StateFlow<Boolean> = _saveCompleted
 
         private val _productCount = MutableStateFlow(0)
         val productCount: StateFlow<Int> = _productCount
@@ -83,6 +80,8 @@ class CategoryFormViewModel
         }
 
         fun save() {
+            if (_isSaving.value || _saveCompleted.value) return
+
             val currentCompanyId = companyId ?: return
             val currentName = _name.value.trim()
 
@@ -114,22 +113,34 @@ class CategoryFormViewModel
                     )
                 }
                 syncManager.syncNow(SyncType.CATEGORIES)
-                _isSaving.value = false
-                _saveComplete.emit(Unit)
+                markSaveCompleted()
             }
         }
 
         fun delete() {
             val currentCompanyId = companyId ?: return
+            if (_saveCompleted.value) return
             if (categoryId == null) return
             viewModelScope.launch {
                 categoriesRepository.delete(categoryId, currentCompanyId)
                 syncManager.syncNow(SyncType.CATEGORIES)
-                _saveComplete.emit(Unit)
+                markSaveCompleted()
             }
         }
 
+        fun onSaveNavigationHandled() {
+            _saveCompleted.value = false
+            savedStateHandle[SAVE_COMPLETED_KEY] = false
+        }
+
+        private fun markSaveCompleted() {
+            _isSaving.value = false
+            _saveCompleted.value = true
+            savedStateHandle[SAVE_COMPLETED_KEY] = true
+        }
+
         companion object {
+            private const val SAVE_COMPLETED_KEY = "category_form_save_completed"
             const val MAX_NAME_LENGTH = 50
         }
     }

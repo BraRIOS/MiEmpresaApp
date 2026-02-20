@@ -19,12 +19,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
@@ -42,7 +39,7 @@ class ProductFormViewModel
         private val companyDao: CompanyDao,
         private val syncManager: SyncManager,
         @param:ApplicationContext private val appContext: Context,
-        savedStateHandle: SavedStateHandle,
+        private val savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
     private val productId: String? = savedStateHandle["productId"]
     val isEditMode: Boolean = productId != null
@@ -71,8 +68,8 @@ class ProductFormViewModel
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving
 
-    private val _saveComplete = MutableSharedFlow<Unit>(replay = 0)
-    val saveComplete: SharedFlow<Unit> = _saveComplete.asSharedFlow()
+    private val _saveCompleted = MutableStateFlow(savedStateHandle[SAVE_COMPLETED_KEY] ?: false)
+    val saveCompleted: StateFlow<Boolean> = _saveCompleted
 
     private val _nameError = MutableStateFlow<String?>(null)
     val nameError: StateFlow<String?> = _nameError
@@ -183,6 +180,8 @@ class ProductFormViewModel
     }
 
     fun save() {
+        if (_isSaving.value || _saveCompleted.value) return
+
         val currentCompanyId = companyId ?: return
         val currentName = _name.value.trim()
         val currentPrice = _price.value.toDoubleOrNull()
@@ -284,10 +283,10 @@ class ProductFormViewModel
                     productsRepository.create(product)
                 }
                 syncManager.syncNow(SyncType.PRODUCTS)
+                markSaveCompleted()
+            } else {
+                _isSaving.value = false
             }
-
-            _isSaving.value = false
-            _saveComplete.emit(Unit)
         }
     }
 
@@ -302,7 +301,22 @@ class ProductFormViewModel
         viewModelScope.launch {
             productsRepository.delete(productId, currentCompanyId)
             syncManager.syncNow(SyncType.PRODUCTS)
-            _saveComplete.emit(Unit)
+            markSaveCompleted()
         }
+    }
+
+    fun onSaveNavigationHandled() {
+        _saveCompleted.value = false
+        savedStateHandle[SAVE_COMPLETED_KEY] = false
+    }
+
+    private fun markSaveCompleted() {
+        _isSaving.value = false
+        _saveCompleted.value = true
+        savedStateHandle[SAVE_COMPLETED_KEY] = true
+    }
+
+    companion object {
+        private const val SAVE_COMPLETED_KEY = "product_form_save_completed"
     }
 }

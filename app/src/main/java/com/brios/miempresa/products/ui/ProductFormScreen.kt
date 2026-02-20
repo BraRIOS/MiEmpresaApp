@@ -114,6 +114,7 @@ fun ProductFormScreen(
     val priceError by viewModel.priceError.collectAsStateWithLifecycle()
     val categoryError by viewModel.categoryError.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
+    val saveCompleted by viewModel.saveCompleted.collectAsStateWithLifecycle()
 
     val localImagePath by viewModel.localImagePath.collectAsStateWithLifecycle()
     val imageUrl = when {
@@ -132,11 +133,13 @@ fun ProductFormScreen(
         screenActionGuard.runAndNavigate(onNavigateBack)
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.saveComplete.collect {
-            screenActionGuard.beginNavigation()
-            onSaved()
-            onNavigateBack()
+    LaunchedEffect(saveCompleted, isScreenInteractive) {
+        if (saveCompleted) {
+            screenActionGuard.runAndNavigate {
+                onSaved()
+                onNavigateBack()
+                viewModel.onSaveNavigationHandled()
+            }
         }
     }
 

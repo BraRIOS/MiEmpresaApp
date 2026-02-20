@@ -1,6 +1,7 @@
 package com.brios.miempresa.orders.ui
 
 import android.content.Context
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.brios.miempresa.R
@@ -52,7 +53,6 @@ data class OrderFormState(
 }
 
 sealed interface OrderManualEvent {
-    data object OrderCreated : OrderManualEvent
     data class ShowError(val message: String) : OrderManualEvent
 }
 
@@ -64,6 +64,7 @@ class OrderManualViewModel
         private val ordersRepository: OrdersRepository,
         private val productDao: ProductDao,
         private val companyDao: CompanyDao,
+        private val savedStateHandle: SavedStateHandle,
     ) : ViewModel() {
         private val _companyId = MutableStateFlow<String?>(null)
 
@@ -75,6 +76,8 @@ class OrderManualViewModel
 
         private val _isSaving = MutableStateFlow(false)
         val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
+        private val _orderCreated = MutableStateFlow(savedStateHandle[ORDER_CREATED_KEY] ?: false)
+        val orderCreated: StateFlow<Boolean> = _orderCreated.asStateFlow()
 
         @OptIn(ExperimentalCoroutinesApi::class)
         val products: StateFlow<List<ProductEntity>> =
@@ -154,6 +157,8 @@ class OrderManualViewModel
         }
 
         fun createOrder() {
+            if (_isSaving.value || _orderCreated.value) return
+
             val companyId = _companyId.value ?: return
             val formValue = _form.value
             if (!formValue.isValid) return
@@ -185,7 +190,7 @@ class OrderManualViewModel
                         )
                     }
                     ordersRepository.createOrder(order, items)
-                    _events.emit(OrderManualEvent.OrderCreated)
+                    markOrderCreated()
                 } catch (e: Exception) {
                     _events.emit(
                         OrderManualEvent.ShowError(
@@ -196,5 +201,19 @@ class OrderManualViewModel
                     _isSaving.value = false
                 }
             }
+        }
+
+        fun onOrderNavigationHandled() {
+            _orderCreated.value = false
+            savedStateHandle[ORDER_CREATED_KEY] = false
+        }
+
+        private fun markOrderCreated() {
+            _orderCreated.value = true
+            savedStateHandle[ORDER_CREATED_KEY] = true
+        }
+
+        companion object {
+            private const val ORDER_CREATED_KEY = "order_manual_created"
         }
     }

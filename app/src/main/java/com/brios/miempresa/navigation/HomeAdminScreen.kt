@@ -47,6 +47,7 @@ fun HomeAdminScreen(
     onNavigateToOrders: () -> Unit = {},
     onNavigateToEditCompany: () -> Unit = {},
     onNavigateToWelcome: () -> Unit = {},
+    onNavigateToClientCatalog: (String) -> Unit = {},
     signInViewModel: SignInViewModel = hiltViewModel(),
     productsViewModel: ProductsViewModel = hiltViewModel(),
     categoriesViewModel: CategoriesViewModel = hiltViewModel(),
@@ -74,6 +75,7 @@ fun HomeAdminScreen(
             onNavigateToEditCompany = onNavigateToEditCompany,
             onNavigateToOrders = onNavigateToOrders,
             onNavigateToWelcome = onNavigateToWelcome,
+            onNavigateToClientCatalog = onNavigateToClientCatalog,
         )
     },
 ) {

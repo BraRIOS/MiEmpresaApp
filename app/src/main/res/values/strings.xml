@@ -237,6 +237,8 @@
     <string name="config_share_code">Compartir código</string>
     <string name="config_share_qr">Generar QR</string>
     <string name="config_share_code_message">Mi catálogo en MiEmpresa: %1$s</string>
+    <string name="config_view_catalog">Ver mi catálogo</string>
+    <string name="config_view_catalog_subtitle">Mirá cómo lo ven tus clientes</string>
     <string name="config_qr_title">Código QR del catálogo</string>
     <string name="config_qr_helper">Usá Google Lens para escanear el QR</string>
     <string name="config_logout_title">Cerrar sesión</string>

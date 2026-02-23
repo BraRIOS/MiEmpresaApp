@@ -71,7 +71,8 @@ class CategoriesViewModel
                         combine(
                             categoriesRepository.getAll(companyId),
                             _searchQuery,
-                        ) { categories, query ->
+                            categoriesRepository.observeProductChanges(companyId),
+                        ) { categories, query, _ ->
                             val filtered =
                                 if (query.isBlank()) {
                                     categories

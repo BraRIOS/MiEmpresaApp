@@ -25,6 +25,8 @@ interface CategoriesRepository {
         companyId: String,
     ): Int
 
+    fun observeProductChanges(companyId: String): Flow<Any>
+
     suspend fun syncPendingChanges(companyId: String)
 
     suspend fun downloadFromSheets(companyId: String)

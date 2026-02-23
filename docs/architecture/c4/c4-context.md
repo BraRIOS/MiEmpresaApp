@@ -301,7 +301,7 @@ The application follows a **zero-knowledge architecture** where all user data re
    - **System Response**: Shows HomeAdminScreen with product count, category count, recent orders
    - **Sync Status**: Background sync starts (WorkManager)
    
-2. **Navigate to Products**: User taps "Products" from navigation drawer
+2. **Navigate to Products**: User taps "Products" tab in bottom navigation
    - **System Response**: Shows ProductsListScreen with existing products
    - **Data Source**: Room database (offline-first)
    
@@ -345,7 +345,7 @@ The application follows a **zero-knowledge architecture** where all user data re
 
 #### Steps:
 
-1. **Navigate to Settings**: User taps "Settings" from navigation drawer
+1. **Navigate to Company Tab**: User taps "Empresa" (Company) tab in bottom navigation
    - **System Response**: Shows ConfigScreen with company info, sharing options
    
 2. **Open Share Dialog**: User taps "Share Catalog" button
@@ -377,7 +377,7 @@ The application follows a **zero-knowledge architecture** where all user data re
 
 #### Steps:
 
-1. **Navigate to Orders**: User taps "Orders" from navigation drawer
+1. **Navigate to Orders**: User taps "Empresa" (Company) tab → "Mis Pedidos" card
    - **System Response**: Shows PedidosListScreen with order history
    
 2. **Add Manual Order**: User taps FAB "+" button
@@ -559,7 +559,7 @@ The application follows a **zero-knowledge architecture** where all user data re
 1. **Open App Offline**: Customer launches app without internet
    - **System Response**: Shows offline indicator in status bar
    
-2. **Navigate to My Stores**: Customer taps "My Stores" from drawer
+2. **Navigate to My Stores**: Customer taps "My Stores" from drawer menu
    - **System Response**: Shows MisTiendasScreen with visited companies (from Room)
    
 3. **Select Store**: Customer taps on previously visited store

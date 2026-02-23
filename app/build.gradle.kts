@@ -66,8 +66,8 @@ android {
         applicationId = "com.brios.miempresa"
         minSdk = 24
         targetSdk = 35
-        versionCode = 8
-        versionName = "2.1.5"
+        versionCode = 9
+        versionName = "2.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

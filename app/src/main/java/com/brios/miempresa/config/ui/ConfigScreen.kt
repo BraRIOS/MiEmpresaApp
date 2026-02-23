@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -84,6 +85,7 @@ import com.brios.miempresa.core.ui.theme.SlateGray200
 import com.brios.miempresa.core.ui.theme.SlateGray300
 import com.brios.miempresa.core.ui.theme.SlateGray400
 import com.brios.miempresa.core.ui.theme.SlateGray500
+import com.brios.miempresa.core.ui.theme.SuccessGreen
 import com.brios.miempresa.core.util.QrCodeGenerator
 import com.brios.miempresa.core.util.QrCodeResult
 
@@ -96,10 +98,12 @@ fun ConfigScreen(
     onNavigateToEditCompany: () -> Unit = {},
     onNavigateToOrders: () -> Unit = {},
     onNavigateToWelcome: () -> Unit = {},
+    onNavigateToClientCatalog: (String) -> Unit = {},
 ) {
     val form by viewModel.form.collectAsStateWithLifecycle()
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
     val publicSheetId by viewModel.publicSheetId.collectAsStateWithLifecycle()
+    val companyId by viewModel.companyId.collectAsStateWithLifecycle()
     val activity = LocalActivity.current as Activity
 
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
@@ -136,6 +140,7 @@ fun ConfigScreen(
                 activity.startActivity(Intent.createChooser(sendIntent, null))
             },
             onGenerateQr = viewModel::showShareSheet,
+            onViewCatalog = { companyId?.let { onNavigateToClientCatalog(it) } },
             onSyncNow = viewModel::syncNow,
             onLogoutClick = { showLogoutDialog = true },
         )
@@ -189,6 +194,7 @@ fun ConfigScreenContent(
     onNavigateToOrders: () -> Unit = {},
     onShareCode: (String) -> Unit = {},
     onGenerateQr: () -> Unit = {},
+    onViewCatalog: () -> Unit = {},
     onSyncNow: () -> Unit = {},
     onLogoutClick: () -> Unit = {},
 ) {
@@ -262,6 +268,18 @@ fun ConfigScreenContent(
             publicSheetId = publicSheetId,
             onShareCode = onShareCode,
             onGenerateQr = onGenerateQr,
+        )
+
+        Spacer(modifier = Modifier.height(AppDimensions.mediumSmallPadding))
+
+        // Ver mi catálogo
+        ActionCard(
+            title = stringResource(R.string.config_view_catalog),
+            subtitle = stringResource(R.string.config_view_catalog_subtitle),
+            icon = Icons.Outlined.Visibility,
+            iconBackgroundColor = SuccessGreen.copy(alpha = 0.1f),
+            iconTint = SuccessGreen,
+            onClick = onViewCatalog,
         )
 
         Spacer(modifier = Modifier.height(AppDimensions.extraLargePadding))

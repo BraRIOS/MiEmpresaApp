@@ -85,6 +85,7 @@ class ConfigViewModel
         private val saveCompanyConfigUseCase: SaveCompanyConfigUseCase,
     ) : ViewModel() {
         private val _companyId = MutableStateFlow<String?>(null)
+        val companyId: StateFlow<String?> = _companyId.asStateFlow()
         private var originalCompany: Company? = null
 
         // Prevents reactive Flow from overwriting user edits in EditCompanyDataScreen

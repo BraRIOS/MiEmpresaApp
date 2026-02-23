@@ -460,6 +460,11 @@ fun NavHostComposable(
                             navController.navigate(EditCompanyDataRoute)
                         }
                     },
+                    onNavigateToClientCatalog = { companyId ->
+                        guardedResumedNavigation(backStackEntry) {
+                            navController.navigate(ClientCatalogRoute(companyId))
+                        }
+                    },
                 )
             }
             composable<ProductFormAddRoute> { backStackEntry ->

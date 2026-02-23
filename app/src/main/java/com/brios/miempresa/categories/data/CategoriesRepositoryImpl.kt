@@ -54,6 +54,9 @@ class CategoriesRepositoryImpl
             companyId: String,
         ): Int = productDao.countByCategory(categoryId, companyId)
 
+        override fun observeProductChanges(companyId: String): Flow<Any> =
+            productDao.getAllByCompanyFlow(companyId)
+
         override suspend fun syncPendingChanges(companyId: String) =
             withContext(ioDispatcher) {
                 val company = companyDao.getCompanyById(companyId) ?: return@withContext

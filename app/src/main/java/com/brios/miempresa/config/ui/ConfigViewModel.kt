@@ -1,0 +1,321 @@
+package com.brios.miempresa.config.ui
+
+import android.app.Activity
+import android.content.Context
+import androidx.work.WorkInfo
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.brios.miempresa.R
+import com.brios.miempresa.config.domain.ConfigRepository
+import com.brios.miempresa.config.domain.SaveCompanyConfigRequest
+import com.brios.miempresa.config.domain.SaveCompanyConfigUseCase
+import com.brios.miempresa.core.data.local.daos.CompanyDao
+import com.brios.miempresa.core.data.local.entities.Company
+import com.brios.miempresa.core.domain.LogoutUseCase
+import com.brios.miempresa.core.sync.SyncManager
+import com.brios.miempresa.core.sync.SyncType
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import javax.inject.Inject
+
+data class ConfigFormState(
+    val companyName: String = "",
+    val whatsappCountryCode: String = "+54",
+    val whatsappNumber: String = "",
+    val specialization: String = "",
+    val logoUrl: String? = null,
+    val address: String = "",
+    val businessHours: String = "",
+    val localLogoUri: String? = null,
+    val companyNameError: String? = null,
+    val whatsappError: String? = null,
+) {
+    val isFormValid: Boolean
+        get() = companyName.isNotBlank() && whatsappNumber.matches(Regex("^\\d{6,15}$"))
+
+    val hasChanges: Boolean
+        get() = true // Simplified; compared against original in ViewModel
+
+    companion object {
+        const val MAX_COMPANY_NAME = 50
+        const val MAX_WHATSAPP_NUMBER = 15
+        const val MAX_SPECIALIZATION = 30
+        const val MAX_ADDRESS = 100
+        const val MAX_BUSINESS_HOURS = 50
+    }
+}
+
+sealed interface ConfigUiState {
+    data object Loading : ConfigUiState
+    data class Ready(val form: ConfigFormState) : ConfigUiState
+    data class Saving(val form: ConfigFormState) : ConfigUiState
+    data class Error(val message: String, val form: ConfigFormState) : ConfigUiState
+}
+
+sealed interface ConfigEvent {
+    data class ShowSnackbar(val message: String) : ConfigEvent
+    data object NavigateToWelcome : ConfigEvent
+    data object NavigateToOrders : ConfigEvent
+    data object ShowShareSheet : ConfigEvent
+}
+
+@HiltViewModel
+class ConfigViewModel
+    @Inject
+    constructor(
+        @ApplicationContext private val appContext: Context,
+        private val configRepository: ConfigRepository,
+        private val companyDao: CompanyDao,
+        private val syncManager: SyncManager,
+        private val logoutUseCase: LogoutUseCase,
+        private val saveCompanyConfigUseCase: SaveCompanyConfigUseCase,
+    ) : ViewModel() {
+        private val _companyId = MutableStateFlow<String?>(null)
+        val companyId: StateFlow<String?> = _companyId.asStateFlow()
+        private var originalCompany: Company? = null
+
+        // Prevents reactive Flow from overwriting user edits in EditCompanyDataScreen
+        private var isEditing = false
+
+        private val _form = MutableStateFlow(ConfigFormState())
+        val form: StateFlow<ConfigFormState> = _form.asStateFlow()
+
+        private val _uiState = MutableStateFlow<ConfigUiState>(ConfigUiState.Loading)
+        val uiState: StateFlow<ConfigUiState> = _uiState.asStateFlow()
+
+        private val _events = MutableSharedFlow<ConfigEvent>(replay = 0)
+        val events: SharedFlow<ConfigEvent> = _events.asSharedFlow()
+
+        private val _isSyncing = MutableStateFlow(false)
+        val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
+
+        @OptIn(ExperimentalCoroutinesApi::class)
+        val publicSheetId: StateFlow<String?> =
+            _companyId
+                .filterNotNull()
+                .flatMapLatest { configRepository.observeCompany(it) }
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+                .let { flow ->
+                    MutableStateFlow<String?>(null).also { result ->
+                        viewModelScope.launch {
+                            flow.collect { result.value = it?.publicSheetId }
+                        }
+                    }
+                }
+
+        init {
+            loadCompanyAndObserve()
+        }
+
+        private fun loadCompanyAndObserve() {
+            viewModelScope.launch {
+                val company = companyDao.getSelectedOwnedCompany()
+                if (company != null) {
+                    _companyId.value = company.id
+                    updateFormFromCompany(company)
+
+                    // Observe Room changes reactively so ConfigScreen refreshes
+                    // after EditCompanyDataScreen saves
+                    configRepository.observeCompany(company.id).collect { updated ->
+                        if (updated != null && !isEditing) {
+                            updateFormFromCompany(updated)
+                        }
+                    }
+                }
+            }
+        }
+
+        private fun updateFormFromCompany(company: Company) {
+            originalCompany = company
+            _form.value = ConfigFormState(
+                companyName = company.name,
+                whatsappCountryCode = company.whatsappCountryCode,
+                whatsappNumber = company.whatsappNumber ?: "",
+                specialization = company.specialization ?: "",
+                logoUrl = company.logoUrl,
+                address = company.address ?: "",
+                businessHours = company.businessHours ?: "",
+            )
+            _uiState.value = ConfigUiState.Ready(_form.value)
+        }
+
+        fun updateCompanyName(name: String) {
+            isEditing = true
+            _form.value =
+                _form.value.copy(
+                    companyName = name.take(ConfigFormState.MAX_COMPANY_NAME),
+                    companyNameError = null,
+                )
+            _uiState.value = ConfigUiState.Ready(_form.value)
+        }
+
+        fun updateCountryCode(code: String) {
+            isEditing = true
+            _form.value = _form.value.copy(whatsappCountryCode = code)
+            _uiState.value = ConfigUiState.Ready(_form.value)
+        }
+
+        fun updateWhatsappNumber(number: String) {
+            isEditing = true
+            _form.value =
+                _form.value.copy(
+                    whatsappNumber = number.take(ConfigFormState.MAX_WHATSAPP_NUMBER),
+                    whatsappError = null,
+                )
+            _uiState.value = ConfigUiState.Ready(_form.value)
+        }
+
+        fun updateSpecialization(specialization: String) {
+            isEditing = true
+            _form.value = _form.value.copy(specialization = specialization.take(ConfigFormState.MAX_SPECIALIZATION))
+            _uiState.value = ConfigUiState.Ready(_form.value)
+        }
+
+        fun updateAddress(address: String) {
+            isEditing = true
+            _form.value = _form.value.copy(address = address.take(ConfigFormState.MAX_ADDRESS))
+            _uiState.value = ConfigUiState.Ready(_form.value)
+        }
+
+        fun updateBusinessHours(hours: String) {
+            isEditing = true
+            _form.value = _form.value.copy(businessHours = hours.take(ConfigFormState.MAX_BUSINESS_HOURS))
+            _uiState.value = ConfigUiState.Ready(_form.value)
+        }
+
+        fun updateLocalLogoUri(uri: String?) {
+            isEditing = true
+            _form.value = _form.value.copy(localLogoUri = uri)
+            _uiState.value = ConfigUiState.Ready(_form.value)
+        }
+
+        fun save() {
+            val companyId = _companyId.value ?: return
+            val form = _form.value
+
+            var hasError = false
+            var validatedForm =
+                form.copy(
+                    companyNameError = null,
+                    whatsappError = null,
+                )
+            if (validatedForm.companyName.isBlank()) {
+                validatedForm =
+                    validatedForm.copy(companyNameError = appContext.getString(R.string.onboarding_name_required))
+                hasError = true
+            }
+            if (!validatedForm.whatsappNumber.matches(Regex("^\\d{6,15}$"))) {
+                validatedForm =
+                    validatedForm.copy(whatsappError = appContext.getString(R.string.onboarding_whatsapp_invalid))
+                hasError = true
+            }
+
+            if (hasError) {
+                _form.value = validatedForm
+                _uiState.value = ConfigUiState.Ready(validatedForm)
+                return
+            }
+
+            viewModelScope.launch {
+                _uiState.value = ConfigUiState.Saving(validatedForm)
+                try {
+                    val original = originalCompany ?: run {
+                        _uiState.value = ConfigUiState.Ready(validatedForm)
+                        return@launch
+                    }
+                    val finalCompany =
+                        saveCompanyConfigUseCase(
+                            SaveCompanyConfigRequest(
+                                companyId = companyId,
+                                originalCompany = original,
+                                companyName = validatedForm.companyName,
+                                whatsappCountryCode = validatedForm.whatsappCountryCode,
+                                whatsappNumber = validatedForm.whatsappNumber,
+                                specialization = validatedForm.specialization,
+                                address = validatedForm.address,
+                                businessHours = validatedForm.businessHours,
+                                localLogoUri = validatedForm.localLogoUri,
+                            ),
+                        )
+                    originalCompany = finalCompany
+
+                    _form.value = _form.value.copy(localLogoUri = null, logoUrl = finalCompany.logoUrl)
+                    _uiState.value = ConfigUiState.Ready(_form.value)
+                    isEditing = false
+                    _events.emit(ConfigEvent.ShowSnackbar(appContext.getString(R.string.config_changes_saved)))
+                } catch (e: Exception) {
+                    _uiState.value = ConfigUiState.Error(
+                        e.message ?: appContext.getString(R.string.error_save_config),
+                        form,
+                    )
+                }
+            }
+        }
+
+        fun syncNow() {
+            viewModelScope.launch {
+                if (_isSyncing.value) return@launch
+                _isSyncing.value = true
+                _events.emit(ConfigEvent.ShowSnackbar(appContext.getString(R.string.sync_in_progress)))
+
+                val syncWorkId = syncManager.syncNow(SyncType.ALL)
+                val finalState =
+                    withTimeoutOrNull(SYNC_RESULT_TIMEOUT_MS) {
+                        syncManager
+                            .observeWorkState(syncWorkId)
+                            .filterNotNull()
+                            .first { state -> state.isFinished }
+                    }
+
+                _isSyncing.value = false
+
+                val messageRes =
+                    when (finalState) {
+                        WorkInfo.State.SUCCEEDED -> R.string.sync_completed
+                        WorkInfo.State.FAILED,
+                        WorkInfo.State.CANCELLED,
+                        -> R.string.sync_failed
+                        null -> R.string.sync_scheduled
+                        else -> R.string.sync_completed
+                    }
+                _events.emit(ConfigEvent.ShowSnackbar(appContext.getString(messageRes)))
+            }
+        }
+
+        fun signOut(activity: Activity) {
+            viewModelScope.launch {
+                logoutUseCase(activity)
+                _events.emit(ConfigEvent.NavigateToWelcome)
+            }
+        }
+
+        fun navigateToOrders() {
+            viewModelScope.launch {
+                _events.emit(ConfigEvent.NavigateToOrders)
+            }
+        }
+
+        fun showShareSheet() {
+            viewModelScope.launch {
+                _events.emit(ConfigEvent.ShowShareSheet)
+            }
+        }
+
+        companion object {
+            private const val SYNC_RESULT_TIMEOUT_MS = 30_000L
+        }
+    }

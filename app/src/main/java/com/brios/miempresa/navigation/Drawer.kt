@@ -1,26 +1,34 @@
 package com.brios.miempresa.navigation
 
 import android.app.Activity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.CompareArrows
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.AddBusiness
+import androidx.compose.material.icons.filled.Domain
+import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,32 +36,39 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.brios.miempresa.R
-import com.brios.miempresa.data.Company
-import com.brios.miempresa.domain.UserData
-import com.brios.miempresa.signin.SignInViewModel
-import com.brios.miempresa.ui.dimens.AppDimensions
+import com.brios.miempresa.auth.ui.SignInViewModel
+import com.brios.miempresa.core.auth.UserData
+import com.brios.miempresa.core.data.local.entities.Company
+import com.brios.miempresa.core.ui.components.CompanyAvatar
+import com.brios.miempresa.core.ui.theme.AppDimensions
+import com.brios.miempresa.core.ui.theme.MiEmpresaTheme
 import kotlinx.coroutines.launch
 
 @Composable
@@ -61,13 +76,13 @@ fun DrawerComposable(
     navController: NavHostController,
     drawerState: DrawerState,
     signInViewModel: SignInViewModel? = null,
-    content: @Composable () -> Unit
-){
+    content: @Composable () -> Unit,
+) {
     val viewModel = signInViewModel ?: if (!LocalInspectionMode.current) hiltViewModel() else null
     val user = viewModel?.getSignedInUser()
-    val selectedCompanyState = viewModel?.getSelectedCompany()?.observeAsState()
-    val selectedCompany by selectedCompanyState ?: remember { mutableStateOf(null) }
-    val context = LocalContext.current as? Activity
+    val selectedCompanyState = viewModel?.observeSelectedCompany()?.collectAsStateWithLifecycle(initialValue = null)
+    val selectedCompany: Company? by selectedCompanyState ?: remember { mutableStateOf(null) }
+    val context = LocalActivity.current
     DrawerContent(drawerState, user, selectedCompany, context, viewModel, navController, content)
 }
 
@@ -75,178 +90,290 @@ fun DrawerComposable(
 private fun DrawerContent(
     drawerState: DrawerState,
     user: UserData?,
-    selectedCompany:  Company?,
+    selectedCompany: Company?,
     context: Activity?,
     signInViewModel: SignInViewModel?,
     navController: NavHostController,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    var showDropdown by remember { mutableStateOf(false) }
+    var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet {
+            ModalDrawerSheet(
+                modifier = Modifier.fillMaxWidth(0.7f),
+                drawerShape =
+                    RoundedCornerShape(
+                        topEnd = AppDimensions.Drawer.drawerCornerRadius,
+                        bottomEnd = AppDimensions.Drawer.drawerCornerRadius,
+                    ),
+                drawerContainerColor = MaterialTheme.colorScheme.background,
+                windowInsets = WindowInsets(0),
+            ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(AppDimensions.mediumPadding),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier.fillMaxSize(),
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.miempresa_logo_glyph),
-                        contentDescription = stringResource(R.string.app_logo),
-                        modifier = Modifier.size(AppDimensions.Drawer.appLogoSize),
-                        contentScale = ContentScale.Crop
-                    )
+                    // Header: Company logo + name
                     Column(
-                        modifier = Modifier.wrapContentHeight(),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors = listOf(
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                            Color.Transparent,
+                                        ),
+                                    ),
+                                )
+                                .windowInsetsPadding(WindowInsets.statusBars)
+                                .padding(
+                                    horizontal = AppDimensions.largePadding,
+                                    vertical = AppDimensions.largePadding,
+                                ),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
+                        // Company avatar
+                        CompanyAvatar(
+                            companyName = selectedCompany?.name
+                                ?: stringResource(R.string.app_name),
+                            logoUrl = selectedCompany?.logoUrl,
+                            size = AppDimensions.Drawer.companyLogoSize,
+                        )
+                        Spacer(modifier = Modifier.height(AppDimensions.mediumPadding))
+                        Text(
+                            text =
+                                selectedCompany?.name
+                                    ?: stringResource(R.string.app_name),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+
+                    HorizontalDivider(color= MaterialTheme.colorScheme.outline)
+
+                    // Menu items
+                    Column(
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .padding(
+                                    horizontal = AppDimensions.mediumSmallPadding,
+                                    vertical = AppDimensions.mediumPadding,
+                                ),
+                        verticalArrangement = Arrangement.spacedBy(AppDimensions.extraSmallPadding),
+                    ) {
+
+                        // Switch company - goes to CompanySelector (CompanyListView)
+                        DrawerMenuItem(
+                            icon = Icons.Filled.Domain,
+                            label = stringResource(R.string.switch_company),
+                            onClick = {
+                                scope.launch {
+                                    drawerState.close()
+                                    navController.navigate(OnboardingRoute(mode = "selector"))
+                                }
+                            },
+                        )
+
+                        // Create another company - goes to WizardStep1 (first step)
+                        DrawerMenuItem(
+                            icon = Icons.Filled.AddBusiness,
+                            label = stringResource(R.string.create_another_company),
+                            onClick = {
+                                scope.launch {
+                                    drawerState.close()
+                                    navController.navigate(OnboardingRoute(mode = "create"))
+                                }
+                            },
+                        )
+
+                        HorizontalDivider(
+                            modifier =
+                                Modifier.padding(
+                                    horizontal = AppDimensions.mediumPadding,
+                                    vertical = AppDimensions.smallPadding,
+                                ),
+                        )
+
+                        // Tiendas visitadas (placeholder — feature not yet implemented)
+                        DrawerMenuItem(
+                            icon = Icons.Filled.Storefront,
+                            label = stringResource(R.string.visited_stores),
+                            onClick = {
+                                scope.launch {
+                                    drawerState.close()
+                                    navController.navigate(MyStoresRoute)
+                                }
+                            },
+                        )
+
+                        HorizontalDivider(
+                            modifier =
+                                Modifier.padding(
+                                    horizontal = AppDimensions.mediumPadding,
+                                    vertical = AppDimensions.smallPadding,
+                                ),
+                        )
+
+                        // Sign out
+                        DrawerMenuItem(
+                            icon = Icons.AutoMirrored.Filled.Logout,
+                            label = stringResource(R.string.log_out),
+                            tint = MaterialTheme.colorScheme.error,
+                            onClick = {
+                                scope.launch { drawerState.close() }
+                                showLogoutDialog = true
+                            },
+                        )
+                    }
+
+                    // Footer: User info
+                    user?.let {
                         HorizontalDivider()
-                        selectedCompany?.let {
-                            Row(
-                                modifier = Modifier
+                        Row(
+                            modifier =
+                                Modifier
                                     .fillMaxWidth()
+                                    .navigationBarsPadding()
                                     .padding(AppDimensions.mediumPadding),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Column(
-                                    modifier = Modifier.wrapContentHeight(),
-                                    verticalArrangement = Arrangement.SpaceBetween
-                                ) {
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumSmallPadding),
+                        ) {
+                            Image(
+                                painter = rememberAsyncImagePainter(model = user.profilePictureUrl),
+                                contentDescription = stringResource(R.string.profile_picture),
+                                modifier =
+                                    Modifier
+                                        .size(AppDimensions.Drawer.userAvatarSize)
+                                        .clip(CircleShape),
+                                contentScale = ContentScale.Crop,
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text =
+                                        user.username
+                                            ?: stringResource(id = R.string.user),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                user.email?.let { email ->
                                     Text(
-                                        text = it.name, style = MaterialTheme.typography.bodyLarge,
-                                    )
-                                    Text(
-                                        text = stringResource(R.string.current_company),
+                                        text = email,
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
                                     )
-                                }
-                                Icon(
-                                    modifier = Modifier
-                                        .size(AppDimensions.mediumIconSize)
-                                        .clickable {
-                                            scope.launch {
-                                                drawerState.close()
-                                            }
-                                            navController.navigate(MiEmpresaScreen.Initializer.name+"/ShowCompanyList")
-                                        },
-                                    imageVector = Icons.AutoMirrored.Filled.CompareArrows,
-                                    contentDescription = stringResource(R.string.switch_company),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                        HorizontalDivider()
-                        user?.let {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(AppDimensions.mediumPadding),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding)
-                            ) {
-
-                                Image(
-                                    painter = rememberAsyncImagePainter(model = user.profilePictureUrl),
-                                    contentDescription = stringResource(R.string.profile_picture),
-                                    modifier = Modifier
-                                        .size(AppDimensions.largeIconSize)
-                                        .clip(CircleShape)
-                                )
-
-                                Column(
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text(
-                                        text = user.username ?: stringResource(id = R.string.user),
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    user.email?.let { it1 ->
-                                        Text(
-                                            text = it1,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-                                }
-                                Box {
-                                    Icon(
-                                        imageVector = Icons.Default.MoreVert,
-                                        contentDescription = stringResource(R.string.options),
-                                        modifier = Modifier
-                                            .clickable { showDropdown = !showDropdown }
-                                    )
-                                    DropdownMenu(
-                                        expanded = showDropdown,
-                                        onDismissRequest = { showDropdown = false }
-                                    ) {
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.view_profile)) },
-                                            onClick = {
-                                                showDropdown = false
-                                                scope.launch {
-                                                    drawerState.close()
-                                                }
-//                                        navController.navigate("profile")
-                                            }
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.log_out)) },
-                                            onClick = {
-                                                showDropdown = false
-                                                scope.launch {
-                                                    drawerState.close()
-                                                    if (signInViewModel != null && context != null) {
-                                                        signInViewModel.signOut(context).also {
-                                                            navController.navigate(MiEmpresaScreen.SignIn.name) {
-                                                                popUpTo(0)
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        )
-                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
+        },
     ) { content() }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text(stringResource(R.string.config_logout_title)) },
+            text = { Text(stringResource(R.string.config_logout_message)) },
+            titleContentColor = MaterialTheme.colorScheme.onBackground,
+            containerColor = MaterialTheme.colorScheme.background,
+            confirmButton = {
+                TextButton(onClick = {
+                    showLogoutDialog = false
+                    if (signInViewModel != null && context != null) {
+                        signInViewModel.signOut(context)
+                        navController.navigateClearingBackStack(MiEmpresaRoutes.authGraph)
+                    }
+                }) {
+                    Text(stringResource(R.string.config_logout_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text(stringResource(R.string.config_logout_dismiss))
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun DrawerMenuItem(
+    icon: ImageVector,
+    label: String,
+    modifier: Modifier = Modifier,
+    tint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    onClick: () -> Unit,
+) {
+    val backgroundColor = Color.Transparent
+    val fontWeight = FontWeight.Medium
+
+    Row(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(50))
+                .background(backgroundColor)
+                .clickable(
+                    onClick = onClick,
+                    role = androidx.compose.ui.semantics.Role.Button,
+                )
+                .padding(
+                    horizontal = AppDimensions.mediumPadding,
+                    vertical = AppDimensions.mediumSmallPadding,
+                ),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AppDimensions.mediumPadding),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = tint,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = fontWeight,
+            color = tint,
+        )
+    }
 }
 
 @Preview
 @Composable
-fun DrawerContentPreview(){
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+fun DrawerContentPreview() {
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Open)
     val scope = rememberCoroutineScope()
+    MiEmpresaTheme {
     DrawerContent(
         drawerState = drawerState,
         UserData("Test", "Test username", "test@test.com", "url"),
-        Company("Test", "Test Company", true),
+        Company("Test", "Test Company", selected = true),
         null,
         null,
-        NavHostController(LocalContext.current)
-    ){
+        NavHostController(LocalContext.current),
+    ) {
         Surface(modifier = Modifier.fillMaxSize()) {
             Column(
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ){
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
                 Button(
-                    onClick = { scope.launch { drawerState.open() } }) {
+                    onClick = { scope.launch { drawerState.open() } },
+                ) {
                     Text(text = "Open Drawer")
                 }
             }
         }
-
     }
-
+        }
 }

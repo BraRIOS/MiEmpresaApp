@@ -1,0 +1,32 @@
+#!/bin/sh
+# Hook pre-commit para verificar ktlint antes de commitear
+
+echo "🔍 Ejecutando ktlint en archivos Kotlin modificados..."
+
+# Obtener archivos Kotlin staged
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep '\.kt$')
+
+if [ -z "$STAGED_FILES" ]; then
+    echo "✅ No hay archivos Kotlin para verificar"
+    exit 0
+fi
+
+echo "Archivos a verificar:"
+echo "$STAGED_FILES"
+echo ""
+
+# Ejecutar ktlint
+./gradlew ktlintCheck --daemon
+
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+    echo ""
+    echo "❌ ktlint encontró problemas de formato."
+    echo "💡 Puedes auto-corregirlos ejecutando: ./gradlew ktlintFormat"
+    echo "   O puedes hacer commit con --no-verify para saltarte esta verificación"
+    exit 1
+fi
+
+echo "✅ ktlint pasó exitosamente!"
+exit 0
